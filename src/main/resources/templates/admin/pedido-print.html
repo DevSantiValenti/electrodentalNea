@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title th:text="|Pedido ${pedido.codigoCompra ?: pedido.id}|">Pedido</title>
+	<link rel="icon" type="image/png" th:href="@{/img/electrodentallarge.png}">
+	<style>
+		* { box-sizing: border-box; }
+		body { margin: 0; background: #f4f6f8; color: #071426; font-family: Arial, sans-serif; }
+		.sheet { width: min(960px, calc(100% - 32px)); margin: 24px auto; background: #fff; border: 1px solid #d8dde4; border-radius: 12px; padding: 32px; }
+		.header { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; border-bottom: 2px solid #071426; padding-bottom: 18px; }
+		.logo { height: 72px; width: auto; object-fit: contain; }
+		h1 { margin: 0; font-size: 24px; }
+		h2 { margin: 26px 0 10px; font-size: 17px; }
+		p { margin: 4px 0; }
+		.muted { color: #667085; }
+		.grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 24px; }
+		.box { border: 1px solid #d8dde4; border-radius: 10px; padding: 14px; }
+		table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+		th { background: #071426; color: #fff; font-size: 12px; text-transform: uppercase; text-align: left; padding: 10px; }
+		td { border-bottom: 1px solid #e6e9ef; padding: 12px 10px; vertical-align: top; }
+		.right { text-align: right; }
+		.total { margin-top: 18px; display: grid; justify-content: end; gap: 8px; }
+		.total-row { min-width: 260px; display: flex; justify-content: space-between; gap: 24px; }
+		.grand { font-size: 20px; font-weight: 800; color: #b71f2a; }
+		.actions { width: min(960px, calc(100% - 32px)); margin: 20px auto 0; display: flex; justify-content: flex-end; }
+		button { border: 0; border-radius: 10px; background: #071426; color: #fff; padding: 12px 18px; font-weight: 800; cursor: pointer; }
+		@media print {
+			body { background: #fff; }
+			.sheet { width: 100%; margin: 0; border: 0; border-radius: 0; padding: 18mm; }
+			.actions { display: none; }
+		}
+	</style>
+</head>
+<body>
+<div class="actions">
+	<button type="button" onclick="window.print()">Imprimir / guardar PDF</button>
+</div>
+<main class="sheet">
+	<header class="header">
+		<div>
+			<img src="/img/electrodentallarge.png" alt="ElectrodentalNea" class="logo">
+			<p class="muted">Preparación de pedido</p>
+		</div>
+		<div class="right">
+			<h1 th:text="${pedido.codigoCompra ?: 'Pedido #' + pedido.id}">Pedido</h1>
+			<p><strong>Fecha:</strong> <span th:text="${#temporals.format(pedido.fechaCreacion, 'dd-MM-yyyy HH:mm')}">29-05-2026 17:48</span></p>
+			<p><strong>Estado:</strong> <span th:text="${pedido.estadoPedido}">PAGADO</span></p>
+		</div>
+	</header>
+
+	<section class="grid">
+		<div class="box">
+			<h2>Comprador</h2>
+			<p><strong>Nombre y apellido:</strong> <span th:text="|${pedido.cliente.nombre} ${pedido.cliente.apellidoRazonSocial ?: ''}|">Cliente</span></p>
+			<p><strong>DNI:</strong> <span th:text="${pedido.cliente.dniCuit ?: '-'}">-</span></p>
+			<p><strong>Email:</strong> <span th:text="${pedido.cliente.email}">email</span></p>
+			<p><strong>Teléfono:</strong> <span th:text="${pedido.cliente.telefono ?: '-'}">-</span></p>
+		</div>
+		<div class="box">
+			<h2>Entrega</h2>
+			<p><strong>Método:</strong> <span th:text="${pedido.metodoEntrega ?: 'ANDREANI'}">Entrega</span></p>
+			<p th:if="${pedido.direccionEnvio != null}"><strong>CP:</strong> <span th:text="${pedido.direccionEnvio.codigoPostal ?: '-'}">CP</span></p>
+			<p th:if="${pedido.direccionEnvio != null}"><strong>Ciudad:</strong> <span th:text="${pedido.direccionEnvio.ciudad ?: '-'}">Ciudad</span></p>
+			<p th:if="${pedido.direccionEnvio != null}"><strong>Dirección:</strong> <span th:text="|${pedido.direccionEnvio.calle ?: ''} ${pedido.direccionEnvio.numero ?: ''}|">Dirección</span></p>
+		</div>
+	</section>
+
+	<section>
+		<h2>Productos para preparar</h2>
+		<table>
+			<thead>
+				<tr>
+					<th>Producto</th>
+					<th>Marca</th>
+					<th class="right">Cantidad</th>
+					<th class="right">Precio</th>
+					<th class="right">Subtotal</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr th:each="item : ${pedido.items}">
+					<td th:text="${item.nombreSnapshot}">Producto</td>
+					<td th:text="${item.producto.marca ?: '-'}">Marca</td>
+					<td class="right" th:text="${item.cantidad}">1</td>
+					<td class="right" th:text="|$ ${item.precioUnitarioSnapshot}|">$ 0</td>
+					<td class="right" th:text="|$ ${item.subtotal}|">$ 0</td>
+				</tr>
+			</tbody>
+		</table>
+		<div class="total">
+			<div class="total-row"><span>Subtotal</span><strong th:text="|$ ${pedido.subtotal}|">$ 0</strong></div>
+			<div class="total-row"><span>Envío</span><strong th:text="|$ ${pedido.costoEnvio}|">$ 0</strong></div>
+			<div class="total-row grand"><span>Total</span><strong th:text="|$ ${pedido.total}|">$ 0</strong></div>
+		</div>
+	</section>
+</main>
+</body>
+</html>

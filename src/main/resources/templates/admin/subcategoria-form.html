@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/fragments/layout :: head(${subcategoria.id == null ? 'Admin | Nueva subcategoría' : 'Admin | Editar subcategoría'})}"></head>
+<body class="admin-shell text-slate-900">
+<aside th:replace="~{admin/fragments/layout :: sidebar('categorias')}"></aside>
+<header th:replace="~{admin/fragments/layout :: mobilebar('categorias')}"></header>
+<main class="p-4 sm:p-6 lg:ml-64 lg:p-8">
+	<div th:replace="~{admin/fragments/layout :: topbar(${subcategoria.id == null ? 'Nueva Subcategoría' : 'Editar Subcategoría'}, 'La subcategoría vive dentro de una categoría y aparece como filtro en catálogo.')}"></div>
+
+	<form th:action="${subcategoria.id == null ? '/admin/categorias/' + categoria.id + '/subcategorias' : '/admin/subcategorias/' + subcategoria.id}" th:object="${subcategoria}" method="post" class="admin-card max-w-3xl rounded-2xl p-6">
+		<div class="mb-5 rounded-xl bg-surface-soft p-4">
+			<p class="text-xs font-black uppercase text-muted">Categoría padre</p>
+			<p class="mt-1 text-lg font-black text-primary" th:text="${categoria.nombre}">Categoría</p>
+		</div>
+		<div class="grid gap-5">
+			<label>
+				<span class="text-sm font-bold text-primary">Nombre</span>
+				<input th:field="*{nombre}" required class="mt-1 w-full rounded-lg border-outline" placeholder="Sillones odontológicos">
+			</label>
+			<label>
+				<span class="text-sm font-bold text-primary">Slug</span>
+				<input th:field="*{slug}" class="mt-1 w-full rounded-lg border-outline" placeholder="sillones-odontologicos">
+			</label>
+			<label>
+				<span class="text-sm font-bold text-primary">Descripción</span>
+				<textarea th:field="*{descripcion}" rows="4" class="mt-1 w-full rounded-lg border-outline"></textarea>
+			</label>
+			<label class="flex items-center gap-3 text-sm font-bold text-primary">
+				<input th:field="*{activo}" type="checkbox" class="rounded border-outline"> Activa y visible en catálogo
+			</label>
+		</div>
+		<div class="mt-6 flex flex-wrap gap-3 border-t border-outline pt-6">
+			<button class="rounded-xl bg-secondary px-5 py-3 font-black text-white hover:opacity-90">Guardar subcategoría</button>
+			<a th:href="@{/admin/categorias}" class="rounded-xl border border-outline px-5 py-3 font-bold text-primary hover:bg-surface-soft">Cancelar</a>
+		</div>
+	</form>
+</main>
+</body>
+</html>

@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/fragments/layout :: head('Admin | Detalle pedido')}"></head>
+<body class="admin-shell text-slate-900">
+<aside th:replace="~{admin/fragments/layout :: sidebar('pedidos')}"></aside>
+<header th:replace="~{admin/fragments/layout :: mobilebar('pedidos')}"></header>
+<main class="p-4 sm:p-6 lg:ml-64 lg:p-8">
+	<div th:replace="~{admin/fragments/layout :: topbar('Detalle del Pedido', 'Productos, pago, entrega y seguimiento del pedido.')}"></div>
+
+	<div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+		<a th:href="@{/admin/pedidos}" class="inline-flex items-center gap-2 rounded-lg border border-outline bg-white px-4 py-2 text-sm font-bold text-primary hover:bg-surface-soft">
+			<span class="material-symbols-outlined text-[20px]">arrow_back</span> Volver a pedidos
+		</a>
+		<div class="flex flex-wrap gap-2">
+			<span class="rounded-full bg-surface-soft px-3 py-2 text-xs font-black text-primary" th:text="|Pedido #${pedido.id}|">Pedido</span>
+			<span class="rounded-full bg-secondary-container px-3 py-2 text-xs font-black text-on-secondary-container" th:text="${pedido.codigoCompra ?: 'Sin código'}">Código</span>
+		</div>
+	</div>
+
+	<section class="grid gap-6 xl:grid-cols-[1fr_360px]">
+		<div class="admin-card overflow-hidden rounded-2xl">
+			<div class="border-b border-outline p-6">
+				<h2 class="text-2xl font-black text-primary">Productos comprados</h2>
+				<p class="mt-1 text-sm text-muted" th:text="|${#lists.size(pedido.items)} ítem(s) en la orden|">0 items</p>
+			</div>
+			<div class="divide-y divide-outline">
+				<div th:each="item : ${pedido.items}" class="grid gap-4 p-5 sm:grid-cols-[92px_1fr_auto] sm:items-center">
+					<img th:src="${item.producto.imagenPrincipal != null && !item.producto.imagenPrincipal.isBlank() ? item.producto.imagenPrincipal : '/img/electrodentallarge.png'}"
+						 th:alt="${item.nombreSnapshot}"
+						 class="h-24 w-24 rounded-xl border border-outline bg-white object-contain p-2">
+					<div>
+						<p class="text-base font-black text-primary" th:text="${item.nombreSnapshot}">Producto</p>
+						<p class="mt-1 text-xs font-bold uppercase tracking-wide text-muted" th:text="${item.producto.marca ?: 'Sin marca'}">Marca</p>
+						<div class="mt-3 flex flex-wrap gap-2 text-xs font-bold">
+							<span class="rounded-full bg-surface-soft px-3 py-1" th:text="|Cantidad: ${item.cantidad}|">Cantidad</span>
+							<span class="rounded-full bg-surface-soft px-3 py-1" th:text="|Precio: $ ${item.precioUnitarioSnapshot}|">Precio</span>
+						</div>
+					</div>
+					<div class="text-left sm:text-right">
+						<p class="text-xs font-bold uppercase text-muted">Subtotal</p>
+						<p class="mt-1 text-xl font-black text-primary" th:text="|$ ${item.subtotal}|">$ 0</p>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<aside class="space-y-6">
+			<section class="admin-card rounded-2xl p-6">
+				<h2 class="text-xl font-black text-primary">Resumen</h2>
+				<dl class="mt-5 space-y-3 text-sm">
+					<div class="flex justify-between gap-4">
+						<dt class="text-muted">Cliente</dt>
+						<dd class="text-right font-bold text-primary" th:text="|${pedido.cliente.nombre} ${pedido.cliente.apellidoRazonSocial ?: ''}|">Cliente</dd>
+					</div>
+					<div class="flex justify-between gap-4">
+						<dt class="text-muted">DNI</dt>
+						<dd class="text-right font-bold text-primary" th:text="${pedido.cliente.dniCuit ?: '-'}">DNI</dd>
+					</div>
+					<div class="flex justify-between gap-4">
+						<dt class="text-muted">Email</dt>
+						<dd class="text-right font-bold text-primary" th:text="${pedido.cliente.email}">Email</dd>
+					</div>
+					<div class="flex justify-between gap-4">
+						<dt class="text-muted">Teléfono</dt>
+						<dd class="text-right font-bold text-primary" th:text="${pedido.cliente.telefono ?: '-'}">Teléfono</dd>
+					</div>
+					<div class="flex justify-between gap-4">
+						<dt class="text-muted">Entrega</dt>
+						<dd class="text-right font-bold text-primary" th:text="${pedido.metodoEntrega ?: 'ANDREANI'}">Entrega</dd>
+					</div>
+					<div class="flex justify-between gap-4">
+						<dt class="text-muted">Estado pedido</dt>
+						<dd class="text-right font-black text-primary" th:text="${pedido.estadoPedido}">Estado</dd>
+					</div>
+					<div class="flex justify-between gap-4">
+						<dt class="text-muted">Estado pago</dt>
+						<dd class="text-right font-black text-primary" th:text="${pedido.pago != null ? pedido.pago.estadoPago : 'SIN_PAGO'}">Pago</dd>
+					</div>
+					<div class="flex justify-between gap-4">
+						<dt class="text-muted">Fecha</dt>
+						<dd class="text-right font-bold text-primary" th:text="${#temporals.format(pedido.fechaCreacion, 'dd-MM-yyyy HH:mm')}">Fecha</dd>
+					</div>
+				</dl>
+				<div class="mt-5 border-t border-outline pt-5">
+					<div class="flex justify-between text-sm">
+						<span class="text-muted">Subtotal</span>
+						<strong th:text="|$ ${pedido.subtotal}|">$ 0</strong>
+					</div>
+					<div class="mt-2 flex justify-between text-sm">
+						<span class="text-muted">Envío</span>
+						<strong th:text="|$ ${pedido.costoEnvio}|">$ 0</strong>
+					</div>
+					<div class="mt-4 flex justify-between text-xl font-black">
+						<span>Total</span>
+						<span class="text-secondary" th:text="|$ ${pedido.total}|">$ 0</span>
+					</div>
+				</div>
+			</section>
+			<a th:href="@{/admin/pedidos/{id}/imprimir(id=${pedido.id})}" target="_blank" rel="noopener"
+			   class="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-5 py-4 text-sm font-black text-white shadow-sm hover:opacity-90">
+				<span class="material-symbols-outlined">print</span> Imprimir / descargar PDF
+			</a>
+
+			<section class="admin-card rounded-2xl p-6">
+				<h2 class="text-xl font-black text-primary">Datos de envío</h2>
+				<div class="mt-4 rounded-xl bg-surface-soft p-4 text-sm leading-6 text-muted">
+					<p class="font-black text-primary" th:text="${pedido.metodoEntrega ?: 'ANDREANI'}">Método</p>
+					<p th:if="${pedido.direccionEnvio != null}" th:text="|CP ${pedido.direccionEnvio.codigoPostal ?: '-'} · ${pedido.direccionEnvio.ciudad ?: 'Ciudad sin definir'}|">Dirección</p>
+					<p th:if="${pedido.direccionEnvio != null}" th:text="|${pedido.direccionEnvio.calle ?: ''} ${pedido.direccionEnvio.numero ?: ''}|">Calle</p>
+					<p th:if="${pedido.metodoEntrega == 'SUCURSAL'}">Retiro en sucursal con código de compra.</p>
+					<p th:if="${pedido.metodoEntrega == 'VENDEDOR'}">Coordinar despacho y costo final con el vendedor.</p>
+				</div>
+			</section>
+
+			<section class="admin-card rounded-2xl p-6">
+				<div class="flex items-start gap-3">
+					<div class="flex h-10 w-10 items-center justify-center rounded-xl bg-surface-soft text-muted">
+						<span class="material-symbols-outlined">local_shipping</span>
+					</div>
+					<div>
+						<h2 class="text-lg font-black text-primary">Ticket de envío</h2>
+						<p class="mt-1 text-sm text-muted">Disponible cuando se active la generación de etiquetas/preenvíos de Andreani.</p>
+					</div>
+				</div>
+				<button type="button" disabled class="mt-5 flex w-full cursor-not-allowed items-center justify-center gap-2 rounded-lg bg-surface-soft px-4 py-3 text-sm font-black text-muted">
+					<span class="material-symbols-outlined">download</span> Descargar ticket de envío
+				</button>
+			</section>
+		</aside>
+	</section>
+</main>
+</body>
+</html>

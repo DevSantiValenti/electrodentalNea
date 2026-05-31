@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/shop :: head(${titulo ?: 'ElectrodentalNea'})}"></head>
+<body class="bg-background font-sans text-slate-900">
+<header th:replace="~{fragments/shop :: header}"></header>
+<main class="mx-auto max-w-4xl px-4 py-16 text-center sm:px-6">
+	<div class="rounded-2xl border border-outline bg-white p-10 shadow-sm">
+		<h1 class="text-4xl font-black text-primary" th:text="${titulo}">ElectrodentalNea</h1>
+		<p class="mx-auto mt-4 max-w-2xl text-lg text-slate-600" th:text="${mensaje}">Página en preparación.</p>
+		<div class="mt-8 flex flex-wrap justify-center gap-3">
+			<a th:href="@{/catalogo}" class="rounded-lg bg-primary-container px-5 py-3 font-bold text-white">Ver catálogo</a>
+			<a th:href="@{/}" class="rounded-lg border border-outline px-5 py-3 font-bold text-primary">Volver al inicio</a>
+		</div>
+	</div>
+</main>
+<footer th:replace="~{fragments/shop :: footer}"></footer>
+</body>
+</html>

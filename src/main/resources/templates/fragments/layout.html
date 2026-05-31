@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<body>
+<header class="site-header" th:fragment="header">
+	<a class="brand" th:href="@{/}">Electrodental</a>
+	<nav class="nav" aria-label="Navegacion principal">
+		<a th:href="@{/}">Inicio</a>
+		<a th:href="@{/servicios}">Servicios</a>
+		<a th:href="@{/productos}">Productos</a>
+		<a th:href="@{/contacto}">Contacto</a>
+	</nav>
+</header>
+
+<footer class="site-footer" th:fragment="footer">
+	<p>Electrodental - Servicio tecnico y equipamiento odontologico</p>
+</footer>
+</body>
+</html>

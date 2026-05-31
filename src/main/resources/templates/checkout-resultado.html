@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/shop :: head('ElectrodentalNea | Pago')}"></head>
+<body class="bg-background font-sans text-slate-900">
+<header th:replace="~{fragments/shop :: header}"></header>
+<main class="mx-auto max-w-3xl px-4 py-12 sm:px-6">
+	<section class="rounded-2xl border border-outline bg-white p-8 text-center shadow-sm">
+		<h1 class="text-3xl font-black text-primary" th:text="${titulo}">Estado del pago</h1>
+		<p class="mt-3 text-slate-600" th:text="${mensaje}">Resultado informado por Mercado Pago.</p>
+		<div th:if="${codigoCompra}" class="mt-6 rounded-xl bg-slate-100 p-5">
+			<p class="text-sm font-black uppercase text-slate-500">Código de compra</p>
+			<p class="mt-2 text-3xl font-black text-secondary" th:text="${codigoCompra}">RET-0000</p>
+			<p class="mt-2 text-sm font-semibold text-slate-600">Usá este código para retirar en sucursal o coordinar con el vendedor.</p>
+		</div>
+		<div class="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
+			<a th:href="@{/catalogo}" class="rounded-xl bg-primary px-5 py-3 font-black text-white">Volver al catálogo</a>
+			<a th:href="${whatsappContactoLink}" target="_blank" rel="noopener" class="rounded-xl border border-outline px-5 py-3 font-black text-primary">Contactar</a>
+		</div>
+	</section>
+</main>
+<footer th:replace="~{fragments/shop :: footer}"></footer>
+</body>
+</html>

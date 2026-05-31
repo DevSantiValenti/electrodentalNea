@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/fragments/layout :: head('Admin | Ventas')}"></head>
+<body class="admin-shell text-slate-900">
+<aside th:replace="~{admin/fragments/layout :: sidebar('ventas')}"></aside>
+<header th:replace="~{admin/fragments/layout :: mobilebar('ventas')}"></header>
+<main class="p-4 sm:p-6 lg:ml-64 lg:p-8">
+	<div th:replace="~{admin/fragments/layout :: topbar('Ventas Presenciales', 'Historial de ventas físicas y caja del local.')}"></div>
+	<div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+		<div th:if="${mensaje}" class="rounded-lg bg-green-50 px-4 py-3 text-sm font-bold text-green-800" th:text="${mensaje}">Mensaje</div>
+		<a th:href="@{/admin/ventas/nueva}" class="inline-flex items-center justify-center gap-2 rounded-xl bg-secondary px-4 py-3 text-sm font-bold text-white hover:opacity-90">
+			<span class="material-symbols-outlined">point_of_sale</span> Nueva venta
+		</a>
+	</div>
+	<section class="admin-card overflow-hidden rounded-2xl">
+		<div class="overflow-x-auto">
+			<table class="w-full min-w-[720px] text-left text-sm">
+				<thead class="bg-surface-soft text-xs uppercase text-muted">
+					<tr><th class="px-6 py-4">ID</th><th class="px-6 py-4">Método</th><th class="px-6 py-4">Usuario</th><th class="px-6 py-4">Total</th><th class="px-6 py-4">Fecha</th></tr>
+				</thead>
+				<tbody class="divide-y divide-outline">
+					<tr th:if="${#lists.isEmpty(ventas)}"><td colspan="5" class="p-10 text-center text-muted">Aun no hay ventas...</td></tr>
+					<tr th:each="venta : ${ventas}" class="hover:bg-surface-soft">
+						<td class="px-6 py-5 font-black" th:text="|#${venta.id}|">#1</td>
+						<td class="px-6 py-5" th:text="${venta.metodoPago}">EFECTIVO</td>
+						<td class="px-6 py-5" th:text="${venta.usuarioAdmin ?: 'Admin'}">Admin</td>
+						<td class="px-6 py-5 font-black text-secondary" th:text="|$ ${venta.total}|">$0</td>
+						<td class="px-6 py-5 text-muted" th:text="${venta.fecha}">Fecha</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+	</section>
+</main>
+</body>
+</html>

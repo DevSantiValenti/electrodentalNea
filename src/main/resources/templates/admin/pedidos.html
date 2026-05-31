@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/fragments/layout :: head('Admin | Pedidos')}"></head>
+<body class="admin-shell text-slate-900">
+<aside th:replace="~{admin/fragments/layout :: sidebar('pedidos')}"></aside>
+<header th:replace="~{admin/fragments/layout :: mobilebar('pedidos')}"></header>
+<main class="p-4 sm:p-6 lg:ml-64 lg:p-8">
+	<div th:replace="~{admin/fragments/layout :: topbar('Pedidos Recientes', 'Seguimiento de pedidos web, pago y envío cotizado.')}"></div>
+	<section class="admin-card overflow-hidden rounded-2xl">
+		<div class="border-b border-outline p-6">
+			<h2 class="text-2xl font-black text-primary">Pedidos</h2>
+			<p th:if="${mensaje}" class="mt-3 rounded-lg bg-green-50 px-4 py-3 text-sm font-bold text-green-800" th:text="${mensaje}">Mensaje</p>
+		</div>
+		<div class="overflow-x-auto">
+			<table class="w-full min-w-[760px] text-left text-sm">
+				<thead class="bg-surface-soft text-xs uppercase text-muted">
+					<tr><th class="px-6 py-4">ID</th><th class="px-6 py-4">Código</th><th class="px-6 py-4">Cliente</th><th class="px-6 py-4">Entrega</th><th class="px-6 py-4">Fecha</th><th class="px-6 py-4">Estado</th><th class="px-6 py-4">Total</th><th class="px-6 py-4 text-right">Acciones</th></tr>
+				</thead>
+				<tbody class="divide-y divide-outline">
+					<tr th:if="${#lists.isEmpty(pedidos)}"><td colspan="8" class="p-10 text-center text-muted">Aun no hay pedidos...</td></tr>
+					<tr th:each="pedido : ${pedidos}" class="hover:bg-surface-soft">
+						<td class="px-6 py-5 font-black" th:text="|#${pedido.id}|">#1</td>
+						<td class="px-6 py-5"><span class="rounded bg-surface-soft px-2 py-1 text-xs font-black text-primary" th:text="${pedido.codigoCompra ?: 'Sin código'}">RET-000</span></td>
+						<td class="px-6 py-5" th:text="|${pedido.cliente.nombre} ${pedido.cliente.apellidoRazonSocial ?: ''}|">Cliente</td>
+						<td class="px-6 py-5 text-muted" th:text="${pedido.metodoEntrega ?: 'ANDREANI'}">Entrega</td>
+						<td class="px-6 py-5 text-muted" th:text="${#temporals.format(pedido.fechaCreacion, 'dd-MM-yyyy HH:mm')}">Fecha</td>
+						<td class="px-6 py-5"><span class="rounded-full bg-surface-soft px-3 py-1 text-xs font-black" th:text="${pedido.estadoPedido}">Estado</span></td>
+						<td class="px-6 py-5 font-black" th:text="|$ ${pedido.total}|">$0</td>
+						<td class="px-6 py-5 text-right">
+							<div class="flex justify-end gap-2">
+								<a th:href="@{/admin/pedidos/{id}(id=${pedido.id})}" class="rounded-lg p-2 text-primary hover:bg-primary/5" title="Ver detalle">
+									<span class="material-symbols-outlined">visibility</span>
+								</a>
+								<button type="button"
+										class="rounded-lg p-2 text-secondary hover:bg-secondary/10"
+										title="Eliminar pedido"
+										th:data-delete-url="@{/admin/pedidos/{id}/eliminar(id=${pedido.id})}"
+										th:data-delete-code="${pedido.codigoCompra ?: '#' + pedido.id}"
+										onclick="openDeletePedidoModal(this)">
+									<span class="material-symbols-outlined">delete</span>
+								</button>
+							</div>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+	</section>
+	<dialog id="deletePedidoModal" class="w-[min(92vw,420px)] rounded-2xl border border-outline p-0 shadow-2xl">
+		<form method="post" id="deletePedidoForm" class="p-6">
+			<div class="flex h-12 w-12 items-center justify-center rounded-full bg-secondary-container text-secondary">
+				<span class="material-symbols-outlined">delete</span>
+			</div>
+			<h3 class="mt-4 text-xl font-black text-primary">Eliminar pedido</h3>
+			<p class="mt-2 text-sm leading-6 text-muted">Vas a eliminar el pedido <strong id="deletePedidoCode" class="text-primary">#</strong>. Esta acción quita el registro del panel y no modifica stock.</p>
+			<div class="mt-6 flex justify-end gap-3">
+				<button type="button" class="rounded-lg border border-outline px-4 py-2 text-sm font-bold text-primary hover:bg-surface-soft" onclick="closeDeletePedidoModal()">Cancelar</button>
+				<button type="submit" class="rounded-lg bg-secondary px-4 py-2 text-sm font-bold text-white hover:opacity-90">Eliminar</button>
+			</div>
+		</form>
+	</dialog>
+</main>
+<script>
+	function openDeletePedidoModal(button) {
+		const modal = document.getElementById('deletePedidoModal');
+		document.getElementById('deletePedidoForm').action = button.dataset.deleteUrl;
+		document.getElementById('deletePedidoCode').textContent = button.dataset.deleteCode;
+		modal.showModal();
+	}
+
+	function closeDeletePedidoModal() {
+		document.getElementById('deletePedidoModal').close();
+	}
+</script>
+</body>
+</html>

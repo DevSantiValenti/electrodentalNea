@@ -1,0 +1,474 @@
+<!DOCTYPE html><html class="light" lang="es"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            line-height: 1;
+            text-transform: none;
+            letter-spacing: normal;
+            word-wrap: normal;
+            white-space: nowrap;
+            direction: ltr;
+        }
+        .custom-shadow { box-shadow: 0 4px 20px rgba(11, 36, 56, 0.05); }
+        .glass-effect { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(8px); }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-tertiary-fixed": "#261900",
+                        "on-surface-variant": "#43474c",
+                        "secondary-fixed": "#ffdad7",
+                        "primary-fixed-dim": "#b2c9e3",
+                        "surface-dim": "#d9dadc",
+                        "surface-container-low": "#f2f4f6",
+                        "on-primary-fixed": "#031d31",
+                        "surface-container-highest": "#e1e2e4",
+                        "inverse-surface": "#2e3132",
+                        "surface-bright": "#f8f9fb",
+                        "on-secondary-fixed": "#410005",
+                        "on-primary-container": "#758ca4",
+                        "secondary": "#b71f2a",
+                        "on-primary": "#ffffff",
+                        "on-error": "#ffffff",
+                        "primary-fixed": "#cee5ff",
+                        "outline": "#73777d",
+                        "on-secondary-container": "#5c000a",
+                        "tertiary": "#130b00",
+                        "on-background": "#191c1e",
+                        "background": "#f8f9fb",
+                        "on-secondary": "#ffffff",
+                        "surface-container-high": "#e7e8ea",
+                        "surface-variant": "#e1e2e4",
+                        "on-tertiary-container": "#b18200",
+                        "tertiary-fixed": "#ffdea3",
+                        "tertiary-fixed-dim": "#f8bd39",
+                        "on-primary-fixed-variant": "#32495e",
+                        "surface-container-lowest": "#ffffff",
+                        "on-error-container": "#93000a",
+                        "secondary-fixed-dim": "#ffb3af",
+                        "error": "#ba1a1a",
+                        "outline-variant": "#c3c7cd",
+                        "surface": "#f8f9fb",
+                        "primary": "#000d1b",
+                        "inverse-on-surface": "#f0f1f3",
+                        "tertiary-container": "#2f2000",
+                        "surface-tint": "#4a6077",
+                        "on-surface": "#191c1e",
+                        "primary-container": "#0b2438",
+                        "surface-container": "#edeef0",
+                        "error-container": "#ffdad6",
+                        "on-secondary-fixed-variant": "#930017",
+                        "on-tertiary-fixed-variant": "#5d4200",
+                        "inverse-primary": "#b2c9e3",
+                        "secondary-container": "#fe5455",
+                        "on-tertiary": "#ffffff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "xxl": "48px",
+                        "container-margin": "24px",
+                        "xl": "32px",
+                        "lg": "24px",
+                        "sm": "8px",
+                        "md": "16px",
+                        "gutter": "16px",
+                        "xs": "4px",
+                        "base": "8px"
+                    },
+                    "fontFamily": {
+                        "body-md": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "display-lg": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "label-md": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "headline-lg": ["Inter"]
+                    },
+                    "fontSize": {
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "label-sm": ["12px", {"lineHeight": "16px", "fontWeight": "600"}],
+                        "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "500"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}]
+                    }
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background text-on-surface selection:bg-primary-container selection:text-white">
+<!-- TopNavBar -->
+<header class="bg-surface docked full-width top-0 border-b border-outline-variant shadow-sm z-50">
+<div class="flex flex-col w-full px-container-margin max-w-7xl mx-auto py-md">
+<div class="flex items-center justify-between gap-lg">
+<div class="flex items-center"><img src="https://lh3.googleusercontent.com/aida/ADBb0uibwOPhBgr7E0rq8qrbrgOzCOwwNtnNtjreTq4QjcJk4Uq6zk1gaPK670BgYRxk5Dl5VNAo_QPiRFmLUoWTOpOi7FEkcAg6zpQgfSUk-Np6aLsv7RVaN4954TLzlvy_McN-rxe44Z0YqAVNKeCCnuhc76cz-DG19Sjn8bv6FoHctQIZxv02bzMCUPnND6sSHQFtCgIckPUVbiciMq2VptgPS0emtMedz0ay03jqLyG8oqSM6Zs84Qm2KfY" alt="DentTech Logo" class="h-12 w-auto object-contain"></div>
+<nav class="hidden md:flex items-center gap-xl">
+<a class="text-on-surface-variant hover:text-primary font-label-md text-label-md transition-colors" href="#">Categorías</a>
+<a class="text-on-surface-variant hover:text-primary font-label-md text-label-md transition-colors" href="#">Ofertas</a>
+<a class="text-on-surface-variant hover:text-primary font-label-md text-label-md transition-colors" href="#">Novedades</a>
+<a class="text-on-surface-variant hover:text-primary font-label-md text-label-md transition-colors" href="#">Marcas</a>
+<a class="text-secondary font-bold border-b-2 border-secondary font-label-md text-label-md" href="{{DATA:SCREEN:SCREEN_9}}">Servicio Técnico</a>
+</nav>
+<div class="flex items-center gap-md">
+<div class="relative hidden sm:block">
+<input class="bg-surface-container-low border border-outline-variant rounded-full py-xs px-lg pl-xl focus:outline-none focus:ring-2 focus:ring-primary w-64" placeholder="Buscar productos..." type="text">
+<span class="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-outline" data-icon="search">search</span>
+</div>
+<button class="p-xs hover:bg-surface-container-low rounded-full transition-all">
+<span class="material-symbols-outlined text-secondary" data-icon="person">person</span>
+</button>
+<button class="p-xs hover:bg-surface-container-low rounded-full transition-all relative">
+<span class="material-symbols-outlined text-secondary" data-icon="shopping_cart">shopping_cart</span>
+<span class="absolute top-0 right-0 bg-secondary text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full">2</span>
+</button>
+</div>
+</div>
+</div>
+</header>
+<main class="max-w-7xl mx-auto px-container-margin py-xl">
+<!-- Breadcrumbs -->
+<nav class="flex items-center gap-sm text-on-surface-variant font-label-md text-label-md mb-lg">
+<a class="hover:text-primary" href="#">Inicio</a>
+<span class="material-symbols-outlined text-[16px]">chevron_right</span>
+<a class="hover:text-primary" href="#">Equipamiento</a>
+<span class="material-symbols-outlined text-[16px]">chevron_right</span>
+<span class="text-primary font-bold">Unidad Dental A-dec 500</span>
+</nav>
+<!-- Product Hero Section -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-xxl items-start">
+<!-- Left: Gallery -->
+<div class="space-y-md">
+<div class="bg-white rounded-[24px] border border-outline-variant overflow-hidden custom-shadow group cursor-zoom-in">
+<img class="w-full h-[500px] object-contain transition-transform duration-500 group-hover:scale-110" data-alt="A professional, high-end dental operatory chair in a pristine, minimalist clinical setting. The lighting is soft and clinical, highlighting the sleek metallic and white leather textures of the dental unit. The background is a clean, bright medical office with subtle blue accents, conveying a sense of sterile precision and technological advancement. High-key lighting creates a professional and reliable atmosphere." id="mainImage" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCnPX7CPIN8_ttXKjFz7sMp6jQs_F7UPBcAP3dpKaBhhSs7wEv07HkY5RkQGaFXcgU4-JVncDnX5bkEVDCEN6F2hZfY-0VrnNfWXJf9rVepOjviCpX2y4DJBncUJO4hKd_8MCx71Dt1mOk3R0FtO2w32k05VuxzCn9xjzQ-e6aarb-XMrfAsjgZ2I2Kj1HAU7D-K0QJdttTIC3QgqrKoVx-yhw5rUDm4gbGMllA_4H3ifUIV6CxcNX938P_9kmPK1m3CPGnx4L2y8Q">
+</div>
+<div class="grid grid-cols-4 gap-md">
+<button class="border-2 border-primary rounded-xl overflow-hidden focus:outline-none focus:border-primary transition-all" onclick="document.getElementById('mainImage').src=this.querySelector('img').src">
+<img class="w-full h-24 object-cover" data-alt="Close up view of the ergonomic white leather seat of a high-end dental chair. The focus is on the premium stitching and the sterile, clinical appearance. Lighting is bright and even." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCe9tGqlhQNpnqSbdUAlApDvO9KtQwN5SRsB_dzNg32aNlryBDIoPWNDPSN0QP2ZLmO8aLMhIaqucP1JQvjj7y81k1EhG7RZKeS9k8Ja29CoSl9Jmj5Pa8JGXfJ4yE44pnYP8ABs_-Y6SX-50aXV5EXY-ftTa369--4YNAPhd8LnSQYnpVGDgnRi2F75qHRRCly5dfOp1hY8p4OCokaIJVwmxtsu4GAJ9_Qzg7byUO5DwOl10sOl4EV6Cchfjac67CX4JgnBWIwuaY">
+</button>
+<button class="border-2 border-transparent hover:border-outline-variant rounded-xl overflow-hidden focus:outline-none focus:border-primary transition-all" onclick="document.getElementById('mainImage').src=this.querySelector('img').src">
+<img class="w-full h-24 object-cover" data-alt="Detailed view of the dental unit's instrument tray and control panel. The buttons are minimalist and professional. The scene is lit with cool, clinical tones in a modern dental office." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDFgxYbKuNScRglxzHdu7YmFHlTTfulMqanHHZcJ5b6LKwi01FQmaJQZRCMD6KYTfoTJr9m_QTfoLZnxv-xRdJXKUQXiBW1mikL1rd6fxKHq_pSzgu-K21u1rrP3zzDmsjpIwVJlfb456LroARecuw-11AhdQrEcFLjYicFaj5_joj6ZETeL2PubxZwBbYhG-nAtAKGa8xMsbMLduoQyITxllX5T1N4fwWcXMkhH84whTddO3PRqYH4wzkmcxmBP5EqrNEF7mhPw_k">
+</button>
+<button class="border-2 border-transparent hover:border-outline-variant rounded-xl overflow-hidden focus:outline-none focus:border-primary transition-all" onclick="document.getElementById('mainImage').src=this.querySelector('img').src">
+<img class="w-full h-24 object-cover" data-alt="Wide shot of a modern dental surgery room featuring advanced dental equipment. The lighting is soft white, emphasizing the cleanliness and professionalism of the environment." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCwx2pMSpU4TWxl_pOroVp0i4NGKyfS4XkyHUogkcxtqza1XbTygTg5ctgNKeKvQQ7UjaJafXiowDfnSzbsQEFIuuhEzeHQvRCKPRAZ63l4jFh1nrMnJAsDSGwjaXxy8HPO9iPa9bUVBnalk2Y--7_wU6fH_ILdoXj3kWTnofbgcHDZFeggoyss_QZKf8YJ_kBFr77aSp78bCWV4bZsz5mlxU9FkO1JYRJQ7qZw-K8K5uH0DExdTqqILfsJwsTtxW7h59PUjW-oy8g">
+</button>
+<button class="border-2 border-transparent hover:border-outline-variant rounded-xl overflow-hidden focus:outline-none focus:border-primary transition-all" onclick="document.getElementById('mainImage').src=this.querySelector('img').src">
+<img class="w-full h-24 object-cover" data-alt="Close up of a dental lamp with high-tech LED components. The styling is clinical and high-tech, with a focus on precision lighting in a dental clinic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCE76O4EOwM3xXkv1qCAnTpYws8D-u6Hh3CCEkpT4YTmwMbePogXt8zYUejiQ0oBXxrUNfl9ieMbkbO3rtyRecE2Sw9bDQ4ln9igfvyPBzKJfCq3zvGWmLQlYjhvrC7wPMiptRWXKB_eAXR4tWQwcLSneoJcGKdIFegKQRTpDFEuJbN36nGsp73AAKsFe9VoWoxX9kN99Us8v5iEYlj8fdRd_ATIfkaXaUrDRY5S7u2uLxWrailU7DCAxVXg8SU2O3XcWg5eEk7dHs">
+</button>
+</div>
+</div>
+<!-- Right: Details -->
+<div class="flex flex-col gap-lg">
+<div class="space-y-xs">
+<span class="inline-block bg-tertiary-fixed text-on-tertiary-fixed font-label-sm text-label-sm px-md py-xs rounded-full">NUEVO LANZAMIENTO</span>
+<h1 class="font-headline-lg text-headline-lg font-bold text-primary tracking-tight">Sillón Dental Premium A-dec 500</h1>
+<div class="flex items-center gap-md font-label-md text-label-md">
+<span class="text-on-surface-variant">Marca: <span class="font-bold text-primary">A-dec</span></span>
+<span class="text-outline">|</span>
+<span class="text-on-surface-variant">SKU: <span class="font-bold text-primary">AD-500-PREM</span></span>
+</div>
+</div>
+<div class="bg-surface-container-low p-lg rounded-[24px] border border-outline-variant space-y-md">
+<div class="flex flex-col">
+<span class="text-on-surface-variant font-body-md text-body-md line-through">$18.500.000</span>
+<div class="flex items-baseline gap-sm">
+<span class="font-headline-lg text-headline-lg font-black text-secondary">$15.725.000</span>
+<span class="text-secondary font-bold text-label-md">15% OFF</span>
+</div>
+<p class="text-on-surface-variant font-label-md text-label-md mt-xs">Hasta 12 cuotas fijas de $1.310.416</p>
+</div>
+<div class="flex items-center gap-sm">
+<div class="w-3 h-3 rounded-full bg-green-500 animate-pulse"></div>
+<span class="font-label-md text-label-md text-on-surface">Stock disponible: <span class="font-bold">4 unidades</span></span>
+</div>
+<div class="flex items-center gap-lg pt-md">
+<div class="flex items-center border border-outline-variant rounded-lg bg-white overflow-hidden">
+<button class="px-md py-sm hover:bg-surface-container-high transition-colors" onclick="stepDown()">
+<span class="material-symbols-outlined text-[18px]">remove</span>
+</button>
+<input class="w-12 text-center border-none font-bold text-primary focus:ring-0" id="qty" max="4" min="1" type="number" value="1">
+<button class="px-md py-sm hover:bg-surface-container-high transition-colors" onclick="stepUp()">
+<span class="material-symbols-outlined text-[18px]">add</span>
+</button>
+</div>
+<button class="flex-1 bg-primary-container text-white py-sm rounded-lg font-bold hover:opacity-90 transition-all flex items-center justify-center gap-md custom-shadow">
+<span class="material-symbols-outlined" data-icon="shopping_cart">shopping_cart</span>
+                            Agregar al carrito
+                        </button>
+</div>
+<button class="w-full bg-secondary text-white py-sm rounded-lg font-bold hover:bg-secondary-container hover:text-on-secondary-container transition-all flex items-center justify-center gap-md">
+<span class="material-symbols-outlined" data-icon="chat">chat</span>
+                        Consultar por WhatsApp
+                    </button>
+</div>
+<!-- Envío Section -->
+<div class="border-t border-outline-variant pt-lg space-y-md">
+<h3 class="font-label-md text-label-md font-bold text-primary uppercase tracking-widest">Calcular Envío</h3>
+<div class="flex gap-sm">
+<div class="relative flex-1">
+<input class="w-full border border-outline-variant rounded-lg px-md py-sm font-body-md text-body-md focus:ring-2 focus:ring-primary focus:border-primary" placeholder="Tu Código Postal" type="text">
+</div>
+<button class="bg-primary text-white px-xl rounded-lg font-bold hover:bg-primary/90 transition-all">Calcular</button>
+</div>
+<div class="bg-white border border-outline-variant rounded-xl p-md flex items-center justify-between">
+<div class="flex items-center gap-md">
+<span class="material-symbols-outlined text-primary" data-icon="local_shipping">local_shipping</span>
+<div>
+<p class="font-label-md text-label-md font-bold">Andreani a domicilio</p>
+<p class="text-[12px] text-on-surface-variant">Llega entre el 15 y 18 de Mayo</p>
+</div>
+</div>
+<span class="font-bold text-secondary font-label-md">$12.400</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Tabs Section -->
+<div class="mt-xxl border-b border-outline-variant">
+<div class="flex gap-xl overflow-x-auto no-scrollbar">
+<button class="tab-btn pb-md border-b-2 border-secondary text-primary font-bold transition-all" onclick="switchTab(event, 'desc')">Descripción Técnica</button>
+<button class="tab-btn pb-md border-b-2 border-transparent text-on-surface-variant hover:text-primary transition-all" onclick="switchTab(event, 'specs')">Especificaciones</button>
+<button class="tab-btn pb-md border-b-2 border-transparent text-on-surface-variant hover:text-primary transition-all" onclick="switchTab(event, 'manuals')">Manuales</button>
+</div>
+</div>
+<div class="py-xl">
+<!-- Tab Content: Desc -->
+<div class="tab-content block space-y-lg" id="desc">
+<div class="max-w-4xl">
+<h2 class="font-headline-md text-headline-md font-bold mb-md text-primary">Redefiniendo la comodidad dental</h2>
+<p class="font-body-md text-body-md text-on-surface-variant leading-relaxed mb-md">
+                        El sillón dental A-dec 500 combina un diseño ergonómico de vanguardia con una funcionalidad tecnológica sin precedentes. Diseñado para proporcionar el máximo confort tanto al paciente como al odontólogo, este equipo minimiza los puntos de presión y permite una aproximación óptima durante los procedimientos.
+                    </p>
+<ul class="grid grid-cols-1 md:grid-cols-2 gap-md">
+<li class="flex items-start gap-sm">
+<span class="material-symbols-outlined text-secondary" data-icon="check_circle">check_circle</span>
+<span class="font-body-md text-body-md">Tapicería ultra-delgada para mayor acceso.</span>
+</li>
+<li class="flex items-start gap-sm">
+<span class="material-symbols-outlined text-secondary" data-icon="check_circle">check_circle</span>
+<span class="font-body-md text-body-md">Sistema de control con pantalla táctil integrada.</span>
+</li>
+<li class="flex items-start gap-sm">
+<span class="material-symbols-outlined text-secondary" data-icon="check_circle">check_circle</span>
+<span class="font-body-md text-body-md">Soporte lumbar articulado de doble posición.</span>
+</li>
+<li class="flex items-start gap-sm">
+<span class="material-symbols-outlined text-secondary" data-icon="check_circle">check_circle</span>
+<span class="font-body-md text-body-md">Iluminación LED de 3 ejes integrada.</span>
+</li>
+</ul>
+</div>
+</div>
+<!-- Tab Content: Specs -->
+<div class="tab-content hidden" id="specs">
+<div class="bg-white rounded-xl border border-outline-variant overflow-hidden">
+<table class="w-full font-body-md text-body-md">
+<thead>
+<tr class="bg-surface-container text-left">
+<th class="p-md font-bold border-b border-outline-variant">Característica</th>
+<th class="p-md font-bold border-b border-outline-variant">Detalle</th>
+</tr>
+</thead>
+<tbody>
+<tr class="border-b border-outline-variant">
+<td class="p-md bg-surface-container-lowest font-bold w-1/3">Capacidad de carga</td>
+<td class="p-md">181 kg (400 lb)</td>
+</tr>
+<tr class="border-b border-outline-variant">
+<td class="p-md bg-surface-container-lowest font-bold">Rango de altura</td>
+<td class="p-md">343 mm a 800 mm</td>
+</tr>
+<tr class="border-b border-outline-variant">
+<td class="p-md bg-surface-container-lowest font-bold">Alimentación</td>
+<td class="p-md">220V / 50Hz</td>
+</tr>
+<tr>
+<td class="p-md bg-surface-container-lowest font-bold">Garantía</td>
+<td class="p-md">5 años (Estructura), 2 años (Electrónica)</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Tab Content: Manuals -->
+<div class="tab-content hidden space-y-md" id="manuals">
+<a class="flex items-center justify-between p-lg border border-outline-variant rounded-xl hover:bg-surface-container transition-all group" href="#">
+<div class="flex items-center gap-md">
+<span class="material-symbols-outlined text-secondary text-xxl" data-icon="picture_as_pdf">picture_as_pdf</span>
+<div>
+<p class="font-label-md text-label-md font-bold">Manual de Usuario A-dec 500</p>
+<p class="text-xs text-on-surface-variant">PDF, 4.2 MB - Español</p>
+</div>
+</div>
+<span class="material-symbols-outlined group-hover:translate-x-1 transition-transform" data-icon="download">download</span>
+</a>
+<a class="flex items-center justify-between p-lg border border-outline-variant rounded-xl hover:bg-surface-container transition-all group" href="#">
+<div class="flex items-center gap-md">
+<span class="material-symbols-outlined text-secondary text-xxl" data-icon="settings">settings</span>
+<div>
+<p class="font-label-md text-label-md font-bold">Guía de Pre-Instalación Técnica</p>
+<p class="text-xs text-on-surface-variant">PDF, 1.8 MB - Español</p>
+</div>
+</div>
+<span class="material-symbols-outlined group-hover:translate-x-1 transition-transform" data-icon="download">download</span>
+</a>
+</div>
+</div>
+<!-- Related Products Section -->
+<section class="mt-xxl">
+<div class="flex items-center justify-between mb-lg">
+<h2 class="font-headline-md text-headline-md font-bold text-primary">Productos relacionados</h2>
+<a class="text-secondary font-bold font-label-md flex items-center gap-xs hover:underline" href="#">
+                    Ver todos <span class="material-symbols-outlined text-sm">arrow_forward</span>
+</a>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-lg">
+<!-- Related Card 1 -->
+<div class="bg-white rounded-[24px] border border-outline-variant p-md custom-shadow group">
+<div class="relative overflow-hidden rounded-xl h-48 mb-md">
+<img class="w-full h-full object-cover group-hover:scale-110 transition-transform" data-alt="A modern dental autoclave machine for sterilization. Stainless steel finish with digital display, placed in a bright, clean, clinical room with surgical blue lighting. Technical and high-performance feel." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAWiBjL3nI0mPvSf5B_eGCP3QZJysjJlrkO4-KE31pWkAUkktekr5BSywVgzn4pkAP2ErP7pT8z1c5LBEaqu5ZNQ3ohDfuUYEMzTaVsyKoz3PI98E9mHuI_ZU_PNZUnbEjbMiPv0cK88YWgKHxhJm9kygx1mHrjFI0aIk5SUQhsdBdbZSmGOTNkqAOuFsGS3KERO1wRE17Vd8Lwbb5cu5Ig-8sOsSBh8SL7vsEOcYJ7_X4icmIwmjMzpXWg2kg9wqss7IAxDCMFAgw">
+<span class="absolute top-sm right-sm bg-secondary text-white font-label-sm px-md py-xs rounded-full">OFERTA</span>
+</div>
+<p class="text-outline font-label-md text-label-md uppercase mb-xs">Mectron</p>
+<h3 class="font-label-md text-label-md font-bold text-primary mb-md line-clamp-1">Esterilizador Autoclave P-30</h3>
+<div class="flex justify-between items-end">
+<div class="flex flex-col">
+<span class="text-on-surface-variant text-xs line-through">$450.000</span>
+<span class="text-secondary font-bold font-label-md">$382.500</span>
+</div>
+<button class="bg-primary-container text-white p-sm rounded-lg hover:bg-primary transition-all">
+<span class="material-symbols-outlined text-[20px]">add_shopping_cart</span>
+</button>
+</div>
+</div>
+<!-- Related Card 2 -->
+<div class="bg-white rounded-[24px] border border-outline-variant p-md custom-shadow group">
+<div class="relative overflow-hidden rounded-xl h-48 mb-md">
+<img class="w-full h-full object-cover group-hover:scale-110 transition-transform" data-alt="Dental high-speed turbine drill with LED lighting. Close-up high-detail shot on a sterile white background. Cool clinical colors with reflections on chrome parts. High-tech dentistry equipment." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBoMg_n8skqyyejYssbk9SyPZLtkA136RXXEeEioP0RH5GO2DUPeImBq_RzAZiNnJ5MpjxMN3f5TFsCCPfvp-ICMhN1OSOXeeakFBkGQwIG8uANsNWSM-WHTN-RkZuVsrAzUkR6aGAOVzoh6xignWiWbrJo_XgGpDTzlMEWWE6G1NXwXhd_Y9A-d4nuL-D5ihzCBi0g25dLKBzzHofzj84vr--YeBDOT9RiPw1zh2NHl761LFxerH08JHYyPZyYTKSKPBPgxnQpQ0c">
+</div>
+<p class="text-outline font-label-md text-label-md uppercase mb-xs">Bien-Air</p>
+<h3 class="font-label-md text-label-md font-bold text-primary mb-md line-clamp-1">Turbina Tornado LED S</h3>
+<div class="flex justify-between items-end">
+<div class="flex flex-col">
+<span class="text-primary font-bold font-label-md">$125.000</span>
+</div>
+<button class="bg-primary-container text-white p-sm rounded-lg hover:bg-primary transition-all">
+<span class="material-symbols-outlined text-[20px]">add_shopping_cart</span>
+</button>
+</div>
+</div>
+<!-- Related Card 3 -->
+<div class="bg-white rounded-[24px] border border-outline-variant p-md custom-shadow group">
+<div class="relative overflow-hidden rounded-xl h-48 mb-md">
+<img class="w-full h-full object-cover group-hover:scale-110 transition-transform" data-alt="A focused image of a modern dental surgery light fixture in a bright, surgical room. Minimalist aesthetic, soft blue shadows, high-key lighting, professional healthcare style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDP2qOIazz4TiM94MjMx-5qyvYJkHNQUQt7R9WXMvDseuKQjdrcg_0USAf-Xjt_siI8ju9nz95XKc4lb3JhriSK8OKEpfxV7pXim8ydf75G0VU2clKF2PCzutCzjJzKV3khZR676v0yGcPHTwehdQAWLa0c-liggC0IZFrPVTUULGAlSeWu5hSOSQpPPFNmIQWQqy4V5cv2_OtZZdNG1YGf-Yq1mhFB6TEkv3ndIUyLyM1wYV3LX0s8MZlkLkzMXhLC_VQn88efwr4">
+</div>
+<p class="text-outline font-label-md text-label-md uppercase mb-xs">A-dec</p>
+<h3 class="font-label-md text-label-md font-bold text-primary mb-md line-clamp-1">Lámpara Dental LED 300</h3>
+<div class="flex justify-between items-end">
+<div class="flex flex-col">
+<span class="text-primary font-bold font-label-md">$412.000</span>
+</div>
+<button class="bg-primary-container text-white p-sm rounded-lg hover:bg-primary transition-all">
+<span class="material-symbols-outlined text-[20px]">add_shopping_cart</span>
+</button>
+</div>
+</div>
+<!-- Related Card 4 -->
+<div class="bg-white rounded-[24px] border border-outline-variant p-md custom-shadow group">
+<div class="relative overflow-hidden rounded-xl h-48 mb-md">
+<img class="w-full h-full object-cover group-hover:scale-110 transition-transform" data-alt="A macro shot of premium dental implants on a reflective clinical surface. Lighting is bright and sterile with deep blue and white tones. Professional healthcare equipment advertising style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDHiA_jwMwvBD89ximCW_7jJh4BdbzIdEopUdqw9S5my-ABwbl0s8MGSbKUHYZbIxgW357wQgbLk_dJpJFs5bMfdRvPQWS-tprQVd_hCVrillPz9VsP0pTRg59gL2yGcvxTH3Q9j-zBTQJb9aSNzUGm-U4oY9UsQ8rh4cX-X6Kkn76A5qh0S1nfu7aoEkPbo8GY5nMbFYY-LbAzHRgY8-k5OdBg21IK8lEUPiylm99ggaU3sD3TqN3rcrpBQiW-CdRW-ap4VM8Ejpg">
+<span class="absolute top-sm right-sm bg-tertiary-fixed text-on-tertiary-fixed font-label-sm px-md py-xs rounded-full">PREMIUM</span>
+</div>
+<p class="text-outline font-label-md text-label-md uppercase mb-xs">Straumann</p>
+<h3 class="font-label-md text-label-md font-bold text-primary mb-md line-clamp-1">Kit implantes BLX Starter</h3>
+<div class="flex justify-between items-end">
+<div class="flex flex-col">
+<span class="text-primary font-bold font-label-md">$980.000</span>
+</div>
+<button class="bg-primary-container text-white p-sm rounded-lg hover:bg-primary transition-all">
+<span class="material-symbols-outlined text-[20px]">add_shopping_cart</span>
+</button>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="bg-primary-container text-on-primary-container w-full py-xl px-container-margin flex flex-col items-center gap-lg border-t border-outline-variant mt-xxl">
+<div class="max-w-7xl w-full grid grid-cols-1 md:grid-cols-3 gap-xl">
+<div class="space-y-md">
+<div class="font-headline-md text-headline-md text-on-primary-container font-black">ElectrodentalNea</div>
+<p class="font-body-md text-body-md text-on-primary-container/80">Líderes en equipamiento odontológico de alta gama. Tecnología y precisión al servicio de tu clínica.</p>
+</div>
+<div class="grid grid-cols-2 gap-md">
+<div class="flex flex-col gap-sm">
+<h4 class="font-label-md text-label-md font-bold text-white uppercase">Explorar</h4>
+<a class="text-on-primary-container/80 hover:text-white hover:underline decoration-secondary transition-all" href="#">Contacto</a>
+<a class="text-on-primary-container/80 hover:text-white hover:underline decoration-secondary transition-all" href="#">Sucursales</a>
+<a class="text-on-primary-container/80 hover:text-white hover:underline decoration-secondary transition-all" href="#">Términos</a>
+</div>
+<div class="flex flex-col gap-sm">
+<h4 class="font-label-md text-label-md font-bold text-white uppercase">Soporte</h4>
+<a class="text-on-primary-container/80 hover:text-white hover:underline decoration-secondary transition-all" href="#">WhatsApp</a>
+<a class="text-on-primary-container/80 hover:text-white hover:underline decoration-secondary transition-all" href="#">Privacidad</a>
+<a class="text-on-primary-container/80 hover:text-white hover:underline decoration-secondary transition-all" href="#">Servicio Técnico</a>
+</div>
+</div>
+<div class="space-y-md">
+<h4 class="font-label-md text-label-md font-bold text-white uppercase">Suscribite al Newsletter</h4>
+<div class="flex gap-sm">
+<input class="bg-white/10 border border-white/20 rounded-lg px-md py-xs text-white focus:outline-none focus:ring-1 focus:ring-secondary w-full" placeholder="Email" type="email">
+<button class="bg-secondary text-white px-md rounded-lg font-bold hover:bg-secondary-container hover:text-on-secondary-container transition-all">Unirse</button>
+</div>
+</div>
+</div>
+<div class="w-full border-t border-white/10 pt-lg text-center">
+<p class="font-label-sm text-label-sm text-on-primary-container/60">© 2024 ElectrodentalNea. Equipamiento y Materiales Odontológicos de Alta Gama.</p>
+</div>
+</footer>
+<script>
+        function stepUp() {
+            const input = document.getElementById('qty');
+            if(parseInt(input.value) < 4) input.value = parseInt(input.value) + 1;
+        }
+        function stepDown() {
+            const input = document.getElementById('qty');
+            if(parseInt(input.value) > 1) input.value = parseInt(input.value) - 1;
+        }
+
+        function switchTab(event, tabId) {
+            const tabs = document.querySelectorAll('.tab-content');
+            const btns = document.querySelectorAll('.tab-btn');
+            
+            tabs.forEach(tab => tab.classList.add('hidden'));
+            btns.forEach(btn => {
+                btn.classList.remove('border-secondary', 'text-primary', 'font-bold');
+                btn.classList.add('border-transparent', 'text-on-surface-variant');
+            });
+
+            document.getElementById(tabId).classList.remove('hidden');
+            event.currentTarget.classList.add('border-secondary', 'text-primary', 'font-bold');
+            event.currentTarget.classList.remove('border-transparent', 'text-on-surface-variant');
+        }
+    </script>
+
+
+
+
+</body></html>

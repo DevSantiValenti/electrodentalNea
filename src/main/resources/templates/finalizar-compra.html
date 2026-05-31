@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>ElectrodentalNea | Carrito</title>
+	<link rel="icon" type="image/png" th:href="@{/img/electrodentallarge.png}">
+	<link rel="shortcut icon" type="image/png" th:href="@{/img/electrodentallarge.png}">
+	<link rel="apple-touch-icon" th:href="@{/img/electrodentallarge.png}">
+	<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+		rel="stylesheet">
+	<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+		rel="stylesheet">
+	<script>
+		tailwind.config = {
+			theme: {
+				extend: {
+					colors: {
+						primary: "#0b2438",
+						secondary: "#b71f2a",
+						background: "#f8f9fb",
+						outline: "#d5d9df"
+					},
+					fontFamily: { sans: ["Inter", "sans-serif"] }
+				}
+			}
+		}
+	</script>
+	<style>
+		body {
+			font-family: 'Inter', sans-serif;
+			background: #f8f9fb;
+		}
+
+		.material-symbols-outlined {
+			font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+		}
+
+		.cart-shadow {
+			box-shadow: 0 8px 24px rgba(15, 23, 42, .06);
+		}
+	</style>
+</head>
+
+<body class="min-h-screen text-slate-900">
+	<header class="border-b border-outline bg-white">
+		<div class="mx-auto flex h-20 max-w-7xl items-center justify-between px-4 sm:px-6">
+			<a th:href="@{/}" class="flex items-center">
+				<img src="/img/electrodentallarge.png" alt="ElectrodentalNea" class="h-12 w-auto object-contain">
+			</a>
+			<nav class="hidden items-center gap-8 text-sm font-bold text-slate-600 md:flex">
+				<a th:href="@{/catalogo}" class="hover:text-secondary">Categorías</a>
+				<a th:href="@{/ofertas}" class="hover:text-secondary">Ofertas</a>
+				<a th:href="@{/catalogo}" class="hover:text-secondary">Novedades</a>
+				<!-- <a th:href="@{/marcas}" class="hover:text-secondary">Marcas</a> -->
+				<!-- <a th:href="@{/servicio-tecnico}" class="hover:text-secondary">Servicio Técnico</a> -->
+				<a href="/servicio-tecnico"
+					class="inline-flex items-center gap-3 rounded-xl border-[#66e2f8]/40 bg-[linear-gradient(135deg,#011427_0%,#12384d_45%,#66e2f8_100%)] px-5 py-3 font-bold text-white shadow-lg shadow-cyan-950/20 hover:brightness-110">
+					<!-- <img src="/img/denttech-logo.svg" alt="DentTech" class="h-8 w-auto"> -->
+					<p style="font-weight: 900; color: #66e2f8 !important;">DentTech</p> Servicio técnico
+				</a>
+			</nav>
+			<div class="flex items-center gap-5 text-secondary">
+				<!-- <a th:href="@{/contacto}" class="material-symbols-outlined">person</a> -->
+				<a th:href="@{/carrito}" class="relative">
+					<span class="material-symbols-outlined">shopping_cart</span>
+					<span
+						class="absolute -right-2 -top-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-secondary px-1 text-[10px] font-black text-white"
+						th:text="${carrito != null ? carrito.cantidadTotal : 0}">0</span>
+				</a>
+			</div>
+		</div>
+	</header>
+
+	<main class="mx-auto max-w-7xl px-4 py-8 sm:px-6">
+		<div class="mx-auto mb-8 grid max-w-5xl gap-4 md:grid-cols-[160px_1fr_160px] md:items-start">
+			<a th:if="${pasoCheckout == 2}" th:href="@{/carrito}" class="inline-flex items-center justify-center gap-2 rounded-lg border border-outline bg-white px-4 py-3 text-sm font-black text-primary hover:bg-slate-50">
+				<span class="material-symbols-outlined text-[18px]">arrow_back</span> Volver
+			</a>
+			<a th:if="${pasoCheckout == 3}" th:href="@{/checkout/datos}" class="inline-flex items-center justify-center gap-2 rounded-lg border border-outline bg-white px-4 py-3 text-sm font-black text-primary hover:bg-slate-50">
+				<span class="material-symbols-outlined text-[18px]">arrow_back</span> Volver
+			</a>
+			<div th:if="${pasoCheckout == null || pasoCheckout == 1}" class="hidden md:block"></div>
+		<section class="grid grid-cols-[auto_1fr_auto_1fr_auto] items-start gap-4 text-center">
+			<div>
+				<div
+					class="mx-auto flex h-10 w-10 items-center justify-center rounded-full text-sm font-black"
+					th:classappend="${pasoCheckout == null || pasoCheckout == 1} ? ' bg-secondary text-white' : ' bg-slate-200 text-slate-500'">
+					1</div>
+				<p class="mt-2 text-sm font-bold" th:classappend="${pasoCheckout == null || pasoCheckout == 1} ? ' text-primary' : ' text-slate-600'">Carrito</p>
+			</div>
+			<div class="mt-5 h-[2px] bg-outline"></div>
+			<div>
+				<div
+					class="mx-auto flex h-10 w-10 items-center justify-center rounded-full text-sm font-black"
+					th:classappend="${pasoCheckout == 2} ? ' bg-secondary text-white' : ' bg-slate-200 text-slate-500'">
+					2</div>
+				<p class="mt-2 text-sm font-bold" th:classappend="${pasoCheckout == 2} ? ' text-primary' : ' text-slate-600'">Datos</p>
+			</div>
+			<div class="mt-5 h-[2px] bg-outline"></div>
+			<div>
+				<div
+					class="mx-auto flex h-10 w-10 items-center justify-center rounded-full text-sm font-black"
+					th:classappend="${pasoCheckout == 3} ? ' bg-secondary text-white' : ' bg-slate-200 text-slate-500'">
+					3</div>
+				<p class="mt-2 text-sm font-bold" th:classappend="${pasoCheckout == 3} ? ' text-primary' : ' text-slate-600'">Pago</p>
+			</div>
+		</section>
+			<div class="hidden md:block"></div>
+		</div>
+
+		<div th:if="${mensaje}" class="mb-5 rounded-xl bg-amber-50 p-4 text-sm font-bold text-amber-800"
+			th:text="${mensaje}">Mensaje</div>
+
+		<div th:if="${carrito == null || #lists.isEmpty(carrito.items)}"
+			class="cart-shadow rounded-xl border border-outline bg-white p-10 text-center">
+			<p class="text-2xl font-black text-primary">Aun no hay productos...</p>
+		</div>
+
+		<div th:if="${carrito != null && !#lists.isEmpty(carrito.items)}" class="grid gap-8 lg:grid-cols-[1fr_380px]">
+			<section class="cart-shadow rounded-xl border border-outline bg-white p-6">
+				<div th:if="${pasoCheckout == null || pasoCheckout == 1}">
+				<h1 class="mb-6 text-2xl font-black text-primary">Tu Carrito</h1>
+				<div class="divide-y divide-outline">
+					<div th:each="item : ${carrito.items}"
+						class="grid gap-4 py-5 sm:grid-cols-[96px_1fr_auto_auto_auto] sm:items-center">
+						<img class="h-24 w-24 rounded-lg bg-slate-100 object-cover"
+							th:src="${#strings.isEmpty(item.imagenPrincipal) ? '/img/electrodentallarge.png' : item.imagenPrincipal}"
+							th:alt="${item.nombre}">
+						<div>
+							<a th:href="@{/productos/{slug}(slug=${item.slug})}"
+								class="font-black text-primary hover:text-secondary"
+								th:text="${item.nombre}">Producto</a>
+							<p class="mt-1 text-xs font-bold text-slate-500" th:text="|Ref: ${item.slug}|">Ref</p>
+						</div>
+						<form th:action="@{/carrito/actualizar/{productoId}(productoId=${item.productoId})}"
+							method="post" class="inline-flex h-9 items-center rounded-lg border border-outline">
+							<button type="submit" name="cantidad"
+								th:value="${item.cantidad > 1 ? item.cantidad - 1 : 1}"
+								class="px-3 text-slate-600">−</button>
+							<span class="min-w-8 text-center text-sm font-bold" th:text="${item.cantidad}">1</span>
+							<button type="submit" name="cantidad"
+								th:value="${item.cantidad < item.stockDisponible ? item.cantidad + 1 : item.stockDisponible}"
+								th:disabled="${item.cantidad >= item.stockDisponible}"
+								class="px-3 text-slate-600 disabled:cursor-not-allowed disabled:opacity-40">+</button>
+						</form>
+						<p class="text-right font-black text-primary" th:text="|$ ${item.subtotal}|">$0</p>
+						<form th:action="@{/carrito/quitar/{productoId}(productoId=${item.productoId})}" method="post">
+							<button class="text-secondary hover:text-red-800" title="Quitar"><span
+									class="material-symbols-outlined text-[20px]">delete</span></button>
+						</form>
+					</div>
+				</div>
+				</div>
+
+				<div th:if="${pasoCheckout == 2}" class="space-y-6">
+					<div>
+						<h1 class="text-2xl font-black text-primary">Datos de entrega</h1>
+						<p class="mt-2 text-sm font-semibold text-slate-600">Elegí cómo querés recibir o retirar tu pedido.</p>
+					</div>
+
+					<div class="rounded-xl border border-outline bg-slate-50 p-5">
+						<h2 class="text-lg font-black text-primary">Datos del comprador</h2>
+						<p class="mt-1 text-sm font-semibold text-slate-600">Estos datos se guardan en el pedido y se usan para retiro, coordinación o envío.</p>
+						<div class="mt-5 grid gap-4 sm:grid-cols-2">
+							<label class="block">
+								<span class="text-xs font-black uppercase text-slate-500">Nombre</span>
+								<input form="checkoutDatosForm" name="nombre" required class="mt-1 h-11 w-full rounded-lg border-outline" placeholder="Nombre" th:value="${checkoutCliente != null ? checkoutCliente.nombre : ''}">
+							</label>
+							<label class="block">
+								<span class="text-xs font-black uppercase text-slate-500">Apellido</span>
+								<input form="checkoutDatosForm" name="apellidoRazonSocial" required class="mt-1 h-11 w-full rounded-lg border-outline" placeholder="Apellido" th:value="${checkoutCliente != null ? checkoutCliente.apellidoRazonSocial : ''}">
+							</label>
+							<label class="block">
+								<span class="text-xs font-black uppercase text-slate-500">DNI</span>
+								<input form="checkoutDatosForm" name="dniCuit" required class="mt-1 h-11 w-full rounded-lg border-outline" placeholder="DNI" th:value="${checkoutCliente != null ? checkoutCliente.dniCuit : ''}">
+							</label>
+							<label class="block">
+								<span class="text-xs font-black uppercase text-slate-500">Teléfono</span>
+								<input form="checkoutDatosForm" name="telefono" required class="mt-1 h-11 w-full rounded-lg border-outline" placeholder="362..." th:value="${checkoutCliente != null ? checkoutCliente.telefono : ''}">
+							</label>
+							<label class="block sm:col-span-2">
+								<span class="text-xs font-black uppercase text-slate-500">Correo electrónico</span>
+								<input form="checkoutDatosForm" name="email" type="email" required class="mt-1 h-11 w-full rounded-lg border-outline" placeholder="correo@email.com" th:value="${checkoutCliente != null ? checkoutCliente.email : ''}">
+							</label>
+						</div>
+					</div>
+
+					<div class="grid gap-4 md:grid-cols-3">
+						<label class="delivery-card cursor-pointer rounded-xl border border-outline bg-white p-4 shadow-sm transition hover:border-secondary">
+							<input type="radio" name="deliveryOption" value="ANDREANI" class="delivery-radio rounded-full text-secondary" checked>
+							<div class="mt-3 flex items-center gap-3">
+								<span class="material-symbols-outlined text-primary">local_shipping</span>
+								<h2 class="font-black text-primary">Envío con Andreani</h2>
+							</div>
+							<p class="mt-2 text-xs font-semibold text-slate-600">Cotizá envío a domicilio con código postal.</p>
+						</label>
+						<label class="delivery-card cursor-pointer rounded-xl border border-outline bg-white p-4 shadow-sm transition hover:border-secondary">
+							<input type="radio" name="deliveryOption" value="SUCURSAL" class="delivery-radio rounded-full text-secondary">
+							<div class="mt-3 flex items-center gap-3">
+								<span class="material-symbols-outlined text-primary">storefront</span>
+								<h2 class="font-black text-primary">Retirar en sucursal</h2>
+							</div>
+							<p class="mt-2 text-xs font-black text-green-700">GRATIS</p>
+						</label>
+						<label class="delivery-card cursor-pointer rounded-xl border border-outline bg-white p-4 shadow-sm transition hover:border-secondary">
+							<input type="radio" name="deliveryOption" value="VENDEDOR" class="delivery-radio rounded-full text-secondary">
+							<div class="mt-3 flex items-center gap-3">
+								<span class="material-symbols-outlined text-primary">support_agent</span>
+								<h2 class="font-black text-primary">Coordinar con vendedor</h2>
+							</div>
+							<p class="mt-2 text-xs font-semibold text-slate-600">Para zonas con logística coordinada.</p>
+						</label>
+					</div>
+
+					<div id="panel-ANDREANI" class="delivery-panel rounded-xl border border-outline bg-slate-50 p-5">
+						<h2 class="mb-4 text-sm font-black uppercase text-primary">Calcular envío</h2>
+						<form th:action="@{/checkout/envio/cotizar}" method="post" class="grid gap-3 sm:grid-cols-[1fr_auto]">
+							<input name="codigoPostalDestino" th:value="${codigoPostalDestino}" required class="h-12 rounded-lg border-outline text-base" placeholder="Tu Código Postal">
+							<button class="h-12 rounded-lg bg-primary px-8 font-black text-white hover:opacity-95">Calcular</button>
+						</form>
+						<div class="mt-4 rounded-xl border border-outline bg-white p-4">
+							<div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+								<div class="flex items-start gap-3">
+									<span class="material-symbols-outlined text-primary">local_shipping</span>
+									<div>
+										<p class="font-black text-primary">Andreani a domicilio</p>
+										<p class="text-xs font-semibold text-slate-500" th:if="${cotizacionAndreani == null}">Ingresá tu código postal para obtener la cotización.</p>
+										<p class="text-xs font-semibold" th:if="${cotizacionAndreani != null}" th:classappend="${cotizacionAndreani.cotizada} ? ' text-green-700' : ' text-amber-700'" th:text="${cotizacionAndreani.mensaje}">Estado</p>
+									</div>
+								</div>
+								<strong class="text-secondary" th:if="${cotizacionAndreani == null}">A calcular</strong>
+								<strong class="text-secondary" th:if="${cotizacionAndreani != null && cotizacionAndreani.cotizada}" th:text="|$ ${cotizacionAndreani.costo}|">$0</strong>
+							</div>
+						</div>
+					</div>
+
+					<div id="panel-SUCURSAL" class="delivery-panel hidden rounded-xl border border-outline bg-slate-50 p-5">
+						<h2 class="text-lg font-black text-primary">Retiro en sucursal</h2>
+						<p class="mt-2 text-sm font-semibold text-slate-600">Te esperamos en <span th:text="${configuracionTienda.direccion}">Roque Sáenz Peña 539, Resistencia</span>.</p>
+						<p class="mt-1 text-sm font-semibold text-slate-600">Horario: <span th:text="${configuracionTienda.horarios}">08:00 a 12:30hs y 17:00 a 20:30hs</span>.</p>
+						<p class="mt-3 rounded-lg bg-white p-3 text-sm font-bold text-primary">Luego del pago se generará un código de retiro del pedido. Presentalo junto con tu DNI o comprobante al retirar.</p>
+						<div class="mt-4 overflow-hidden rounded-xl border border-outline">
+							<iframe th:src="${configuracionTienda.mapsEmbedUrl}" title="Mapa de sucursal" class="h-64 w-full" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+						</div>
+					</div>
+
+					<div id="panel-VENDEDOR" class="delivery-panel hidden rounded-xl border border-outline bg-slate-50 p-5">
+						<h2 class="text-lg font-black text-primary">Coordinar con vendedor</h2>
+						<p class="mt-2 text-sm font-semibold text-slate-600">Disponible para Chaco capital e interior, y Corrientes solo capital.</p>
+						<p class="mt-3 text-sm font-semibold text-slate-600">El vendedor coordinará la venta, el despacho y la forma de entrega. Los costos serán informados al momento de cotizar con el vendedor.</p>
+						<a th:href="${configuracionTienda.whatsappLink}" target="_blank" rel="noopener" class="mt-5 inline-flex items-center gap-2 rounded-lg bg-secondary px-5 py-3 font-black text-white hover:opacity-90">
+							<span class="material-symbols-outlined">chat</span> Consultar por WhatsApp
+						</a>
+					</div>
+				</div>
+
+				<div th:if="${pasoCheckout == 3}" class="space-y-6">
+					<div>
+						<h1 class="text-2xl font-black text-primary">Pago</h1>
+						<p class="mt-2 text-sm font-semibold text-slate-600">Vas a pagar en el entorno seguro de Mercado Pago Checkout Pro.</p>
+					</div>
+					<div class="rounded-xl border border-outline bg-slate-50 p-5">
+						<div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+							<div>
+								<p class="text-xs font-black uppercase text-slate-500">Entrega seleccionada</p>
+								<p class="mt-1 text-lg font-black text-primary" th:switch="${envioSeleccionado}">
+									<span th:case="'SUCURSAL'">Retiro en sucursal</span>
+									<span th:case="'VENDEDOR'">Coordinar con vendedor</span>
+									<span th:case="*">Envío con Andreani</span>
+								</p>
+							</div>
+							<a th:href="@{/checkout/datos}" class="inline-flex items-center justify-center gap-2 rounded-lg border border-outline bg-white px-4 py-3 text-sm font-black text-primary hover:bg-slate-100">
+								<span class="material-symbols-outlined text-[18px]">arrow_back</span> Cambiar entrega
+							</a>
+						</div>
+						<p class="mt-4 rounded-lg bg-white p-3 text-sm font-semibold text-slate-600" th:if="${envioSeleccionado == 'SUCURSAL' || envioSeleccionado == 'VENDEDOR'}">
+							Luego del pago se genera un código de compra para identificar tu operación en la tienda, debes presentarlo con el vendedor.
+						</p>
+					</div>
+					<div class="rounded-xl border border-outline bg-white p-5">
+						<div class="flex items-start gap-4">
+							<span class="material-symbols-outlined text-3xl text-secondary">payments</span>
+							<div>
+								<h2 class="font-black text-primary">Mercado Pago Checkout Pro</h2>
+								<p class="mt-1 text-sm font-semibold text-slate-600">Se abrirá Mercado Pago para elegir tarjeta, dinero en cuenta, Pago Fácil, Rapipago u otros medios disponibles.</p>
+							</div>
+						</div>
+					</div>
+				</div>
+			</section>
+
+			<aside class="cart-shadow rounded-xl border border-outline bg-white p-6">
+				<h2 class="mb-6 text-2xl font-black text-primary">Resumen</h2>
+				<div class="space-y-4 text-sm">
+					<div class="flex justify-between">
+						<span class="text-slate-600">Subtotal</span>
+						<strong th:text="|$ ${carrito.subtotal}|">$0</strong>
+					</div>
+					<div class="flex justify-between">
+						<span class="text-slate-600">Envío</span>
+						<strong th:if="${cotizacionAndreani != null && cotizacionAndreani.cotizada}" th:text="|$ ${cotizacionAndreani.costo}|">$0</strong>
+						<strong th:unless="${cotizacionAndreani != null && cotizacionAndreani.cotizada}">$0</strong>
+					</div>
+					<div class="border-t border-outline pt-4">
+						<div class="flex items-center justify-between">
+							<span class="text-lg font-black text-primary">Total</span>
+							<strong class="text-3xl font-black text-secondary" th:if="${cotizacionAndreani != null && cotizacionAndreani.cotizada}"
+								th:text="|$ ${carrito.subtotal.add(cotizacionAndreani.costo)}|">$0</strong>
+							<strong class="text-3xl font-black text-secondary" th:unless="${cotizacionAndreani != null && cotizacionAndreani.cotizada}"
+								th:text="|$ ${carrito.subtotal}|">$0</strong>
+						</div>
+					</div>
+				</div>
+				<a th:if="${pasoCheckout == null || pasoCheckout == 1}" th:href="@{/checkout/datos}"
+					class="mt-6 flex w-full items-center justify-center gap-3 rounded-xl bg-primary px-5 py-4 font-black text-white hover:opacity-95">
+					Continuar al pago <span class="material-symbols-outlined">arrow_forward</span>
+				</a>
+				<form id="checkoutDatosForm" th:if="${pasoCheckout == 2}" th:action="@{/checkout/pago}" method="post" class="mt-6 space-y-3">
+					<input id="metodoEnvioFinal" type="hidden" name="metodoEnvio" th:value="${envioSeleccionado ?: 'ANDREANI'}">
+					<input type="hidden" name="calle" value="Sin definir">
+					<input type="hidden" name="numero" value="0">
+					<input type="hidden" name="ciudad" value="Sin definir">
+					<input type="hidden" name="provincia" value="Sin definir">
+					<input type="hidden" name="codigoPostal" th:value="${codigoPostalDestino ?: '0000'}">
+					<button
+						class="flex w-full items-center justify-center gap-3 rounded-xl bg-primary px-5 py-4 font-black text-white hover:opacity-95">
+						Continuar a pago <span class="material-symbols-outlined">arrow_forward</span>
+					</button>
+				</form>
+				<form th:if="${pasoCheckout == 3}" th:action="@{/checkout/pagar}" method="post" class="mt-6 space-y-3">
+					<input type="hidden" name="nombre" th:value="${checkoutCliente != null ? checkoutCliente.nombre : 'Cliente Web'}">
+					<input type="hidden" name="apellidoRazonSocial" th:value="${checkoutCliente != null ? checkoutCliente.apellidoRazonSocial : ''}">
+					<input type="hidden" name="dniCuit" th:value="${checkoutCliente != null ? checkoutCliente.dniCuit : ''}">
+					<input type="hidden" name="telefono" th:value="${checkoutCliente != null ? checkoutCliente.telefono : ''}">
+					<input type="hidden" name="email" th:value="${checkoutCliente != null ? checkoutCliente.email : 'cliente@electrodentalnea.com'}">
+					<input type="hidden" name="calle" th:value="${checkoutDireccion != null ? checkoutDireccion.calle : 'Sin definir'}">
+					<input type="hidden" name="numero" th:value="${checkoutDireccion != null ? checkoutDireccion.numero : '0'}">
+					<input type="hidden" name="ciudad" th:value="${checkoutDireccion != null ? checkoutDireccion.ciudad : 'Sin definir'}">
+					<input type="hidden" name="provincia" th:value="${checkoutDireccion != null ? checkoutDireccion.provincia : 'Sin definir'}">
+					<input type="hidden" name="codigoPostal" th:value="${checkoutDireccion != null ? checkoutDireccion.codigoPostal : (codigoPostalDestino ?: '0000')}">
+					<input type="hidden" name="metodoEnvio" th:value="${envioSeleccionado ?: 'ANDREANI'}">
+					<button
+						class="flex w-full items-center justify-center gap-3 rounded-xl bg-secondary px-5 py-4 font-black text-white hover:opacity-95">
+						Pagar con Mercado Pago <span class="material-symbols-outlined">arrow_forward</span>
+					</button>
+				</form>
+				<div class="mt-8 flex gap-4 rounded-lg bg-slate-100 p-4">
+					<span class="material-symbols-outlined text-secondary">verified_user</span>
+					<div>
+						<p class="text-xs font-black uppercase text-primary">Compra segura</p>
+						<p class="mt-1 text-xs font-semibold text-slate-600">Tus datos están protegidos con encriptación
+							SSL de grado médico.</p>
+					</div>
+				</div>
+			</aside>
+		</div>
+	</main>
+	<script>
+		const deliveryRadios = document.querySelectorAll(".delivery-radio");
+		const deliveryPanels = document.querySelectorAll(".delivery-panel");
+		const metodoEnvioFinal = document.querySelector("#metodoEnvioFinal");
+
+		function syncDeliveryPanels(value) {
+			deliveryPanels.forEach((panel) => panel.classList.add("hidden"));
+			const activePanel = document.querySelector(`#panel-${value}`);
+			if (activePanel) {
+				activePanel.classList.remove("hidden");
+			}
+			if (metodoEnvioFinal) {
+				metodoEnvioFinal.value = value;
+			}
+		}
+
+		deliveryRadios.forEach((radio) => {
+			radio.addEventListener("change", () => syncDeliveryPanels(radio.value));
+			if (radio.checked) {
+				syncDeliveryPanels(radio.value);
+			}
+		});
+	</script>
+</body>
+
+</html>

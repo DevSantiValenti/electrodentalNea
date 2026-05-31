@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Contacto</title>
+	<link rel="icon" type="image/png" th:href="@{/img/electrodentallarge.png}">
+	<link rel="shortcut icon" type="image/png" th:href="@{/img/electrodentallarge.png}">
+	<link rel="apple-touch-icon" th:href="@{/img/electrodentallarge.png}">
+	<link rel="stylesheet" th:href="@{/css/site.css}">
+</head>
+<body>
+<div th:replace="~{fragments/layout :: header}"></div>
+<main class="section page contact">
+	<p class="eyebrow">Contacto</p>
+	<h1>Contanos que necesita tu consultorio y te orientamos.</h1>
+	<form class="contact-form" method="post" action="#">
+		<label>
+			Nombre
+			<input type="text" name="name" autocomplete="name">
+		</label>
+		<label>
+			Email
+			<input type="email" name="email" autocomplete="email">
+		</label>
+		<label>
+			Mensaje
+			<textarea name="message" rows="5"></textarea>
+		</label>
+		<button class="button" type="submit">Enviar consulta</button>
+	</form>
+</main>
+<div th:replace="~{fragments/layout :: footer}"></div>
+</body>
+</html>

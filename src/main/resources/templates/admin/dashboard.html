@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/fragments/layout :: head('Admin | Panel')}"></head>
+<body class="admin-shell text-slate-900">
+<aside th:replace="~{admin/fragments/layout :: sidebar('dashboard')}"></aside>
+<header th:replace="~{admin/fragments/layout :: mobilebar('dashboard')}"></header>
+
+<main class="p-4 sm:p-6 lg:ml-64 lg:p-8">
+	<div th:replace="~{admin/fragments/layout :: topbar('Panel de Control', 'Bienvenido de nuevo. Aquí tenés el resumen operativo de hoy.')}"></div>
+
+	<section class="mb-8 grid grid-cols-1 gap-5 md:grid-cols-3">
+		<article class="admin-card flex h-40 flex-col justify-between rounded-2xl p-6">
+			<div class="flex items-start justify-between">
+				<span class="text-sm font-bold text-muted">Ventas del Mes</span>
+				<span class="material-symbols-outlined rounded-xl bg-primary/10 p-2 text-primary">payments</span>
+			</div>
+			<div>
+				<p class="text-3xl font-black text-primary" th:text="|$ ${dashboard != null ? dashboard.ventasDelMes : 0}|">$0</p>
+				<p class="mt-1 flex items-center gap-1 text-xs font-bold text-secondary"><span class="material-symbols-outlined text-sm">trending_up</span> Ventas presenciales registradas</p>
+			</div>
+		</article>
+		<article class="admin-card flex h-40 flex-col justify-between rounded-2xl p-6">
+			<div class="flex items-start justify-between">
+				<span class="text-sm font-bold text-muted">Pedidos Hoy</span>
+				<span class="material-symbols-outlined rounded-xl bg-secondary/10 p-2 text-secondary">shopping_cart</span>
+			</div>
+			<div>
+				<p class="text-3xl font-black text-primary" th:text="${dashboard != null ? dashboard.pedidosHoy : 0}">0</p>
+				<p class="mt-1 text-xs font-bold text-muted" th:text="|${dashboard != null ? dashboard.pedidosPendientesPago : 0} pendientes de pago|">0 pendientes</p>
+			</div>
+		</article>
+		<article class="admin-card flex h-40 flex-col justify-between rounded-2xl p-6">
+			<div class="flex items-start justify-between">
+				<span class="text-sm font-bold text-muted">Bajo Stock</span>
+				<span class="material-symbols-outlined rounded-xl bg-amber-100 p-2 text-amber-700">warning</span>
+			</div>
+			<div>
+				<p class="text-3xl font-black text-primary" th:text="${dashboard != null ? dashboard.productosBajoStock : 0}">0</p>
+				<p class="mt-1 text-xs font-bold text-red-600">Requiere atención</p>
+			</div>
+		</article>
+	</section>
+
+	<section class="admin-card mb-8 overflow-hidden rounded-2xl">
+		<div class="flex flex-col gap-3 border-b border-outline p-6 sm:flex-row sm:items-center sm:justify-between">
+			<div>
+				<h2 class="text-2xl font-black text-primary">Gestión rápida</h2>
+				<p class="text-sm text-muted">Accesos directos para cargar productos, ver pedidos y registrar ventas.</p>
+			</div>
+			<a th:href="@{/admin/productos/nuevo}" class="inline-flex items-center justify-center gap-2 rounded-xl bg-secondary px-4 py-3 text-sm font-bold text-white hover:opacity-90">
+				<span class="material-symbols-outlined">add_circle</span> Añadir Nuevo
+			</a>
+		</div>
+		<div class="grid gap-4 p-6 md:grid-cols-3">
+			<a th:href="@{/admin/productos}" class="rounded-xl border border-outline p-5 hover:bg-surface-soft">
+				<span class="material-symbols-outlined rounded-lg bg-primary-container p-3 text-white">inventory_2</span>
+				<h3 class="mt-4 font-black text-primary">Productos</h3>
+				<p class="mt-1 text-sm text-muted">Stock, precios, ofertas y destacados.</p>
+			</a>
+			<a th:href="@{/admin/pedidos}" class="rounded-xl border border-outline p-5 hover:bg-surface-soft">
+				<span class="material-symbols-outlined rounded-lg bg-secondary p-3 text-white">shopping_bag</span>
+				<h3 class="mt-4 font-black text-primary">Pedidos</h3>
+				<p class="mt-1 text-sm text-muted">Pago, envío y estado del pedido.</p>
+			</a>
+			<a th:href="@{/admin/ventas/nueva}" class="rounded-xl border border-outline p-5 hover:bg-surface-soft">
+				<span class="material-symbols-outlined rounded-lg bg-slate-800 p-3 text-white">point_of_sale</span>
+				<h3 class="mt-4 font-black text-primary">Venta presencial</h3>
+				<p class="mt-1 text-sm text-muted">Descuenta stock físico.</p>
+			</a>
+		</div>
+	</section>
+</main>
+</body>
+</html>

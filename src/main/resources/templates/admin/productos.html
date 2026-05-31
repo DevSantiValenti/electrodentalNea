@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/fragments/layout :: head('Admin | Productos')}"></head>
+<body class="admin-shell text-slate-900">
+<aside th:replace="~{admin/fragments/layout :: sidebar('productos')}"></aside>
+<header th:replace="~{admin/fragments/layout :: mobilebar('productos')}"></header>
+
+<main class="p-4 sm:p-6 lg:ml-64 lg:p-8">
+	<div th:replace="~{admin/fragments/layout :: topbar('Productos', 'Administrá catálogo, precios, stock web y stock físico.')}"></div>
+
+	<div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+		<div th:if="${mensaje}" class="rounded-lg bg-green-50 px-4 py-3 text-sm font-bold text-green-800" th:text="${mensaje}">Mensaje</div>
+		<a th:href="@{/admin/productos/nuevo}" class="inline-flex items-center justify-center gap-2 rounded-xl bg-secondary px-4 py-3 text-sm font-bold text-white hover:opacity-90">
+			<span class="material-symbols-outlined">add_circle</span> Añadir Nuevo
+		</a>
+	</div>
+
+	<section class="admin-card rounded-2xl p-6">
+		<div class="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+			<div>
+				<h2 class="text-2xl font-black text-primary">Gestión Rápida de Productos</h2>
+				<p class="text-sm text-muted">Así se va a ver el CRUD de productos en el panel.</p>
+			</div>
+			<button class="inline-flex items-center gap-2 rounded-xl border border-outline px-4 py-3 text-sm font-bold text-primary hover:bg-surface-soft">
+				<span class="material-symbols-outlined">filter_list</span> Filtrar
+			</button>
+		</div>
+
+		<div th:if="${#lists.isEmpty(productos)}" class="rounded-xl border border-dashed border-outline p-10 text-center">
+			<h3 class="text-xl font-black text-primary">Aun no hay productos...</h3>
+			<p class="mt-2 text-sm text-muted">Cargá el primero para verlo aparecer en catálogo, home y carrito.</p>
+			<a th:href="@{/admin/productos/nuevo}" class="mt-5 inline-flex rounded-lg bg-secondary px-5 py-3 font-bold text-white">Crear producto</a>
+		</div>
+
+		<div th:if="${!#lists.isEmpty(productos)}" class="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
+			<article th:each="producto : ${productos}" class="rounded-xl border border-outline p-4 transition hover:shadow-md">
+				<div class="flex gap-4">
+					<img class="h-20 w-20 rounded-lg bg-surface-soft object-contain p-2" th:src="${#strings.isEmpty(producto.imagenPrincipal) ? '/img/electrodentallarge.png' : producto.imagenPrincipal}" th:alt="${producto.nombre}">
+					<div class="min-w-0 flex-1">
+						<h3 class="line-clamp-2 font-black leading-tight text-primary" th:text="${producto.nombre}">Producto</h3>
+						<p class="mb-2 text-xs text-muted" th:text="|SKU: ${producto.slug}|">SKU</p>
+						<div class="flex flex-wrap items-center gap-2">
+							<span class="font-black text-primary" th:text="|$ ${producto.precio}|">$0</span>
+							<span class="rounded px-2 py-1 text-[10px] font-bold" th:classappend="${producto.stockWeb <= producto.stockMinimo} ? ' bg-red-100 text-red-800' : ' bg-amber-100 text-amber-800'" th:text="|Web: ${producto.stockWeb}|">Web</span>
+							<span class="rounded bg-surface-soft px-2 py-1 text-[10px] font-bold text-primary" th:text="|Físico: ${producto.stockFisico}|">Físico</span>
+						</div>
+					</div>
+				</div>
+				<div class="mt-4 flex gap-2 border-t border-outline pt-4">
+					<a th:href="@{/admin/productos/{id}/editar(id=${producto.id})}" class="flex-1 rounded-lg border border-outline py-2 text-center text-xs font-black text-primary hover:bg-surface-soft">Editar</a>
+					<a th:href="@{/productos/{slug}(slug=${producto.slug})}" class="rounded-lg border border-outline px-3 py-2 text-primary hover:bg-surface-soft" title="Ver ficha">
+						<span class="material-symbols-outlined text-[20px]">visibility</span>
+					</a>
+				</div>
+			</article>
+		</div>
+	</section>
+</main>
+</body>
+</html>

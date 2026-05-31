@@ -1,0 +1,426 @@
+<!DOCTYPE html><html class="light" lang="es"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-tertiary-fixed": "#261900",
+                    "on-surface-variant": "#43474c",
+                    "secondary-fixed": "#ffdad7",
+                    "primary-fixed-dim": "#b2c9e3",
+                    "surface-dim": "#d9dadc",
+                    "surface-container-low": "#f2f4f6",
+                    "on-primary-fixed": "#031d31",
+                    "surface-container-highest": "#e1e2e4",
+                    "inverse-surface": "#2e3132",
+                    "surface-bright": "#f8f9fb",
+                    "on-secondary-fixed": "#410005",
+                    "on-primary-container": "#758ca4",
+                    "secondary": "#b71f2a",
+                    "on-primary": "#ffffff",
+                    "on-error": "#ffffff",
+                    "primary-fixed": "#cee5ff",
+                    "outline": "#73777d",
+                    "on-secondary-container": "#5c000a",
+                    "tertiary": "#130b00",
+                    "on-background": "#191c1e",
+                    "background": "#f8f9fb",
+                    "on-secondary": "#ffffff",
+                    "surface-container-high": "#e7e8ea",
+                    "surface-variant": "#e1e2e4",
+                    "on-tertiary-container": "#b18200",
+                    "tertiary-fixed": "#ffdea3",
+                    "tertiary-fixed-dim": "#f8bd39",
+                    "on-primary-fixed-variant": "#32495e",
+                    "surface-container-lowest": "#ffffff",
+                    "on-error-container": "#93000a",
+                    "secondary-fixed-dim": "#ffb3af",
+                    "error": "#ba1a1a",
+                    "outline-variant": "#c3c7cd",
+                    "surface": "#f8f9fb",
+                    "primary": "#000d1b",
+                    "inverse-on-surface": "#f0f1f3",
+                    "tertiary-container": "#2f2000",
+                    "surface-tint": "#4a6077",
+                    "on-surface": "#191c1e",
+                    "primary-container": "#0b2438",
+                    "surface-container": "#edeef0",
+                    "error-container": "#ffdad6",
+                    "on-secondary-fixed-variant": "#930017",
+                    "on-tertiary-fixed-variant": "#5d4200",
+                    "inverse-primary": "#b2c9e3",
+                    "secondary-container": "#fe5455",
+                    "on-tertiary": "#ffffff"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "xxl": "48px",
+                    "container-margin": "24px",
+                    "xl": "32px",
+                    "lg": "24px",
+                    "sm": "8px",
+                    "md": "16px",
+                    "gutter": "16px",
+                    "xs": "4px",
+                    "base": "8px"
+            },
+            "fontFamily": {
+                    "body-md": ["Inter"],
+                    "body-lg": ["Inter"],
+                    "display-lg-mobile": ["Inter"],
+                    "label-sm": ["Inter"],
+                    "label-md": ["Inter"],
+                    "display-lg": ["Inter"],
+                    "headline-lg-mobile": ["Inter"],
+                    "headline-md": ["Inter"],
+                    "headline-lg": ["Inter"]
+            },
+            "fontSize": {
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "display-lg-mobile": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                    "label-sm": ["12px", {"lineHeight": "16px", "fontWeight": "600"}],
+                    "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "500"}],
+                    "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8f9fb; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .sidebar-active { transition: all 150ms ease-in-out; transform: scale(0.95); }
+        .glass-card { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(12px); border: 1px solid #E5E7EB; }
+    </style>
+</head>
+<body class="text-on-surface">
+<div class="flex min-h-screen">
+<!-- Sidebar Navigation -->
+<aside class="flex flex-col h-screen p-md space-y-md bg-surface-container-lowest border-r border-outline-variant w-64 fixed left-0 top-0 z-50">
+<div class="px-md py-lg"><img src="https://lh3.googleusercontent.com/aida/ADBb0uibwOPhBgr7E0rq8qrbrgOzCOwwNtnNtjreTq4QjcJk4Uq6zk1gaPK670BgYRxk5Dl5VNAo_QPiRFmLUoWTOpOi7FEkcAg6zpQgfSUk-Np6aLsv7RVaN4954TLzlvy_McN-rxe44Z0YqAVNKeCCnuhc76cz-DG19Sjn8bv6FoHctQIZxv02bzMCUPnND6sSHQFtCgIckPUVbiciMq2VptgPS0emtMedz0ay03jqLyG8oqSM6Zs84Qm2KfY" alt="DentTech Logo" class="h-12 w-auto object-contain"></div>
+<div class="flex flex-col flex-1 gap-xs">
+<!-- Dashboard Active Tab -->
+<a class="flex items-center gap-md px-md py-sm bg-secondary-container text-on-secondary-container rounded-lg font-bold sidebar-active" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-label-md text-label-md">Panel Control</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm text-on-surface-variant hover:bg-surface-container transition-all rounded-lg" href="#">
+<span class="material-symbols-outlined" data-icon="inventory_2">inventory_2</span>
+<span class="font-label-md text-label-md">Productos</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm text-on-surface-variant hover:bg-surface-container transition-all rounded-lg" href="#">
+<span class="material-symbols-outlined" data-icon="shopping_bag">shopping_bag</span>
+<span class="font-label-md text-label-md">Pedidos</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm text-on-surface-variant hover:bg-surface-container transition-all rounded-lg" href="#">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+<span class="font-label-md text-label-md">Clientes</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm text-on-surface-variant hover:bg-surface-container transition-all rounded-lg" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-label-md text-label-md">Configuración</span>
+</a>
+</div>
+<div class="mt-auto border-t border-outline-variant pt-md">
+<button class="w-full flex items-center justify-center gap-sm bg-primary text-on-primary py-sm rounded-lg font-label-md text-label-md hover:opacity-90 transition-opacity mb-md">
+<span class="material-symbols-outlined" data-icon="add">add</span>
+                    Nuevo Producto
+                </button>
+<div class="flex items-center gap-md px-md py-sm">
+<img alt="Admin Avatar" class="w-8 h-8 rounded-full object-cover" data-alt="Close up professional headshot of a male dental clinic manager in a high-end, sterile corporate setting. He is wearing a sharp navy blue suit and looking confidently at the camera. The background is a soft-focus clinical environment with cold lighting and minimal white decor, reflecting a premium medical brand identity." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAqadtH2vTqfzt9SlDULjEALCk1v3XFS6ZR8mMOuX0jLRY0Dq9IfyNKZdPiaATnrfRfHsscgmv8D6FK8aSSrLV0IJtgA1lVJGM6Af12eNZrFfIcB_YR2jYxQpLbDHvYAnNdRtKFSwhEPwX3h9ELDielnbrSoBwT7rE9m0f6y05HHTrMACpps9Nac9eA90UVLuIo_Rm6Jzun6ESbJXpddabM6GxstHZiSftehNI5MS0O96EIqi8APhoPJsfhfkWNaK_ouv5uXQbrxRM">
+<div class="flex flex-col">
+<span class="font-label-md text-label-md font-bold">Admin Panel</span>
+<span class="text-[10px] text-outline">ElectrodentalNea Mgmt</span>
+</div>
+</div>
+<button class="w-full flex items-center gap-md px-md py-sm text-on-surface-variant hover:bg-surface-container transition-all rounded-lg mt-sm">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+<span class="font-label-md text-label-md">Cerrar Sesión</span>
+</button>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="flex-1 ml-64 p-xl max-w-7xl mx-auto w-full">
+<!-- Header Section -->
+<header class="flex justify-between items-center mb-xl">
+<div>
+<h1 class="font-headline-lg text-headline-lg text-primary font-bold">Panel de Control</h1>
+<p class="font-body-md text-body-md text-on-surface-variant">Bienvenido de nuevo, Dr. Admin. Aquí el resumen de hoy.</p>
+</div>
+<div class="flex gap-md">
+<div class="relative">
+<span class="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-outline" data-icon="search">search</span>
+<input class="pl-10 pr-4 py-2 border border-outline-variant rounded-lg bg-surface-container-lowest focus:ring-2 focus:ring-primary/20 outline-none w-64" placeholder="Buscar pedido o producto..." type="text">
+</div>
+<button class="p-2 rounded-lg bg-surface-container hover:bg-surface-container-high transition-colors text-on-surface-variant">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+</div>
+</header>
+<!-- Metrics Widgets (Bento Grid) -->
+<section class="grid grid-cols-1 md:grid-cols-3 gap-lg mb-xl">
+<div class="bg-surface-container-lowest p-lg rounded-[24px] border border-outline-variant shadow-sm flex flex-col justify-between h-40">
+<div class="flex justify-between items-start">
+<span class="font-label-md text-label-md text-outline">Ventas del Mes</span>
+<span class="bg-primary/10 text-primary p-2 rounded-xl material-symbols-outlined" data-icon="payments">payments</span>
+</div>
+<div>
+<span class="font-headline-lg text-headline-lg font-bold">$2.450.800</span>
+<div class="flex items-center gap-xs text-secondary mt-xs">
+<span class="material-symbols-outlined text-sm" data-icon="trending_up">trending_up</span>
+<span class="font-label-sm text-label-sm">+12% vs anterior</span>
+</div>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-lg rounded-[24px] border border-outline-variant shadow-sm flex flex-col justify-between h-40">
+<div class="flex justify-between items-start">
+<span class="font-label-md text-label-md text-outline">Pedidos Hoy</span>
+<span class="bg-secondary/10 text-secondary p-2 rounded-xl material-symbols-outlined" data-icon="shopping_cart">shopping_cart</span>
+</div>
+<div>
+<span class="font-headline-lg text-headline-lg font-bold">34</span>
+<div class="flex items-center gap-xs text-outline mt-xs">
+<span class="material-symbols-outlined text-sm" data-icon="schedule">schedule</span>
+<span class="font-label-sm text-label-sm">8 pendientes de despacho</span>
+</div>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-lg rounded-[24px] border border-outline-variant shadow-sm flex flex-col justify-between h-40">
+<div class="flex justify-between items-start">
+<span class="font-label-md text-label-md text-outline">Bajo Stock</span>
+<span class="bg-tertiary-fixed-dim/20 text-tertiary-container p-2 rounded-xl material-symbols-outlined" data-icon="warning">warning</span>
+</div>
+<div>
+<span class="font-headline-lg text-headline-lg font-bold">12</span>
+<div class="flex items-center gap-xs text-error mt-xs">
+<span class="material-symbols-outlined text-sm" data-icon="error">error</span>
+<span class="font-label-sm text-label-sm">Requiere atención inmediata</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Recent Orders Table -->
+<section class="bg-surface-container-lowest rounded-[24px] border border-outline-variant shadow-sm mb-xl overflow-hidden">
+<div class="p-lg flex justify-between items-center border-b border-outline-variant">
+<h2 class="font-headline-md text-headline-md font-bold text-primary">Pedidos Recientes</h2>
+<button class="text-secondary font-label-md text-label-md hover:underline decoration-secondary">Ver todo el historial</button>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead class="bg-surface-container-low text-outline font-label-md text-label-md">
+<tr>
+<th class="px-lg py-md">ID</th>
+<th class="px-lg py-md">Cliente</th>
+<th class="px-lg py-md">Fecha</th>
+<th class="px-lg py-md">Estado</th>
+<th class="px-lg py-md">Total</th>
+<th class="px-lg py-md text-right">Acciones</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant font-body-md text-body-md">
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="px-lg py-lg font-bold">#ORD-5542</td>
+<td class="px-lg py-lg">Clínica Dental San Lucas</td>
+<td class="px-lg py-lg text-on-surface-variant">14 Oct, 2024</td>
+<td class="px-lg py-lg">
+<span class="bg-primary-container text-on-primary-container px-3 py-1 rounded-full text-[12px] font-bold">Pagado</span>
+</td>
+<td class="px-lg py-lg font-bold">$145.200</td>
+<td class="px-lg py-lg text-right">
+<div class="flex justify-end gap-sm">
+<button class="p-2 text-primary hover:bg-primary/5 rounded-lg" title="Ver detalle">
+<span class="material-symbols-outlined" data-icon="visibility">visibility</span>
+</button>
+<button class="flex items-center gap-xs bg-[#0057B7] text-white px-3 py-1.5 rounded-lg font-label-sm text-[11px] hover:opacity-90" title="Generar Andreani">
+<span class="material-symbols-outlined text-[16px]" data-icon="local_shipping">local_shipping</span>
+                                            Etiqueta Andreani
+                                        </button>
+</div>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="px-lg py-lg font-bold">#ORD-5541</td>
+<td class="px-lg py-lg">Dr. Roberto Gómez</td>
+<td class="px-lg py-lg text-on-surface-variant">14 Oct, 2024</td>
+<td class="px-lg py-lg">
+<span class="bg-secondary-container text-on-secondary-container px-3 py-1 rounded-full text-[12px] font-bold">Despachado</span>
+</td>
+<td class="px-lg py-lg font-bold">$89.000</td>
+<td class="px-lg py-lg text-right">
+<div class="flex justify-end gap-sm">
+<button class="p-2 text-primary hover:bg-primary/5 rounded-lg">
+<span class="material-symbols-outlined" data-icon="visibility">visibility</span>
+</button>
+<button class="flex items-center gap-xs border border-outline-variant text-outline px-3 py-1.5 rounded-lg font-label-sm text-[11px] opacity-60 cursor-not-allowed">
+<span class="material-symbols-outlined text-[16px]" data-icon="check_circle">check_circle</span>
+                                            Etiqueta Lista
+                                        </button>
+</div>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="px-lg py-lg font-bold">#ORD-5539</td>
+<td class="px-lg py-lg">Instituto Odontológico Norte</td>
+<td class="px-lg py-lg text-on-surface-variant">13 Oct, 2024</td>
+<td class="px-lg py-lg">
+<span class="bg-surface-container-highest text-outline px-3 py-1 rounded-full text-[12px] font-bold">Pendiente</span>
+</td>
+<td class="px-lg py-lg font-bold">$342.500</td>
+<td class="px-lg py-lg text-right">
+<div class="flex justify-end gap-sm">
+<button class="p-2 text-primary hover:bg-primary/5 rounded-lg">
+<span class="material-symbols-outlined" data-icon="visibility">visibility</span>
+</button>
+<button class="flex items-center gap-xs bg-primary text-white px-3 py-1.5 rounded-lg font-label-sm text-[11px] hover:opacity-90">
+<span class="material-symbols-outlined text-[16px]" data-icon="receipt">receipt</span>
+                                            Facturar
+                                        </button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<!-- Simplified Product CRUD Section -->
+<section class="bg-surface-container-lowest rounded-[24px] border border-outline-variant shadow-sm p-lg">
+<div class="flex justify-between items-center mb-lg">
+<div>
+<h2 class="font-headline-md text-headline-md font-bold text-primary">Gestión Rápida de Productos</h2>
+<p class="text-outline font-body-md text-body-md">Actualiza stock y precios de los productos más destacados.</p>
+</div>
+<div class="flex gap-md">
+<button class="flex items-center gap-sm border border-outline-variant px-md py-sm rounded-xl font-label-md text-label-md hover:bg-surface-container transition-all">
+<span class="material-symbols-outlined" data-icon="filter_list">filter_list</span>
+                            Filtrar
+                        </button>
+<button class="flex items-center gap-sm bg-secondary text-on-secondary px-md py-sm rounded-xl font-label-md text-label-md hover:opacity-90 transition-all shadow-md">
+<span class="material-symbols-outlined" data-icon="add_circle">add_circle</span>
+                            Añadir Nuevo
+                        </button>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-lg">
+<!-- Product Card 1 -->
+<div class="border border-outline-variant rounded-xl p-md hover:shadow-md transition-shadow">
+<div class="flex gap-md">
+<img alt="Producto" class="w-20 h-20 rounded-lg object-cover bg-surface-container" data-alt="Studio photograph of a professional high-speed dental turbine handpiece with fiber optic lighting. The device is made of polished stainless steel and rests on a clean, white reflective surface. The lighting is bright and clinical, emphasizing the precision engineering and sterile quality of the medical equipment. Modern dental tech aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBejnfyU_wKvAQNP3iOL0_HWZpiUNQqJT8LFhXa9h60CQWlu6DLskdHiy4IH9aWS3STX9t3aKzUwYehdm96rX08VeS5M8-euXPhoFEfwrHTfeosPAQbgoDC2HxMIBjm6y_HJ7iS_QdneWyUR2NvXntQ0lqtHxCW5iUrMoxTt-7BL_22FmY6Zzg6qMlPhGOYJYIDH_0cwHt4IXxfNhXYK8BZb62se4owvy-7iQmIPzao-YvIwc8IRsN_ABja5dHRwxT1ra3yYmGToHE">
+<div class="flex-1">
+<h3 class="font-label-md text-label-md font-bold text-primary leading-tight">Turbina NSK Pana-Max Plus</h3>
+<p class="text-xs text-outline mb-sm">SKU: NSK-PMP-001</p>
+<div class="flex items-center gap-sm">
+<span class="font-label-md text-label-md font-bold">$125.000</span>
+<span class="text-[10px] bg-tertiary-fixed-dim/20 text-on-tertiary-fixed px-2 py-0.5 rounded">Stock: 15</span>
+</div>
+</div>
+</div>
+<div class="mt-md flex gap-sm border-t border-outline-variant pt-md">
+<button class="flex-1 text-primary py-2 rounded-lg hover:bg-surface-container text-xs font-bold border border-outline-variant">Editar</button>
+<button class="p-2 text-error hover:bg-error-container/20 rounded-lg border border-outline-variant">
+<span class="material-symbols-outlined text-[20px]" data-icon="delete">delete</span>
+</button>
+</div>
+</div>
+<!-- Product Card 2 -->
+<div class="border border-outline-variant rounded-xl p-md hover:shadow-md transition-shadow">
+<div class="flex gap-md">
+<img alt="Producto" class="w-20 h-20 rounded-lg object-cover bg-surface-container" data-alt="Professional high-definition dental composite resin kit in organized syringes. The packaging is sleek and medical-grade, displayed on a sterile white glass tray. Bright, diffused daylight lighting highlights the premium quality and various shades of the resin. The mood is highly professional, clean, and technologically advanced for a dental clinic setting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBcMtwIg6OwMl2O31eB_tfR-2husbqt73gVumJ8FVH1WanqJq8_SVmjAYsBfV_C4A_zP_eDPMQzA9VwA9M9qt6pu_AxpYxW1Yk0EPNeFfjAoBCJfcEF_hxBGXJ-rQf_6LmkM9fSdZ03hCEw2aS4bw7YSme-08Ibe9IwMHYNxQvjUKSOOLQ18cukMDhNxMPEc6sfw8di0bTvegWLIbjde7wsLWvIZAkR7UNTqfz4aUdF-TMB4oMHJYC5SKpBDWpGT2QvPPDfM3BFbQY">
+<div class="flex-1">
+<h3 class="font-label-md text-label-md font-bold text-primary leading-tight">Kit de Resinas 3M Filtek Z250</h3>
+<p class="text-xs text-outline mb-sm">SKU: 3M-FZ-882</p>
+<div class="flex items-center gap-sm">
+<span class="font-label-md text-label-md font-bold">$78.900</span>
+<span class="text-[10px] bg-error-container text-on-error-container px-2 py-0.5 rounded">Stock: 3</span>
+</div>
+</div>
+</div>
+<div class="mt-md flex gap-sm border-t border-outline-variant pt-md">
+<button class="flex-1 text-primary py-2 rounded-lg hover:bg-surface-container text-xs font-bold border border-outline-variant">Editar</button>
+<button class="p-2 text-error hover:bg-error-container/20 rounded-lg border border-outline-variant">
+<span class="material-symbols-outlined text-[20px]" data-icon="delete">delete</span>
+</button>
+</div>
+</div>
+<!-- Product Card 3 -->
+<div class="border border-outline-variant rounded-xl p-md hover:shadow-md transition-shadow">
+<div class="flex gap-md">
+<img alt="Producto" class="w-20 h-20 rounded-lg object-cover bg-surface-container" data-alt="A sophisticated ergonomic dental chair in a bright, modern clinic. The chair is white leather with metallic silver accents, surrounded by advanced digital control panels and integrated LED lighting. The clinic space is minimalist with pale blue walls and polished floors. High-end architectural photography style, focusing on medical luxury and patient comfort." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBF14G4uBYMQXYmLO5RFvjYzvTi0QyHvHlVwHOlkD_YFRPDb8I5eB2SoGmHPKKjvKQ_rS9StioDuCIYC9gDzCfljDMXdHKfuiTraSatGmR_DmRbvx6E6qkM-HEKcIxY69DuwVMe9jAF0CTyzGg8aGBNqPQOTdHpHvgZz7oDXMnq6azee5jH6kPZWIrSRNX4sUU9ib4Apq4_8t0iizw--mzPTNC3CfIWVcrLFZfG8XkHJ5CM3nzFDzR0dDgYPQEv03uLe9VxwgciA_8">
+<div class="flex-1">
+<h3 class="font-label-md text-label-md font-bold text-primary leading-tight">Sillón Odontológico Gnatus G3</h3>
+<p class="text-xs text-outline mb-sm">SKU: GNAT-G3-WH</p>
+<div class="flex items-center gap-sm">
+<span class="font-label-md text-label-md font-bold">$2.100.000</span>
+<span class="text-[10px] bg-tertiary-fixed-dim/20 text-on-tertiary-fixed px-2 py-0.5 rounded">Stock: 2</span>
+</div>
+</div>
+</div>
+<div class="mt-md flex gap-sm border-t border-outline-variant pt-md">
+<button class="flex-1 text-primary py-2 rounded-lg hover:bg-surface-container text-xs font-bold border border-outline-variant">Editar</button>
+<button class="p-2 text-error hover:bg-error-container/20 rounded-lg border border-outline-variant">
+<span class="material-symbols-outlined text-[20px]" data-icon="delete">delete</span>
+</button>
+</div>
+</div>
+</div>
+</section>
+</main>
+</div>
+<!-- Simple Interaction Script -->
+<script>
+        // Micro-interactions for buttons
+        document.querySelectorAll('button, a').forEach(el => {
+            el.addEventListener('mousedown', () => {
+                el.style.transform = 'scale(0.98)';
+            });
+            el.addEventListener('mouseup', () => {
+                el.style.transform = 'scale(1)';
+            });
+            el.addEventListener('mouseleave', () => {
+                el.style.transform = 'scale(1)';
+            });
+        });
+
+        // Simulating loading state for Andreani button
+        document.querySelectorAll('button[title="Generar Andreani"]').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const originalContent = this.innerHTML;
+                this.innerHTML = '<span class="material-symbols-outlined animate-spin text-[16px]" data-icon="sync">sync</span> Generando...';
+                this.disabled = true;
+                this.classList.add('opacity-70');
+                
+                setTimeout(() => {
+                    this.innerHTML = '<span class="material-symbols-outlined text-[16px]" data-icon="check">check</span> ¡Listo!';
+                    this.classList.remove('bg-[#0057B7]', 'opacity-70');
+                    this.classList.add('bg-green-600');
+                    
+                    setTimeout(() => {
+                        this.innerHTML = originalContent;
+                        this.classList.add('bg-[#0057B7]');
+                        this.classList.remove('bg-green-600');
+                        this.disabled = false;
+                    }, 2000);
+                }, 1500);
+            });
+        });
+    </script>
+
+
+
+
+</body></html>

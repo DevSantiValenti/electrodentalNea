@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:fragment="head(title)">
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title th:text="${title}">ElectrodentalNea</title>
+	<link rel="icon" type="image/png" th:href="@{/img/electrodentallarge.png}">
+	<link rel="shortcut icon" type="image/png" th:href="@{/img/electrodentallarge.png}">
+	<link rel="apple-touch-icon" th:href="@{/img/electrodentallarge.png}">
+	<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+	<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+	<script>
+		tailwind.config = {
+			theme: {
+				extend: {
+					colors: {
+						primary: "#000d1b",
+						"primary-container": "#0b2438",
+						secondary: "#b71f2a",
+						background: "#f8f9fb",
+						surface: "#ffffff",
+						"surface-soft": "#f2f4f6",
+						outline: "#c3c7cd"
+					},
+					fontFamily: { sans: ["Inter", "sans-serif"] }
+				}
+			}
+		}
+	</script>
+	<style>
+		.material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+		.brand-carousel { overflow: hidden; -webkit-mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent); mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent); }
+		.brand-carousel-track { display: flex; align-items: center; gap: 56px; width: max-content; animation: brand-scroll-left 34s linear infinite; }
+		.brand-carousel:hover .brand-carousel-track { animation-play-state: paused; }
+		.brand-logo { width: 150px; height: 72px; display: flex; align-items: center; justify-content: center; opacity: .62; filter: grayscale(1); transition: .2s ease; flex: 0 0 auto; }
+		.brand-logo:hover { opacity: 1; filter: grayscale(0); transform: translateY(-2px); }
+		.brand-logo img { max-width: 100%; max-height: 64px; object-fit: contain; }
+		@keyframes brand-scroll-left { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+		@media (prefers-reduced-motion: reduce) { .brand-carousel-track { animation: none; flex-wrap: wrap; width: 100%; justify-content: center; } }
+	</style>
+</head>
+<body>
+<header th:fragment="header" class="sticky top-0 z-50 border-b border-outline bg-white shadow-sm">
+	<div class="bg-secondary text-white">
+		<div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-2 text-xs font-semibold sm:px-6">
+			<span class="flex items-center gap-2"><span class="material-symbols-outlined text-[18px]">local_shipping</span> Envíos a todo el país</span>
+			<span class="hidden items-center gap-2 sm:flex"><span class="material-symbols-outlined text-[18px]">verified_user</span> Pago seguro</span>
+			<span class="flex items-center gap-2"><span class="material-symbols-outlined text-[18px]">support_agent</span> Asesoramiento técnico</span>
+		</div>
+	</div>
+	<div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-4 py-3 sm:px-6">
+		<a th:href="@{/}" class="flex items-center">
+			<img src="/img/electrodentallarge.png" alt="ElectrodentalNea" class="h-16 w-auto object-contain">
+		</a>
+		<form th:action="@{/catalogo}" method="get" class="order-3 w-full flex-1 lg:order-2 lg:max-w-xl">
+			<label class="relative block">
+				<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-500">search</span>
+				<input name="q" class="w-full rounded-lg border border-outline bg-surface-soft py-3 pl-12 pr-4 outline-none focus:ring-2 focus:ring-primary-container" placeholder="Buscar productos..." type="search">
+			</label>
+		</form>
+		<nav class="order-2 flex items-center gap-2 text-sm font-semibold lg:order-3">
+			<a th:href="@{/catalogo}" class="hidden rounded-lg px-3 py-2 text-slate-700 hover:bg-surface-soft sm:inline-flex">Catálogo</a>
+			<a th:href="@{/ofertas}" class="hidden rounded-lg px-3 py-2 text-slate-700 hover:bg-surface-soft sm:inline-flex">Ofertas</a>
+			<a th:href="@{/servicio-tecnico}" class="hidden items-center gap-2 rounded-xl border-[#66e2f8]/40 bg-[linear-gradient(135deg,#011427_0%,#12384d_45%,#66e2f8_100%)] px-3 py-2 text-white shadow-sm shadow-cyan-950/20 hover:brightness-110 sm:inline-flex">
+				<img src="/img/denttech-logo.svg" alt="DentTech" class="h-7 w-auto">
+				<span class="text-sm font-black text-white">Servicio técnico</span>
+			</a>
+			<a th:href="@{/carrito}" class="relative inline-flex items-center gap-2 rounded-lg px-3 py-2 text-slate-800 hover:bg-surface-soft">
+				<span class="material-symbols-outlined text-secondary">shopping_cart</span>
+				<span class="hidden sm:inline">Carrito</span>
+				<span data-cart-count class="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-secondary px-1 text-[10px] text-white" th:text="${carrito != null ? carrito.cantidadTotal : 0}">0</span>
+			</a>
+		</nav>
+	</div>
+	<div class="border-t border-outline">
+		<nav class="mx-auto flex max-w-7xl gap-6 overflow-x-auto px-4 py-3 text-sm font-semibold text-slate-600 sm:px-6">
+			<a th:each="categoria : ${categoriasNav}"
+			   th:href="@{/catalogo(categoria=${categoria.slug})}"
+			   class="whitespace-nowrap hover:text-secondary"
+			   th:text="${categoria.nombre}">Categoría</a>
+		</nav>
+	</div>
+</header>
+
+<footer th:fragment="footer" class="mt-16 bg-primary-container text-white">
+	<div id="cart-toast" class="pointer-events-none fixed right-5 top-24 z-[80] translate-y-[-8px] rounded-xl bg-primary px-5 py-4 text-sm font-black text-white opacity-0 shadow-2xl transition duration-200" role="status" aria-live="polite">
+		Producto agregado al carrito
+	</div>
+	<a th:href="${configuracionTienda.whatsappLink}" target="_blank" rel="noopener" aria-label="Consultar por WhatsApp"
+	   class="fixed bottom-5 right-5 z-50 inline-flex h-14 w-14 items-center justify-center rounded-full bg-[#25D366] text-lg font-black text-white shadow-xl ring-4 ring-white/70 transition hover:scale-105">
+		<img th:src="@{/img/whatsapp.png}" alt="whatsapp">
+	</a>
+	<div class="mx-auto grid max-w-7xl gap-8 px-4 py-12 sm:px-6 lg:grid-cols-[1.1fr_.75fr_.9fr_1.45fr]">
+		<div>
+			<img src="/img/electrodentallarge.png" alt="ElectrodentalNea" class="mb-4 h-16 w-auto">
+			<p class="text-sm text-white/75">Equipamiento, insumos y servicio técnico odontológico para profesionales.</p>
+			<div class="mt-5 flex gap-3">
+				<a th:href="${configuracionTienda.instagram}" target="_blank" rel="noopener" aria-label="Instagram" class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/10 p-2 transition hover:bg-white">
+					<img src="/img/instagram.png" alt="Instagram" class="h-full w-full object-contain">
+				</a>
+				<a th:href="${configuracionTienda.facebook}" target="_blank" rel="noopener" aria-label="Facebook" class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/10 p-2 transition hover:bg-white">
+					<img src="/img/facebook.png" alt="Facebook" class="h-full w-full object-contain">
+				</a>
+			</div>
+		</div>
+		<div>
+			<h3 class="mb-3 text-sm font-bold uppercase text-white">Soporte</h3>
+			<a th:href="@{/servicio-tecnico}" class="block py-1 text-sm text-white/75 hover:text-white">Servicio técnico</a>
+			<a th:href="@{/contacto}" class="block py-1 text-sm text-white/75 hover:text-white">Contacto</a>
+		</div>
+		<div>
+			<h3 class="mb-3 text-sm font-bold uppercase text-white">Atención</h3>
+			<p class="text-sm text-white/75" th:text="${configuracionTienda.direccion}">Roque Sáenz Peña 539, Resistencia</p>
+			<a th:href="${'mailto:' + configuracionTienda.email}" class="mt-2 block text-sm text-white/75 hover:text-white" th:text="${configuracionTienda.email}">info@electrodentalnea.com</a>
+			<a th:href="${configuracionTienda.whatsappLink}" target="_blank" rel="noopener" class="mt-2 block text-sm text-white/75 hover:text-white" th:text="|WhatsApp ${configuracionTienda.whatsapp}|">WhatsApp</a>
+			<p class="mt-2 text-sm text-white/75" th:text="${configuracionTienda.horarios}">08:00 a 12:30hs y 17:00 a 20:30hs</p>
+		</div>
+		<div>
+			<h3 class="mb-3 text-sm font-bold uppercase text-white">Ubicación</h3>
+			<div class="overflow-hidden rounded-xl border border-white/10 bg-white/10">
+				<iframe th:src="${configuracionTienda.mapsEmbedUrl}" title="Mapa ElectrodentalNea" class="h-44 w-full" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+			</div>
+		</div>
+	</div>
+	<div class="border-t border-white/10 py-5 text-center text-xs text-white/60">© 2026 ElectrodentalNea</div>
+	<script>
+		(() => {
+			const toast = document.querySelector("#cart-toast");
+			let toastTimeout;
+
+			const showCartToast = (message, success = true) => {
+				if (!toast) return;
+				toast.textContent = message;
+				toast.classList.toggle("bg-primary", success);
+				toast.classList.toggle("bg-secondary", !success);
+				toast.classList.remove("opacity-0", "translate-y-[-8px]");
+				toast.classList.add("opacity-100", "translate-y-0");
+				window.clearTimeout(toastTimeout);
+				toastTimeout = window.setTimeout(() => {
+					toast.classList.remove("opacity-100", "translate-y-0");
+					toast.classList.add("opacity-0", "translate-y-[-8px]");
+				}, 2200);
+			};
+
+			const updateCartCount = (count) => {
+				document.querySelectorAll("[data-cart-count]").forEach((badge) => {
+					badge.textContent = count;
+					badge.classList.add("scale-125");
+					window.setTimeout(() => badge.classList.remove("scale-125"), 180);
+				});
+			};
+
+			document.addEventListener("submit", async (event) => {
+				const form = event.target;
+				if (!(form instanceof HTMLFormElement) || !form.action.includes("/carrito/agregar")) return;
+				event.preventDefault();
+
+				const button = form.querySelector("button[type='submit'], button:not([type])");
+				button?.setAttribute("disabled", "disabled");
+				button?.classList.add("scale-95");
+
+				try {
+					const response = await fetch(form.action, {
+						method: "POST",
+						headers: { "X-Requested-With": "XMLHttpRequest" },
+						body: new FormData(form)
+					});
+					const result = await response.json();
+					if (typeof result.cartCount !== "undefined") {
+						updateCartCount(result.cartCount);
+					}
+					showCartToast(result.message || "Producto agregado al carrito", response.ok && result.ok !== false);
+				} catch (error) {
+					showCartToast("No se pudo agregar el producto. Intentá nuevamente.", false);
+				} finally {
+					button?.removeAttribute("disabled");
+					button?.classList.remove("scale-95");
+				}
+			});
+		})();
+	</script>
+</footer>
+</body>
+</html>

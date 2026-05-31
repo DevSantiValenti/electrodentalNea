@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/fragments/layout :: head(${producto.id == null ? 'Admin | Nuevo producto' : 'Admin | Editar producto'})}"></head>
+<body class="admin-shell text-slate-900">
+<aside th:replace="~{admin/fragments/layout :: sidebar('productos')}"></aside>
+<header th:replace="~{admin/fragments/layout :: mobilebar('productos')}"></header>
+
+<main class="p-4 sm:p-6 lg:ml-64 lg:p-8">
+	<div th:replace="~{admin/fragments/layout :: topbar(${producto.id == null ? 'Nuevo Producto' : 'Editar Producto'}, 'Vista inicial del CRUD para cargar productos del catálogo.')}"></div>
+
+	<form th:action="${producto.id == null ? '/admin/productos' : '/admin/productos/' + producto.id}" th:object="${producto}" method="post" class="admin-card rounded-2xl p-6">
+		<div class="grid gap-6 lg:grid-cols-3">
+			<section class="space-y-4 lg:col-span-2">
+				<div class="grid gap-4 md:grid-cols-2">
+					<label class="md:col-span-2">
+						<span class="text-sm font-bold text-primary">Nombre</span>
+						<input th:field="*{nombre}" required class="mt-1 w-full rounded-lg border-outline" placeholder="Turbina NSK Pana-Max Plus">
+					</label>
+					<label>
+						<span class="text-sm font-bold text-primary">Slug / SKU</span>
+						<input th:field="*{slug}" class="mt-1 w-full rounded-lg border-outline" placeholder="turbina-nsk-pana-max-plus">
+					</label>
+					<label>
+						<span class="text-sm font-bold text-primary">Marca</span>
+						<input th:field="*{marca}" class="mt-1 w-full rounded-lg border-outline" placeholder="NSK">
+					</label>
+					<label>
+						<span class="text-sm font-bold text-primary">Categoría</span>
+						<select name="categoriaId" class="mt-1 w-full rounded-lg border-outline">
+							<option value="">Sin categoría</option>
+							<option th:each="categoria : ${categorias}"
+									th:value="${categoria.id}"
+									th:selected="${producto.categoria != null && producto.categoria.id == categoria.id}"
+									th:text="${categoria.nombre}">Categoría</option>
+						</select>
+					</label>
+					<label>
+						<span class="text-sm font-bold text-primary">Subcategoría</span>
+						<select name="subcategoriaId" class="mt-1 w-full rounded-lg border-outline">
+							<option value="">Sin subcategoría</option>
+							<optgroup th:each="categoria : ${categorias}" th:label="${categoria.nombre}">
+								<option th:each="subcategoria : ${categoria.subcategorias}"
+										th:value="${subcategoria.id}"
+										th:selected="${producto.subcategoria != null && producto.subcategoria.id == subcategoria.id}"
+										th:text="${subcategoria.nombre}">Subcategoría</option>
+							</optgroup>
+						</select>
+					</label>
+					<label>
+						<span class="text-sm font-bold text-primary">Modelo</span>
+						<input th:field="*{modelo}" class="mt-1 w-full rounded-lg border-outline" placeholder="Pana-Max Plus">
+					</label>
+					<label>
+						<span class="text-sm font-bold text-primary">Precio</span>
+						<input th:field="*{precio}" type="number" step="0.01" min="0" required class="mt-1 w-full rounded-lg border-outline">
+					</label>
+					<label class="md:col-span-2">
+						<span class="text-sm font-bold text-primary">Imagen principal URL</span>
+						<input th:field="*{imagenPrincipal}" class="mt-1 w-full rounded-lg border-outline" placeholder="/img/productos/turbina.png">
+					</label>
+					<div class="md:col-span-2 rounded-xl border border-outline bg-white p-4">
+						<div class="flex items-center justify-between gap-3">
+							<div>
+								<h2 class="font-black text-primary">Galería del producto</h2>
+								<p class="text-xs font-semibold text-muted">Agregá hasta 10 imágenes adicionales para las miniaturas.</p>
+							</div>
+							<button type="button" id="add-image-row" class="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-white hover:opacity-90">
+								<span class="material-symbols-outlined">add</span>
+							</button>
+						</div>
+						<div id="image-rows" class="mt-4 space-y-3">
+							<div th:each="imagen : ${imagenesProducto}" class="image-row flex gap-2">
+								<input name="imagenesProducto" th:value="${imagen}" class="w-full rounded-lg border-outline" placeholder="/img/productos/detalle-1.png">
+								<button type="button" class="remove-image-row inline-flex h-10 w-10 flex-none items-center justify-center rounded-lg border border-outline text-secondary hover:bg-secondary hover:text-white">
+									<span class="material-symbols-outlined">delete</span>
+								</button>
+							</div>
+						</div>
+					</div>
+					<label class="md:col-span-2">
+						<span class="text-sm font-bold text-primary">Descripción técnica</span>
+						<textarea th:field="*{descripcion}" rows="4" class="mt-1 w-full rounded-lg border-outline"></textarea>
+					</label>
+					<div class="md:col-span-2 rounded-xl border border-outline bg-white p-4">
+						<div class="flex items-center justify-between gap-3">
+							<div>
+								<h2 class="font-black text-primary">Características</h2>
+								<p class="text-xs font-semibold text-muted">Cada fila se verá como especificación técnica en la ficha del producto.</p>
+							</div>
+							<button type="button" id="add-characteristic-row" class="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-secondary text-white hover:opacity-90">
+								<span class="material-symbols-outlined">add</span>
+							</button>
+						</div>
+						<div class="mt-4 hidden grid-cols-[1fr_1.5fr_40px] gap-2 text-xs font-black uppercase text-slate-500 md:grid">
+							<span>Característica</span>
+							<span>Descripción característica</span>
+							<span></span>
+						</div>
+						<div id="characteristic-rows" class="mt-2 space-y-3">
+							<div th:each="caracteristica : ${caracteristicasProducto}" class="characteristic-row grid gap-2 md:grid-cols-[1fr_1.5fr_40px]">
+								<input name="caracteristicaNombres" th:value="${caracteristica.nombre}" class="rounded-lg border-outline" placeholder="Capacidad de carga">
+								<input name="caracteristicaDetalles" th:value="${caracteristica.detalle}" class="rounded-lg border-outline" placeholder="181 kg">
+								<button type="button" class="remove-characteristic-row inline-flex h-10 w-10 items-center justify-center rounded-lg border border-outline text-secondary hover:bg-secondary hover:text-white">
+									<span class="material-symbols-outlined">delete</span>
+								</button>
+							</div>
+						</div>
+					</div>
+				</div>
+			</section>
+			<aside class="space-y-4">
+				<div class="rounded-xl border border-outline bg-surface-soft p-4">
+					<h2 class="font-black text-primary">Stock</h2>
+					<div class="mt-4 grid gap-4">
+						<label>
+							<span class="text-sm font-bold text-primary">Stock web</span>
+							<input th:field="*{stockWeb}" type="number" min="0" class="mt-1 w-full rounded-lg border-outline">
+						</label>
+						<label>
+							<span class="text-sm font-bold text-primary">Stock físico</span>
+							<input th:field="*{stockFisico}" type="number" min="0" class="mt-1 w-full rounded-lg border-outline">
+						</label>
+						<label>
+							<span class="text-sm font-bold text-primary">Stock mínimo</span>
+							<input th:field="*{stockMinimo}" type="number" min="0" class="mt-1 w-full rounded-lg border-outline">
+						</label>
+					</div>
+				</div>
+				<div class="rounded-xl border border-outline bg-surface-soft p-4">
+					<h2 class="font-black text-primary">Andreani</h2>
+					<div class="mt-4 grid gap-4">
+						<label><span class="text-sm font-bold text-primary">Peso kg</span><input th:field="*{pesoKg}" type="number" step="0.001" min="0" class="mt-1 w-full rounded-lg border-outline"></label>
+						<label><span class="text-sm font-bold text-primary">Alto cm</span><input th:field="*{altoCm}" type="number" step="0.01" min="0" class="mt-1 w-full rounded-lg border-outline"></label>
+						<label><span class="text-sm font-bold text-primary">Ancho cm</span><input th:field="*{anchoCm}" type="number" step="0.01" min="0" class="mt-1 w-full rounded-lg border-outline"></label>
+						<label><span class="text-sm font-bold text-primary">Largo cm</span><input th:field="*{largoCm}" type="number" step="0.01" min="0" class="mt-1 w-full rounded-lg border-outline"></label>
+						<label><span class="text-sm font-bold text-primary">Valor declarado</span><input th:field="*{valorDeclarado}" type="number" step="0.01" min="0" class="mt-1 w-full rounded-lg border-outline"></label>
+					</div>
+				</div>
+				<div class="rounded-xl border border-outline bg-surface-soft p-4">
+					<h2 class="font-black text-primary">Estado</h2>
+					<label class="mt-4 flex items-center gap-3 text-sm font-bold"><input th:field="*{activo}" type="checkbox" class="rounded border-outline"> Activo</label>
+					<label class="mt-3 flex items-center gap-3 text-sm font-bold"><input th:field="*{destacado}" type="checkbox" class="rounded border-outline"> Destacado</label>
+					<label class="mt-3 flex items-center gap-3 text-sm font-bold"><input th:field="*{oferta}" type="checkbox" class="rounded border-outline"> Oferta</label>
+				</div>
+			</aside>
+		</div>
+		<div class="mt-6 flex flex-wrap gap-3 border-t border-outline pt-6">
+			<button class="rounded-xl bg-secondary px-5 py-3 font-black text-white hover:opacity-90">Guardar producto</button>
+			<a th:href="@{/admin/productos}" class="rounded-xl border border-outline px-5 py-3 font-bold text-primary hover:bg-surface-soft">Cancelar</a>
+		</div>
+	</form>
+</main>
+<script>
+	const imageRows = document.querySelector("#image-rows");
+	const addImageButton = document.querySelector("#add-image-row");
+	const characteristicRows = document.querySelector("#characteristic-rows");
+	const addCharacteristicButton = document.querySelector("#add-characteristic-row");
+
+	function wireRemoveButtons() {
+		document.querySelectorAll(".remove-image-row").forEach((button) => {
+			button.onclick = () => {
+				if (imageRows.querySelectorAll(".image-row").length > 1) {
+					button.closest(".image-row").remove();
+				} else {
+					button.closest(".image-row").querySelector("input").value = "";
+				}
+			};
+		});
+		document.querySelectorAll(".remove-characteristic-row").forEach((button) => {
+			button.onclick = () => {
+				if (characteristicRows.querySelectorAll(".characteristic-row").length > 1) {
+					button.closest(".characteristic-row").remove();
+				} else {
+					button.closest(".characteristic-row").querySelectorAll("input").forEach((input) => input.value = "");
+				}
+			};
+		});
+	}
+
+	addImageButton.addEventListener("click", () => {
+		if (imageRows.querySelectorAll(".image-row").length >= 10) {
+			return;
+		}
+		imageRows.insertAdjacentHTML("beforeend", `
+			<div class="image-row flex gap-2">
+				<input name="imagenesProducto" class="w-full rounded-lg border-outline" placeholder="/img/productos/detalle-1.png">
+				<button type="button" class="remove-image-row inline-flex h-10 w-10 flex-none items-center justify-center rounded-lg border border-outline text-secondary hover:bg-secondary hover:text-white">
+					<span class="material-symbols-outlined">delete</span>
+				</button>
+			</div>
+		`);
+		wireRemoveButtons();
+	});
+
+	addCharacteristicButton.addEventListener("click", () => {
+		characteristicRows.insertAdjacentHTML("beforeend", `
+			<div class="characteristic-row grid gap-2 md:grid-cols-[1fr_1.5fr_40px]">
+				<input name="caracteristicaNombres" class="rounded-lg border-outline" placeholder="Capacidad de carga">
+				<input name="caracteristicaDetalles" class="rounded-lg border-outline" placeholder="181 kg">
+				<button type="button" class="remove-characteristic-row inline-flex h-10 w-10 items-center justify-center rounded-lg border border-outline text-secondary hover:bg-secondary hover:text-white">
+					<span class="material-symbols-outlined">delete</span>
+				</button>
+			</div>
+		`);
+		wireRemoveButtons();
+	});
+
+	wireRemoveButtons();
+</script>
+</body>
+</html>

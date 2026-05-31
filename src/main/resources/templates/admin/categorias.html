@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/fragments/layout :: head('Admin | Categorías')}"></head>
+<body class="admin-shell text-slate-900">
+<aside th:replace="~{admin/fragments/layout :: sidebar('categorias')}"></aside>
+<header th:replace="~{admin/fragments/layout :: mobilebar('categorias')}"></header>
+
+<main class="p-4 sm:p-6 lg:ml-64 lg:p-8">
+	<div th:replace="~{admin/fragments/layout :: topbar('Categorías', 'Organizá el catálogo en categorías y subcategorías navegables.')}"></div>
+
+	<div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+		<div th:if="${mensaje}" class="rounded-lg bg-green-50 px-4 py-3 text-sm font-bold text-green-800" th:text="${mensaje}">Mensaje</div>
+		<a th:href="@{/admin/categorias/nueva}" class="inline-flex items-center justify-center gap-2 rounded-xl bg-secondary px-4 py-3 text-sm font-bold text-white hover:opacity-90">
+			<span class="material-symbols-outlined">add_circle</span> Nueva categoría
+		</a>
+	</div>
+
+	<section class="admin-card rounded-2xl p-6">
+		<div th:if="${#lists.isEmpty(categorias)}" class="rounded-xl border border-dashed border-outline p-10 text-center">
+			<h2 class="text-xl font-black text-primary">Aun no hay categorías...</h2>
+			<p class="mt-2 text-sm text-muted">Creá la primera para que aparezca en el nav inferior y en filtros de catálogo.</p>
+			<a th:href="@{/admin/categorias/nueva}" class="mt-5 inline-flex rounded-lg bg-secondary px-5 py-3 font-bold text-white">Crear categoría</a>
+		</div>
+
+		<div th:if="${!#lists.isEmpty(categorias)}" class="grid gap-5 lg:grid-cols-2">
+			<article th:each="categoria : ${categorias}" class="rounded-xl border border-outline p-5">
+				<div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+					<div>
+						<div class="flex items-center gap-2">
+							<h2 class="text-xl font-black text-primary" th:text="${categoria.nombre}">Categoría</h2>
+							<span th:if="${!categoria.activo}" class="rounded bg-slate-200 px-2 py-1 text-[10px] font-black text-slate-600">INACTIVA</span>
+						</div>
+						<p class="mt-1 text-xs font-bold text-muted" th:text="|/${categoria.slug}|">slug</p>
+						<p class="mt-3 text-sm text-slate-600" th:text="${categoria.descripcion ?: 'Sin descripción'}">Descripción</p>
+					</div>
+					<div class="flex gap-2">
+						<a th:href="@{/admin/categorias/{id}/editar(id=${categoria.id})}" class="rounded-lg border border-outline px-3 py-2 text-sm font-bold text-primary hover:bg-surface-soft">Editar</a>
+						<a th:href="@{/admin/categorias/{id}/subcategorias/nueva(id=${categoria.id})}" class="rounded-lg bg-primary px-3 py-2 text-sm font-bold text-white hover:opacity-90">Subcategoría</a>
+					</div>
+				</div>
+
+				<div class="mt-5 border-t border-outline pt-4">
+					<div class="mb-3 flex items-center justify-between">
+						<h3 class="text-sm font-black uppercase text-muted">Subcategorías</h3>
+						<a th:href="@{/catalogo(categoria=${categoria.slug})}" class="text-xs font-bold text-secondary hover:underline">Ver en catálogo</a>
+					</div>
+					<div th:if="${#lists.isEmpty(categoria.subcategorias)}" class="rounded-lg bg-surface-soft p-4 text-sm font-semibold text-muted">Sin subcategorías cargadas.</div>
+					<div th:if="${!#lists.isEmpty(categoria.subcategorias)}" class="flex flex-wrap gap-2">
+						<a th:each="subcategoria : ${categoria.subcategorias}"
+						   th:href="@{/admin/subcategorias/{id}/editar(id=${subcategoria.id})}"
+						   class="rounded-full border border-outline px-3 py-2 text-xs font-bold text-primary hover:bg-surface-soft"
+						   th:text="${subcategoria.nombre}">Subcategoría</a>
+					</div>
+				</div>
+			</article>
+		</div>
+	</section>
+</main>
+</body>
+</html>

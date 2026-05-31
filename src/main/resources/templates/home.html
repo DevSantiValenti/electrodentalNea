@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/shop :: head('ElectrodentalNea | Inicio')}"></head>
+<body class="bg-background font-sans text-slate-900">
+<header th:replace="~{fragments/shop :: header}"></header>
+
+<main>
+	<section class="relative overflow-hidden bg-surface-soft">
+		<div class="mx-auto grid min-h-[520px] max-w-7xl items-center gap-10 px-4 py-12 sm:px-6 lg:grid-cols-2">
+			<div class="relative z-10">
+				<span class="inline-flex rounded bg-secondary px-3 py-1 text-xs font-bold uppercase tracking-wide text-white">Calidad profesional</span>
+				<h1 class="mt-6 max-w-2xl text-4xl font-black leading-tight text-primary sm:text-5xl">Equipamiento e insumos odontológicos para profesionales</h1>
+				<p class="mt-5 max-w-xl text-lg text-slate-600">Catálogo web, asesoramiento técnico y respaldo para consultorios, clínicas y laboratorios dentales.</p>
+				<div class="mt-8 flex flex-wrap gap-3">
+					<a th:href="@{/catalogo}" class="inline-flex items-center gap-2 rounded-lg bg-primary-container px-6 py-3 font-bold text-white hover:opacity-90">
+						Ver catálogo <span class="material-symbols-outlined">arrow_forward</span>
+					</a>
+					<a th:href="@{/servicio-tecnico}" class="inline-flex items-center gap-3 rounded-xl border-[#66e2f8]/40 bg-[linear-gradient(135deg,#011427_0%,#12384d_45%,#66e2f8_100%)] px-5 py-3 font-bold text-white shadow-lg shadow-cyan-950/20 hover:brightness-110">
+						<!-- <img src="/img/denttech-logo.svg" alt="DentTech" class="h-8 w-auto"> -->
+						<p style="font-weight: 900; color: #66e2f8 !important;">DentTech</p> Servicio técnico 
+					</a>
+				</div>
+			</div>
+			<div class="relative">
+				<img class="h-[360px] w-full rounded-2xl object-cover shadow-xl lg:h-[440px]" alt="Consultorio odontológico moderno" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA1nCZnmH_2FL-WySHIBJtpwKYiYnZbu2CJdIB7m2sMyFkUrRAc1KDumDfVKa7rJdmj-Z9CR2uaWAGRoxiu5luX7vlXJY3s_4K1-my-9iZMTlxYus1_bTIAhP5vuZK-mrfOtcoeK8VfunPu-girZLqKu6kuKQcZIG8opQ5J3Vwc5YjiVCltDB_35G2Lvs66XAsMOuLriauaAsFMcjvLP0dOdGpC78GpU-eazrPeYaSKUTmz1Jrjx0eRW0-G7KTsrdBVoU8QHSbgnU4">
+			</div>
+		</div>
+	</section>
+
+	<section class="mx-auto max-w-7xl px-4 py-14 sm:px-6">
+		<div class="mb-8 flex items-end justify-between gap-4">
+			<div>
+				<h2 class="text-3xl font-black text-primary">Productos destacados</h2>
+				<p class="mt-2 text-slate-600">Artículos marcados como destacados en el panel.</p>
+			</div>
+			<a th:href="@{/catalogo}" class="hidden font-bold text-secondary hover:underline sm:inline-flex">Ver todos</a>
+		</div>
+
+		<div th:if="${#lists.isEmpty(destacados)}" class="rounded-xl border border-dashed border-outline bg-white p-8 text-center">
+			<p class="font-semibold text-primary">Todavía no hay productos destacados cargados.</p>
+			<p class="mt-2 text-sm text-slate-500">Cuando cargues productos y marques `destacado`, van a aparecer acá automáticamente.</p>
+		</div>
+
+		<div th:if="${!#lists.isEmpty(destacados)}" class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+			<article th:each="producto : ${destacados}" class="overflow-hidden rounded-xl border border-outline bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
+				<a th:href="@{/productos/{slug}(slug=${producto.slug})}" class="block aspect-square bg-surface-soft p-6">
+					<img class="h-full w-full object-contain" th:src="${#strings.isEmpty(producto.imagenPrincipal) ? '/img/electrodentallarge.png' : producto.imagenPrincipal}" th:alt="${producto.nombre}">
+				</a>
+				<div class="p-5">
+					<p class="text-xs font-bold uppercase tracking-wide text-slate-500" th:text="${producto.marca ?: 'Electrodental'}">Marca</p>
+					<a th:href="@{/productos/{slug}(slug=${producto.slug})}" class="mt-2 line-clamp-2 block min-h-12 font-bold text-primary hover:text-secondary" th:text="${producto.nombre}">Producto</a>
+					<div class="mt-4 flex items-end justify-between gap-3">
+						<div>
+							<p class="text-xl font-black text-secondary" th:text="|$ ${producto.precio}|">$ 0</p>
+							<p class="text-xs text-slate-500" th:text="${producto.stockWeb > 0 ? 'Stock web: ' + producto.stockWeb : 'Sin stock web'}">Stock</p>
+						</div>
+						<form th:action="@{/carrito/agregar}" method="post">
+							<input type="hidden" name="productoId" th:value="${producto.id}">
+							<input type="hidden" name="cantidad" value="1">
+							<button th:disabled="${producto.stockWeb < 1}" class="rounded-lg bg-primary-container p-3 text-white hover:bg-primary disabled:cursor-not-allowed disabled:opacity-40" title="Agregar al carrito">
+								<span class="material-symbols-outlined">add_shopping_cart</span>
+							</button>
+						</form>
+					</div>
+				</div>
+			</article>
+		</div>
+	</section>
+
+	<section class="bg-white py-14">
+		<div class="mx-auto max-w-7xl px-4 sm:px-6">
+			<h2 class="mb-8 text-center text-3xl font-black text-primary">Nuestras Marcas de Confianza</h2>
+			<div class="brand-carousel" aria-label="Marcas de confianza">
+				<div class="brand-carousel-track">
+					<div class="brand-logo"><img src="/img/marcas/cingol-.png" alt="Cingol"></div>
+					<div class="brand-logo"><img src="/img/marcas/coxo.png" alt="Coxo"></div>
+					<div class="brand-logo"><img src="/img/marcas/dabiatlante.png" alt="Dabi Atlante"></div>
+					<div class="brand-logo"><img src="/img/marcas/Denimed.png" alt="Denimed"></div>
+					<div class="brand-logo"><img src="/img/marcas/dsj-.png" alt="DSJ"></div>
+					<div class="brand-logo"><img src="/img/marcas/egeo.png" alt="Egeo"></div>
+					<div class="brand-logo"><img src="/img/marcas/gacela.png" alt="Gacela"></div>
+					<div class="brand-logo"><img src="/img/marcas/gdk.png" alt="GDK"></div>
+					<div class="brand-logo"><img src="/img/marcas/gnatus.png" alt="Gnatus"></div>
+					<div class="brand-logo"><img src="/img/marcas/nardiherrero.png" alt="Nardi Herrero"></div>
+					<div class="brand-logo"><img src="/img/marcas/powersilens.png" alt="Power Silens"></div>
+					<div class="brand-logo"><img src="/img/marcas/saevo.png" alt="Saevo"></div>
+					<div class="brand-logo"><img src="/img/marcas/Suntem.png" alt="Suntem"></div>
+					<div class="brand-logo"><img src="/img/marcas/woodpecker-.png" alt="Woodpecker"></div>
+					<div class="brand-logo" aria-hidden="true"><img src="/img/marcas/cingol-.png" alt=""></div>
+					<div class="brand-logo" aria-hidden="true"><img src="/img/marcas/coxo.png" alt=""></div>
+					<div class="brand-logo" aria-hidden="true"><img src="/img/marcas/dabiatlante.png" alt=""></div>
+					<div class="brand-logo" aria-hidden="true"><img src="/img/marcas/Denimed.png" alt=""></div>
+					<div class="brand-logo" aria-hidden="true"><img src="/img/marcas/dsj-.png" alt=""></div>
+					<div class="brand-logo" aria-hidden="true"><img src="/img/marcas/egeo.png" alt=""></div>
+					<div class="brand-logo" aria-hidden="true"><img src="/img/marcas/gacela.png" alt=""></div>
+					<div class="brand-logo" aria-hidden="true"><img src="/img/marcas/gdk.png" alt=""></div>
+					<div class="brand-logo" aria-hidden="true"><img src="/img/marcas/gnatus.png" alt=""></div>
+					<div class="brand-logo" aria-hidden="true"><img src="/img/marcas/nardiherrero.png" alt=""></div>
+					<div class="brand-logo" aria-hidden="true"><img src="/img/marcas/powersilens.png" alt=""></div>
+					<div class="brand-logo" aria-hidden="true"><img src="/img/marcas/saevo.png" alt=""></div>
+					<div class="brand-logo" aria-hidden="true"><img src="/img/marcas/Suntem.png" alt=""></div>
+					<div class="brand-logo" aria-hidden="true"><img src="/img/marcas/woodpecker-.png" alt=""></div>
+				</div>
+			</div>
+		</div>
+	</section>
+</main>
+
+<footer th:replace="~{fragments/shop :: footer}"></footer>
+</body>
+</html>

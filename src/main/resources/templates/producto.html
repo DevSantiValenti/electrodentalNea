@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/shop :: head('ElectrodentalNea | Producto')}"></head>
+<body class="bg-background font-sans text-slate-900">
+<header th:replace="~{fragments/shop :: header}"></header>
+
+<main class="mx-auto max-w-7xl px-4 py-8 sm:px-6">
+	<div th:if="${producto == null}" class="rounded-xl border border-dashed border-outline bg-white p-10 text-center">
+		<h1 class="text-2xl font-black text-primary">Producto no encontrado</h1>
+		<p class="mt-2 text-slate-600">Revisá el catálogo para ver los productos disponibles.</p>
+		<a th:href="@{/catalogo}" class="mt-5 inline-flex rounded-lg bg-secondary px-5 py-3 font-bold text-white">Volver al catálogo</a>
+	</div>
+
+	<div th:if="${producto != null}">
+		<nav class="mb-5 flex flex-wrap items-center gap-2 text-xs font-bold text-slate-500">
+			<a th:href="@{/}" class="hover:text-secondary">Inicio</a>
+			<span>›</span>
+			<a th:href="@{/catalogo}" class="hover:text-secondary">Catálogo</a>
+			<span th:if="${producto.categoria != null}">›</span>
+			<a th:if="${producto.categoria != null}" th:href="@{/catalogo(categoria=${producto.categoria.slug})}" th:text="${producto.categoria.nombre}" class="hover:text-secondary">Categoría</a>
+			<span>›</span>
+			<span class="text-primary" th:text="${producto.nombre}">Producto</span>
+		</nav>
+
+		<section class="grid gap-8 lg:grid-cols-[1fr_1fr]">
+			<div>
+				<div class="overflow-hidden rounded-2xl border border-outline bg-white shadow-sm">
+					<img id="product-main-image" class="aspect-square w-full object-cover sm:object-contain" th:src="${productoImagenes[0]}" th:alt="${producto.nombre}">
+				</div>
+				<div class="mt-4 grid grid-cols-4 gap-3 sm:grid-cols-5">
+					<button th:each="imagen,iter : ${productoImagenes}" type="button"
+							class="product-thumb aspect-[4/3] overflow-hidden rounded-xl border bg-white p-1 transition hover:border-secondary"
+							th:classappend="${iter.index == 0} ? ' border-secondary ring-2 ring-secondary/20' : ' border-outline'"
+							th:attr="data-src=${imagen},aria-label=|Ver imagen ${iter.index + 1}|">
+						<img class="h-full w-full rounded-lg object-cover" th:src="${imagen}" th:alt="|${producto.nombre} imagen ${iter.index + 1}|">
+					</button>
+				</div>
+			</div>
+
+			<div class="space-y-5">
+				<div>
+					<div class="mb-3 flex flex-wrap gap-2">
+						<span th:if="${producto.oferta}" class="rounded-full bg-amber-100 px-3 py-1 text-xs font-black uppercase text-amber-800">Nuevo lanzamiento</span>
+						<span th:if="${producto.destacado}" class="rounded-full bg-primary-container px-3 py-1 text-xs font-black uppercase text-white">Destacado</span>
+					</div>
+					<h1 class="text-3xl font-black leading-tight text-primary sm:text-4xl" th:text="${producto.nombre}">Producto</h1>
+					<p class="mt-2 text-sm font-semibold text-slate-600">
+						Marca: <strong th:text="${producto.marca ?: 'Sin marca'}">Marca</strong>
+						<span th:if="${producto.modelo != null && !#strings.isEmpty(producto.modelo)}"> · SKU: <strong th:text="${producto.modelo}">Modelo</strong></span>
+					</p>
+				</div>
+
+				<div class="rounded-2xl border border-outline bg-white p-5 shadow-sm sm:p-6">
+					<p th:if="${producto.oferta}" class="text-sm font-bold text-slate-400 line-through" th:text="|$ ${producto.precio}|">$ 0</p>
+					<div class="flex flex-wrap items-end gap-3">
+						<p class="text-4xl font-black text-secondary" th:text="|$ ${producto.precio}|">$ 0</p>
+						<span th:if="${producto.oferta && producto.porcentajeOferta != null}" class="pb-2 text-sm font-black text-secondary" th:text="|${producto.porcentajeOferta}% OFF|">OFF</span>
+					</div>
+					<p class="mt-3 flex items-center gap-2 text-sm font-bold" th:classappend="${producto.stockWeb <= producto.stockMinimo ? ' text-amber-600' : ' text-green-700'}">
+						<span class="material-symbols-outlined text-[18px]">check_circle</span>
+						<span th:text="${producto.stockWeb > 0 ? 'Stock disponible: ' + producto.stockWeb + ' unidades' : 'Sin stock web'}">Stock</span>
+					</p>
+
+					<form th:action="@{/carrito/agregar}" method="post" class="mt-6 space-y-3">
+						<input type="hidden" name="productoId" th:value="${producto.id}">
+						<div class="grid gap-3 sm:grid-cols-[150px_1fr]">
+							<div class="flex h-12 items-center rounded-lg border border-outline bg-white">
+								<button type="button" class="qty-minus flex h-full w-12 items-center justify-center text-xl font-black text-primary">−</button>
+								<input name="cantidad" value="1" min="1" th:max="${producto.stockWeb}" type="number" class="qty-input h-full w-full border-0 bg-transparent text-center text-lg font-black text-primary focus:ring-0">
+								<button type="button" class="qty-plus flex h-full w-12 items-center justify-center text-xl font-black text-primary">+</button>
+							</div>
+							<button th:disabled="${producto.stockWeb < 1}" class="inline-flex h-12 items-center justify-center gap-3 rounded-lg bg-primary-container px-5 font-black text-white hover:bg-primary disabled:cursor-not-allowed disabled:opacity-40">
+								<span class="material-symbols-outlined">shopping_cart</span>
+								Agregar al carrito
+							</button>
+						</div>
+						<a th:href="${configuracionTienda.whatsappLink}" target="_blank" rel="noopener" class="inline-flex h-12 w-full items-center justify-center gap-3 rounded-lg bg-secondary px-5 font-black text-white hover:opacity-90">
+							<span class="material-symbols-outlined">chat</span>
+							Consultar por WhatsApp
+						</a>
+					</form>
+				</div>
+
+				<section class="border-t border-outline pt-5">
+					<h2 class="text-sm font-black uppercase tracking-wide text-primary">Calcular envío</h2>
+					<form class="mt-3 grid gap-3 sm:grid-cols-[1fr_auto]">
+						<input class="h-11 rounded-lg border-outline" placeholder="Tu Código Postal">
+						<button type="button" class="h-11 rounded-lg bg-primary px-6 font-black text-white hover:bg-primary-container">Calcular</button>
+					</form>
+					<div class="mt-3 flex items-center justify-between rounded-xl border border-outline bg-white p-4">
+						<div class="flex items-center gap-3">
+							<span class="material-symbols-outlined text-primary">local_shipping</span>
+							<div>
+								<p class="text-sm font-black text-primary">Andreani a domicilio</p>
+								<p class="text-xs font-semibold text-slate-500">La cotización real se calculará en checkout.</p>
+							</div>
+						</div>
+						<p class="text-sm font-black text-secondary">A calcular</p>
+					</div>
+				</section>
+			</div>
+		</section>
+
+		<section class="mt-12">
+			<div class="border-b border-outline">
+				<div class="flex gap-6 overflow-x-auto text-sm font-bold">
+					<button type="button" data-tab="descripcion" class="product-tab border-b-2 border-secondary px-1 py-4 text-primary">Descripción Técnica</button>
+					<button type="button" data-tab="caracteristicas" class="product-tab border-b-2 border-transparent px-1 py-4 text-slate-600">Características</button>
+					<!-- Manuales queda reservado para una próxima etapa. -->
+				</div>
+			</div>
+			<div id="tab-descripcion" class="product-tab-panel py-8">
+				<h2 class="text-2xl font-black text-primary" th:text="${producto.nombre}">Producto</h2>
+				<p class="mt-4 max-w-4xl whitespace-pre-line text-sm leading-7 text-slate-700" th:text="${producto.descripcion ?: 'Sin descripción técnica cargada.'}">Descripción</p>
+			</div>
+			<div id="tab-caracteristicas" class="product-tab-panel hidden py-8">
+				<div th:if="${#lists.isEmpty(caracteristicasProducto)}" class="rounded-xl border border-dashed border-outline bg-white p-6 text-sm font-semibold text-slate-500">
+					Sin características cargadas.
+				</div>
+				<div th:if="${!#lists.isEmpty(caracteristicasProducto)}" class="overflow-hidden rounded-xl border border-outline bg-white">
+					<table class="w-full text-left text-sm">
+						<thead class="bg-surface-soft text-primary">
+							<tr>
+								<th class="px-5 py-4 font-black">Característica</th>
+								<th class="px-5 py-4 font-black">Detalle</th>
+							</tr>
+						</thead>
+						<tbody class="divide-y divide-outline">
+							<tr th:each="caracteristica : ${caracteristicasProducto}">
+								<td class="px-5 py-4 font-bold text-primary" th:text="${caracteristica.caracteristica}">Característica</td>
+								<td class="px-5 py-4 text-slate-700" th:text="${caracteristica.detalle}">Detalle</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</section>
+
+		<section class="mt-10" th:if="${!#lists.isEmpty(productosRelacionados)}">
+			<div class="mb-5 flex items-center justify-between gap-4">
+				<h2 class="text-2xl font-black text-primary">Productos relacionados</h2>
+				<a th:if="${producto.categoria != null}" th:href="@{/catalogo(categoria=${producto.categoria.slug})}" class="text-sm font-black text-secondary hover:underline">Ver todos →</a>
+			</div>
+			<div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+				<article th:each="relacionado : ${productosRelacionados}" class="overflow-hidden rounded-xl border border-outline bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
+					<a th:href="@{/productos/{slug}(slug=${relacionado.slug})}" class="relative block aspect-[4/3] bg-surface-soft p-4">
+						<img class="h-full w-full rounded-lg object-cover" th:src="${#strings.isEmpty(relacionado.imagenPrincipal) ? '/img/electrodentallarge.png' : relacionado.imagenPrincipal}" th:alt="${relacionado.nombre}">
+						<span th:if="${relacionado.oferta}" class="absolute right-3 top-3 rounded-full bg-secondary px-3 py-1 text-xs font-black text-white">OFERTA</span>
+					</a>
+					<div class="p-4">
+						<p class="text-xs font-bold uppercase text-slate-500" th:text="${relacionado.marca ?: 'Sin marca'}">Marca</p>
+						<a th:href="@{/productos/{slug}(slug=${relacionado.slug})}" class="mt-1 line-clamp-2 block min-h-10 text-sm font-black text-primary hover:text-secondary" th:text="${relacionado.nombre}">Producto</a>
+						<div class="mt-4 flex items-center justify-between gap-3">
+							<p class="font-black text-primary" th:text="|$ ${relacionado.precio}|">$ 0</p>
+							<form th:action="@{/carrito/agregar}" method="post">
+								<input type="hidden" name="productoId" th:value="${relacionado.id}">
+								<input type="hidden" name="cantidad" value="1">
+								<button th:disabled="${relacionado.stockWeb < 1}" class="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-primary-container text-white hover:bg-primary disabled:cursor-not-allowed disabled:opacity-40">
+									<span class="material-symbols-outlined text-[20px]">add_shopping_cart</span>
+								</button>
+							</form>
+						</div>
+					</div>
+				</article>
+			</div>
+		</section>
+	</div>
+</main>
+
+<footer th:replace="~{fragments/shop :: footer}"></footer>
+<script>
+	document.querySelectorAll(".product-thumb").forEach((button) => {
+		button.addEventListener("click", () => {
+			const mainImage = document.querySelector("#product-main-image");
+			mainImage.src = button.dataset.src;
+			document.querySelectorAll(".product-thumb").forEach((thumb) => thumb.classList.remove("border-secondary", "ring-2", "ring-secondary/20"));
+			button.classList.add("border-secondary", "ring-2", "ring-secondary/20");
+		});
+	});
+
+	document.querySelectorAll(".qty-minus").forEach((button) => {
+		button.addEventListener("click", () => {
+			const input = button.parentElement.querySelector(".qty-input");
+			input.value = Math.max(1, Number(input.value || 1) - 1);
+		});
+	});
+
+	document.querySelectorAll(".qty-plus").forEach((button) => {
+		button.addEventListener("click", () => {
+			const input = button.parentElement.querySelector(".qty-input");
+			const max = Number(input.max || 0);
+			const next = Number(input.value || 1) + 1;
+			input.value = max > 0 ? Math.min(next, max) : next;
+		});
+	});
+
+	const tabs = document.querySelectorAll(".product-tab");
+	const panels = document.querySelectorAll(".product-tab-panel");
+	tabs.forEach((tab) => {
+		tab.addEventListener("click", () => {
+			tabs.forEach((item) => {
+				item.classList.remove("border-secondary", "text-primary");
+				item.classList.add("border-transparent", "text-slate-600");
+			});
+			tab.classList.add("border-secondary", "text-primary");
+			tab.classList.remove("border-transparent", "text-slate-600");
+			panels.forEach((panel) => panel.classList.add("hidden"));
+			document.querySelector(`#tab-${tab.dataset.tab}`).classList.remove("hidden");
+		});
+	});
+</script>
+</body>
+</html>

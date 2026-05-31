@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/shop :: head('ElectrodentalNea | Catálogo')}"></head>
+<body class="bg-background font-sans text-slate-900">
+<header th:replace="~{fragments/shop :: header}"></header>
+
+<main class="mx-auto max-w-7xl px-4 py-10 sm:px-6">
+	<div class="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+		<div>
+			<p class="text-sm font-semibold text-slate-500">Inicio / Catálogo</p>
+			<h1 class="mt-2 text-4xl font-black text-primary"
+				th:text="${categoriaActual != null ? categoriaActual.nombre : 'Catálogo de productos'}">Catálogo de productos</h1>
+			<p class="mt-2 text-slate-600" th:text="|${productos != null ? productos.size() : 0} productos encontrados|">0 productos encontrados</p>
+		</div>
+		<a th:href="@{/carrito}" class="inline-flex items-center justify-center gap-2 rounded-lg bg-primary-container px-5 py-3 font-bold text-white hover:opacity-90">
+			<span class="material-symbols-outlined">shopping_cart</span> Ver carrito
+		</a>
+	</div>
+
+	<div class="grid gap-8 lg:grid-cols-[280px_1fr]">
+		<aside class="space-y-6">
+			<section class="rounded-xl border border-outline bg-white p-5 shadow-sm">
+				<h2 class="mb-4 text-sm font-black uppercase text-primary">Categorías</h2>
+				<div class="space-y-2">
+					<a th:href="@{/catalogo}" class="block rounded-lg px-3 py-2 text-sm font-bold hover:bg-surface-soft"
+					   th:classappend="${categoriaActual == null} ? ' bg-primary-container text-white' : ' text-slate-700'">Todos los productos</a>
+					<a th:each="categoria : ${categorias}"
+					   th:href="@{/catalogo(categoria=${categoria.slug})}"
+					   th:classappend="${categoriaActual != null && categoriaActual.id == categoria.id} ? ' bg-primary-container text-white' : ' text-slate-700'"
+					   class="block rounded-lg px-3 py-2 text-sm font-bold hover:bg-surface-soft"
+					   th:text="${categoria.nombre}">Categoría</a>
+				</div>
+			</section>
+
+			<section th:if="${categoriaActual != null}" class="rounded-xl border border-outline bg-white p-5 shadow-sm">
+				<h2 class="mb-4 text-sm font-black uppercase text-primary">Subcategorías</h2>
+				<div th:if="${#lists.isEmpty(subcategorias)}" class="rounded-lg bg-surface-soft p-3 text-sm font-semibold text-slate-500">Sin subcategorías cargadas.</div>
+				<div th:if="${!#lists.isEmpty(subcategorias)}" class="space-y-2">
+					<a th:href="@{/catalogo(categoria=${categoriaActual.slug})}" class="block rounded-lg px-3 py-2 text-sm font-bold hover:bg-surface-soft"
+					   th:classappend="${subcategoriaActual == null} ? ' bg-secondary text-white' : ' text-slate-700'">Todas</a>
+					<a th:each="subcategoria : ${subcategorias}"
+					   th:href="@{/catalogo(categoria=${categoriaActual.slug},subcategoria=${subcategoria.slug})}"
+					   th:classappend="${subcategoriaActual != null && subcategoriaActual.id == subcategoria.id} ? ' bg-secondary text-white' : ' text-slate-700'"
+					   class="block rounded-lg px-3 py-2 text-sm font-bold hover:bg-surface-soft"
+					   th:text="${subcategoria.nombre}">Subcategoría</a>
+				</div>
+			</section>
+
+			<form th:action="@{/catalogo}" method="get" class="rounded-xl border border-outline bg-white p-5 shadow-sm">
+				<input type="hidden" name="categoria" th:if="${categoriaSeleccionada != null}" th:value="${categoriaSeleccionada}">
+				<input type="hidden" name="subcategoria" th:if="${subcategoriaSeleccionada != null}" th:value="${subcategoriaSeleccionada}">
+				<h2 class="mb-4 text-sm font-black uppercase text-primary">Filtros</h2>
+				<div class="space-y-4">
+					<label class="block">
+						<span class="text-xs font-bold uppercase text-slate-500">Buscar</span>
+						<input name="q" th:value="${busqueda}" class="mt-1 w-full rounded-lg border-outline" placeholder="Producto...">
+					</label>
+					<label class="block">
+						<span class="text-xs font-bold uppercase text-slate-500">Marca</span>
+						<select name="marca" class="mt-1 w-full rounded-lg border-outline">
+							<option value="">Todas</option>
+							<option th:each="marcaItem : ${marcas}" th:value="${marcaItem}" th:selected="${marcaSeleccionada == marcaItem}" th:text="${marcaItem}">Marca</option>
+						</select>
+					</label>
+					<div class="grid grid-cols-2 gap-3">
+						<label class="block">
+							<span class="text-xs font-bold uppercase text-slate-500">Precio mín.</span>
+							<input name="precioMin" th:value="${precioMin}" type="number" min="0" step="0.01" class="mt-1 w-full rounded-lg border-outline">
+						</label>
+						<label class="block">
+							<span class="text-xs font-bold uppercase text-slate-500">Precio máx.</span>
+							<input name="precioMax" th:value="${precioMax}" type="number" min="0" step="0.01" class="mt-1 w-full rounded-lg border-outline">
+						</label>
+					</div>
+					<button class="w-full rounded-lg bg-primary-container px-4 py-3 font-black text-white">Aplicar filtros</button>
+				</div>
+			</form>
+		</aside>
+
+		<section>
+			<div th:if="${#lists.isEmpty(productos)}" class="rounded-xl border border-dashed border-outline bg-white p-10 text-center">
+				<h2 class="text-xl font-black text-primary">No hay productos para este filtro</h2>
+				<p class="mt-2 text-slate-600">Probá otra categoría, subcategoría, marca o rango de precio.</p>
+			</div>
+
+			<div th:if="${!#lists.isEmpty(productos)}" class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+				<article th:each="producto : ${productos}" class="overflow-hidden rounded-lg border border-outline bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-md">
+					<a th:href="@{/productos/{slug}(slug=${producto.slug})}" class="relative block aspect-[4/3] bg-surface-soft p-5">
+						<img class="h-full w-full object-contain" th:src="${#strings.isEmpty(producto.imagenPrincipal) ? '/img/electrodentallarge.png' : producto.imagenPrincipal}" th:alt="${producto.nombre}">
+						<span th:if="${producto.oferta}" class="absolute left-3 top-3 rounded-md bg-secondary px-2 py-1 text-[11px] font-black text-white">OFERTA</span>
+						<span th:if="${producto.destacado}" class="absolute right-3 top-3 rounded-md bg-primary-container px-2 py-1 text-[11px] font-black text-white">DESTACADO</span>
+					</a>
+					<div class="p-4">
+						<p class="text-[11px] font-black uppercase tracking-wide text-slate-500" th:text="${producto.marca ?: 'Sin marca'}">Marca</p>
+						<a th:href="@{/productos/{slug}(slug=${producto.slug})}" class="mt-1 line-clamp-2 block min-h-10 text-base font-black leading-5 text-primary hover:text-secondary" th:text="${producto.nombre}">Producto</a>
+						<p class="mt-2 line-clamp-2 min-h-10 text-[13px] leading-5 text-slate-600" th:text="${producto.descripcion ?: 'Producto odontológico profesional.'}">Descripción</p>
+						<div class="mt-4 flex items-end justify-between gap-3">
+							<div class="min-w-0">
+								<p class="flex items-start gap-1 text-secondary">
+									<span class="mt-1 text-sm font-black">$</span>
+									<span class="truncate text-xl font-black leading-none" th:text="${#numbers.formatDecimal(producto.precio, 0, 'POINT', 2, 'COMMA')}">0,00</span>
+								</p>
+								<p class="mt-1 text-[11px] font-bold" th:classappend="${producto.stockWeb <= producto.stockMinimo ? ' text-amber-600' : ' text-green-700'}" th:text="${producto.stockWeb > 0 ? 'Stock web: ' + producto.stockWeb : 'Sin stock web'}">Stock</p>
+							</div>
+							<form th:action="@{/carrito/agregar}" method="post" class="flex shrink-0 items-center gap-2">
+								<input type="hidden" name="productoId" th:value="${producto.id}">
+								<input name="cantidad" type="number" min="1" th:max="${producto.stockWeb}" value="1" th:disabled="${producto.stockWeb < 1}" class="h-10 w-14 rounded-lg border-outline px-1 text-center text-sm font-bold disabled:opacity-40">
+								<button th:disabled="${producto.stockWeb < 1}" class="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-secondary text-white hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40" aria-label="Agregar al carrito">
+									<span class="material-symbols-outlined text-[22px]">add_shopping_cart</span>
+								</button>
+							</form>
+						</div>
+					</div>
+				</article>
+			</div>
+		</section>
+	</div>
+</main>
+
+<footer th:replace="~{fragments/shop :: footer}"></footer>
+</body>
+</html>

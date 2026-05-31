@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/fragments/layout :: head('Admin | Configuración')}"></head>
+<body class="admin-shell text-slate-900">
+<aside th:replace="~{admin/fragments/layout :: sidebar('configuracion')}"></aside>
+<header th:replace="~{admin/fragments/layout :: mobilebar('configuracion')}"></header>
+
+<main class="p-4 sm:p-6 lg:ml-64 lg:p-8">
+	<div th:replace="~{admin/fragments/layout :: topbar('Configuración', 'Datos de contacto reutilizados en tienda, WhatsApp y footer.')}"></div>
+
+	<div th:if="${mensaje}" class="mb-5 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm font-bold text-green-800" th:text="${mensaje}">Guardado</div>
+
+	<form th:action="@{/admin/configuracion}" th:object="${configuracion}" method="post" class="admin-card rounded-2xl p-6">
+		<div class="grid gap-6 lg:grid-cols-2">
+			<section class="space-y-4">
+				<h2 class="text-xl font-black text-primary">Contacto</h2>
+				<label class="block">
+					<span class="text-sm font-bold text-primary">WhatsApp</span>
+					<input th:field="*{whatsapp}" class="mt-1 w-full rounded-lg border-outline" placeholder="3624541102">
+				</label>
+				<label class="block">
+					<span class="text-sm font-bold text-primary">Email</span>
+					<input th:field="*{email}" type="email" class="mt-1 w-full rounded-lg border-outline" placeholder="info@electrodentalnea.com">
+				</label>
+				<label class="block">
+					<span class="text-sm font-bold text-primary">Dirección</span>
+					<input th:field="*{direccion}" class="mt-1 w-full rounded-lg border-outline" placeholder="Roque Sáenz Peña 539, Resistencia, Chaco">
+				</label>
+				<label class="block">
+					<span class="text-sm font-bold text-primary">Horarios de atención</span>
+					<input th:field="*{horarios}" class="mt-1 w-full rounded-lg border-outline" placeholder="08:00 a 12:30hs y 17:00 a 20:30hs">
+				</label>
+			</section>
+			<section class="space-y-4">
+				<h2 class="text-xl font-black text-primary">Redes y mapa</h2>
+				<label class="block">
+					<span class="text-sm font-bold text-primary">Instagram</span>
+					<input th:field="*{instagram}" class="mt-1 w-full rounded-lg border-outline" placeholder="https://www.instagram.com/electrodental_nea/">
+				</label>
+				<label class="block">
+					<span class="text-sm font-bold text-primary">Facebook</span>
+					<input th:field="*{facebook}" class="mt-1 w-full rounded-lg border-outline" placeholder="https://www.facebook.com/electrodental.nea">
+				</label>
+				<label class="block">
+					<span class="text-sm font-bold text-primary">Google Maps embed URL</span>
+					<input th:field="*{mapsEmbedUrl}" class="mt-1 w-full rounded-lg border-outline" placeholder="https://www.google.com/maps?q=...&output=embed">
+				</label>
+				<div class="overflow-hidden rounded-xl border border-outline bg-surface-soft">
+					<iframe th:src="${configuracion.mapsEmbedUrl}" title="Mapa de ubicación" class="h-56 w-full" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+				</div>
+			</section>
+		</div>
+		<div class="mt-6 flex flex-wrap gap-3 border-t border-outline pt-6">
+			<button class="rounded-xl bg-secondary px-5 py-3 font-black text-white hover:opacity-90">Guardar configuración</button>
+			<a th:href="@{/admin}" class="rounded-xl border border-outline px-5 py-3 font-bold text-primary hover:bg-surface-soft">Volver al panel</a>
+		</div>
+	</form>
+</main>
+</body>
+</html>

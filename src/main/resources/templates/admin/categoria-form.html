@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/fragments/layout :: head(${categoria.id == null ? 'Admin | Nueva categoría' : 'Admin | Editar categoría'})}"></head>
+<body class="admin-shell text-slate-900">
+<aside th:replace="~{admin/fragments/layout :: sidebar('categorias')}"></aside>
+<header th:replace="~{admin/fragments/layout :: mobilebar('categorias')}"></header>
+<main class="p-4 sm:p-6 lg:ml-64 lg:p-8">
+	<div th:replace="~{admin/fragments/layout :: topbar(${categoria.id == null ? 'Nueva Categoría' : 'Editar Categoría'}, 'Esta categoría aparecerá en el nav inferior de la tienda.')}"></div>
+
+	<form th:action="${categoria.id == null ? '/admin/categorias' : '/admin/categorias/' + categoria.id}" th:object="${categoria}" method="post" class="admin-card max-w-3xl rounded-2xl p-6">
+		<div class="grid gap-5">
+			<label>
+				<span class="text-sm font-bold text-primary">Nombre</span>
+				<input th:field="*{nombre}" required class="mt-1 w-full rounded-lg border-outline" placeholder="Equipamiento">
+			</label>
+			<label>
+				<span class="text-sm font-bold text-primary">Slug</span>
+				<input th:field="*{slug}" class="mt-1 w-full rounded-lg border-outline" placeholder="equipamiento">
+			</label>
+			<label>
+				<span class="text-sm font-bold text-primary">Descripción</span>
+				<textarea th:field="*{descripcion}" rows="4" class="mt-1 w-full rounded-lg border-outline" placeholder="Productos principales para consultorio."></textarea>
+			</label>
+			<label class="flex items-center gap-3 text-sm font-bold text-primary">
+				<input th:field="*{activo}" type="checkbox" class="rounded border-outline"> Activa y visible en tienda
+			</label>
+		</div>
+		<div class="mt-6 flex flex-wrap gap-3 border-t border-outline pt-6">
+			<button class="rounded-xl bg-secondary px-5 py-3 font-black text-white hover:opacity-90">Guardar categoría</button>
+			<a th:href="@{/admin/categorias}" class="rounded-xl border border-outline px-5 py-3 font-bold text-primary hover:bg-surface-soft">Cancelar</a>
+		</div>
+	</form>
+</main>
+</body>
+</html>

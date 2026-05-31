@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/fragments/layout :: head('Admin | Nueva venta')}"></head>
+<body class="admin-shell text-slate-900">
+<aside th:replace="~{admin/fragments/layout :: sidebar('ventas')}"></aside>
+<header th:replace="~{admin/fragments/layout :: mobilebar('ventas')}"></header>
+<main class="p-4 sm:p-6 lg:ml-64 lg:p-8">
+	<div th:replace="~{admin/fragments/layout :: topbar('Nueva Venta Presencial', 'Registrá una venta física y descontá stock físico.')}"></div>
+	<form th:action="@{/admin/ventas/nueva}" method="post" class="admin-card max-w-3xl rounded-2xl p-6">
+		<div class="grid gap-5">
+			<label>
+				<span class="text-sm font-bold text-primary">Producto</span>
+				<select name="productoId" required class="mt-1 w-full rounded-lg border-outline">
+					<option value="">Seleccionar producto</option>
+					<option th:each="producto : ${productos}" th:value="${producto.id}" th:text="|${producto.nombre} - Stock físico: ${producto.stockFisico}|">Producto</option>
+				</select>
+			</label>
+			<label>
+				<span class="text-sm font-bold text-primary">Cantidad</span>
+				<input name="cantidad" type="number" min="1" value="1" required class="mt-1 w-full rounded-lg border-outline">
+			</label>
+			<label>
+				<span class="text-sm font-bold text-primary">Método de pago</span>
+				<select name="metodoPago" class="mt-1 w-full rounded-lg border-outline">
+					<option th:each="metodo : ${metodosPago}" th:value="${metodo}" th:text="${metodo}">EFECTIVO</option>
+				</select>
+			</label>
+			<label><span class="text-sm font-bold text-primary">Usuario admin</span><input name="usuarioAdmin" class="mt-1 w-full rounded-lg border-outline" placeholder="Admin"></label>
+			<label><span class="text-sm font-bold text-primary">Observaciones</span><textarea name="observaciones" rows="3" class="mt-1 w-full rounded-lg border-outline"></textarea></label>
+		</div>
+		<div class="mt-6 flex gap-3">
+			<button class="rounded-xl bg-secondary px-5 py-3 font-black text-white">Registrar venta</button>
+			<a th:href="@{/admin/ventas}" class="rounded-xl border border-outline px-5 py-3 font-bold text-primary hover:bg-surface-soft">Cancelar</a>
+		</div>
+	</form>
+</main>
+</body>
+</html>

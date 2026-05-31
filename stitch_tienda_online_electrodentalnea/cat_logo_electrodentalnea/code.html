@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html class="light" lang="es" style="">
+
+<head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap"
+        rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet">
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-tertiary-fixed": "#261900",
+                        "on-surface-variant": "#43474c",
+                        "secondary-fixed": "#ffdad7",
+                        "primary-fixed-dim": "#b2c9e3",
+                        "surface-dim": "#d9dadc",
+                        "surface-container-low": "#f2f4f6",
+                        "on-primary-fixed": "#031d31",
+                        "surface-container-highest": "#e1e2e4",
+                        "inverse-surface": "#2e3132",
+                        "surface-bright": "#f8f9fb",
+                        "on-secondary-fixed": "#410005",
+                        "on-primary-container": "#758ca4",
+                        "secondary": "#b71f2a",
+                        "on-primary": "#ffffff",
+                        "on-error": "#ffffff",
+                        "primary-fixed": "#cee5ff",
+                        "outline": "#73777d",
+                        "on-secondary-container": "#5c000a",
+                        "tertiary": "#130b00",
+                        "on-background": "#191c1e",
+                        "background": "#f8f9fb",
+                        "on-secondary": "#ffffff",
+                        "surface-container-high": "#e7e8ea",
+                        "surface-variant": "#e1e2e4",
+                        "on-tertiary-container": "#b18200",
+                        "tertiary-fixed": "#ffdea3",
+                        "tertiary-fixed-dim": "#f8bd39",
+                        "on-primary-fixed-variant": "#32495e",
+                        "surface-container-lowest": "#ffffff",
+                        "on-error-container": "#93000a",
+                        "secondary-fixed-dim": "#ffb3af",
+                        "error": "#ba1a1a",
+                        "outline-variant": "#c3c7cd",
+                        "surface": "#f8f9fb",
+                        "primary": "#000d1b",
+                        "inverse-on-surface": "#f0f1f3",
+                        "tertiary-container": "#2f2000",
+                        "surface-tint": "#4a6077",
+                        "on-surface": "#191c1e",
+                        "primary-container": "#0b2438",
+                        "surface-container": "#edeef0",
+                        "error-container": "#ffdad6",
+                        "on-secondary-fixed-variant": "#930017",
+                        "on-tertiary-fixed-variant": "#5d4200",
+                        "inverse-primary": "#b2c9e3",
+                        "secondary-container": "#fe5455",
+                        "on-tertiary": "#ffffff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "xxl": "48px",
+                        "container-margin": "24px",
+                        "xl": "32px",
+                        "lg": "24px",
+                        "sm": "8px",
+                        "md": "16px",
+                        "gutter": "16px",
+                        "xs": "4px",
+                        "base": "8px"
+                    },
+                    "fontFamily": {
+                        "body-md": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "display-lg": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "label-md": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "headline-lg": ["Inter"]
+                    },
+                    "fontSize": {
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+                        "label-sm": ["12px", { "lineHeight": "16px", "fontWeight": "600" }],
+                        "label-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "500" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600" }]
+                    }
+                },
+            },
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8f9fb;
+        }
+
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+
+        .product-card-shadow {
+            shadow: 0 4px 20px rgba(11, 36, 56, 0.05);
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #E5E7EB;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+
+<body class="bg-surface text-on-surface selection:bg-secondary/20">
+    <!-- TopNavBar -->
+    <header class="bg-surface sticky top-0 z-50 border-b border-outline-variant shadow-sm w-full">
+        <div class="flex flex-col w-full px-container-margin max-w-7xl mx-auto">
+            <div class="flex items-center justify-between py-md h-20">
+                <!-- Brand Identity -->
+                <div class="flex items-center gap-sm"><img
+                        src="https://lh3.googleusercontent.com/aida/ADBb0uibwOPhBgr7E0rq8qrbrgOzCOwwNtnNtjreTq4QjcJk4Uq6zk1gaPK670BgYRxk5Dl5VNAo_QPiRFmLUoWTOpOi7FEkcAg6zpQgfSUk-Np6aLsv7RVaN4954TLzlvy_McN-rxe44Z0YqAVNKeCCnuhc76cz-DG19Sjn8bv6FoHctQIZxv02bzMCUPnND6sSHQFtCgIckPUVbiciMq2VptgPS0emtMedz0ay03jqLyG8oqSM6Zs84Qm2KfY"
+                        alt="ELECTRODENTAL NEA Logo" class="h-12 w-auto object-contain"></div>
+                <!-- Navigation Links (Desktop) -->
+                <nav class="hidden md:flex items-center gap-lg">
+                    <a class="text-on-surface-variant hover:text-primary font-label-md text-label-md transition-colors"
+                        href="#">Categorías</a>
+                    <a class="text-on-surface-variant hover:text-primary font-label-md text-label-md transition-colors"
+                        href="#">Ofertas</a>
+                    <a class="text-on-surface-variant hover:text-primary font-label-md text-label-md transition-colors"
+                        href="#">Novedades</a>
+                    <a class="text-on-surface-variant hover:text-primary font-label-md text-label-md transition-colors"
+                        href="#">Marcas</a>
+                    <a class="text-on-surface-variant hover:text-primary font-label-md text-label-md transition-colors"
+                        href="{{DATA:SCREEN:SCREEN_9}}">Servicio Técnico</a>
+                </nav>
+                <!-- Actions -->
+                <div class="flex items-center gap-md">
+                    <button class="p-sm rounded-full hover:bg-surface-container-low transition-colors relative">
+                        <span class="material-symbols-outlined text-secondary">person</span>
+                    </button>
+                    <button class="p-sm rounded-full hover:bg-surface-container-low transition-colors relative">
+                        <span class="material-symbols-outlined text-secondary">shopping_cart</span>
+                        <span
+                            class="absolute top-1 right-1 bg-secondary text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full">3</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+    <main class="max-w-7xl mx-auto px-container-margin py-xl">
+        <!-- Breadcrumbs & Title Area -->
+        <div class="mb-lg">
+            <nav class="flex items-center gap-xs text-on-surface-variant font-label-md text-label-md mb-sm">
+                <span class="">Inicio</span>
+                <span class="material-symbols-outlined text-[16px]">chevron_right</span>
+                <span class="">Equipamiento</span>
+            </nav>
+            <div class="flex flex-col md:flex-row md:items-end justify-between gap-md">
+                <div>
+                    <h1 class="font-headline-lg text-headline-lg text-primary-container">Resultados para Equipamiento
+                    </h1>
+                    <p class="text-on-surface-variant font-body-md text-body-md">45 productos encontrados</p>
+                </div>
+                <div class="flex items-center gap-sm"></div>
+            </div>
+        </div>
+        <div class="flex flex-col md:flex-row gap-xl">
+            <!-- Sidebar Filters -->
+            <aside class="w-full md:w-64 flex-shrink-0">
+                <div class="space-y-xl sticky top-24">
+                    <!-- Category Filter -->
+                    <section>
+                        <h3 class="font-label-md text-label-md text-primary font-bold uppercase tracking-wider mb-md">
+                            Categoría</h3>
+                        <div class="space-y-sm">
+                            <label class="flex items-center gap-sm cursor-pointer group">
+                                <input checked=""
+                                    class="w-5 h-5 rounded border-outline-variant text-secondary focus:ring-secondary"
+                                    type="checkbox">
+                                <span
+                                    class="font-body-md text-body-md text-on-surface-variant group-hover:text-primary transition-colors">Piezas
+                                    de mano</span>
+                            </label>
+                            <label class="flex items-center gap-sm cursor-pointer group">
+                                <input
+                                    class="w-5 h-5 rounded border-outline-variant text-secondary focus:ring-secondary"
+                                    type="checkbox">
+                                <span
+                                    class="font-body-md text-body-md text-on-surface-variant group-hover:text-primary transition-colors">Esterilización</span>
+                            </label>
+                            <label class="flex items-center gap-sm cursor-pointer group">
+                                <input
+                                    class="w-5 h-5 rounded border-outline-variant text-secondary focus:ring-secondary"
+                                    type="checkbox">
+                                <span
+                                    class="font-body-md text-body-md text-on-surface-variant group-hover:text-primary transition-colors">Radiología</span>
+                            </label>
+                            <label class="flex items-center gap-sm cursor-pointer group">
+                                <input
+                                    class="w-5 h-5 rounded border-outline-variant text-secondary focus:ring-secondary"
+                                    type="checkbox">
+                                <span
+                                    class="font-body-md text-body-md text-on-surface-variant group-hover:text-primary transition-colors">Sillones
+                                    Dentales</span>
+                            </label>
+                        </div>
+                    </section>
+                    <!-- Brand Filter -->
+                    <section>
+                        <h3 class="font-label-md text-label-md text-primary font-bold uppercase tracking-wider mb-md">
+                            Marca</h3>
+                        <div class="space-y-sm">
+                            <label class="flex items-center gap-sm cursor-pointer group">
+                                <input
+                                    class="w-5 h-5 rounded border-outline-variant text-secondary focus:ring-secondary"
+                                    type="checkbox">
+                                <span
+                                    class="font-body-md text-body-md text-on-surface-variant group-hover:text-primary transition-colors">NSK</span>
+                            </label>
+                            <label class="flex items-center gap-sm cursor-pointer group">
+                                <input
+                                    class="w-5 h-5 rounded border-outline-variant text-secondary focus:ring-secondary"
+                                    type="checkbox">
+                                <span
+                                    class="font-body-md text-body-md text-on-surface-variant group-hover:text-primary transition-colors">W&amp;H</span>
+                            </label>
+                            <label class="flex items-center gap-sm cursor-pointer group">
+                                <input
+                                    class="w-5 h-5 rounded border-outline-variant text-secondary focus:ring-secondary"
+                                    type="checkbox">
+                                <span
+                                    class="font-body-md text-body-md text-on-surface-variant group-hover:text-primary transition-colors">Dabi
+                                    Atlante</span>
+                            </label>
+                        </div>
+                    </section>
+                    <!-- Price Range -->
+                    <section>
+                        <h3 class="font-label-md text-label-md text-primary font-bold uppercase tracking-wider mb-md">
+                            Precio</h3>
+                        <div class="space-y-md">
+                            <div class="flex items-center gap-sm"></div>
+                            <button
+                                class="w-full py-xs bg-surface-container-high hover:bg-surface-container-highest rounded font-label-md text-label-md transition-colors">Aplicar</button>
+                        </div>
+                    </section>
+                    <!-- Stock & Shipping -->
+                    <section>
+                        <h3 class="font-label-md text-label-md text-primary font-bold uppercase tracking-wider mb-md">
+                            Estado</h3>
+                        <div class="space-y-sm">
+                            <label class="flex items-center gap-sm cursor-pointer group">
+                                <input
+                                    class="w-5 h-5 rounded border-outline-variant text-secondary focus:ring-secondary"
+                                    type="checkbox">
+                                <span
+                                    class="font-body-md text-body-md text-on-surface-variant group-hover:text-primary transition-colors">En
+                                    Stock</span>
+                            </label>
+                            <label class="flex items-center gap-sm cursor-pointer group">
+                                <input
+                                    class="w-5 h-5 rounded border-outline-variant text-secondary focus:ring-secondary"
+                                    type="checkbox">
+                                <span
+                                    class="font-body-md text-body-md text-on-surface-variant group-hover:text-primary transition-colors">Envío
+                                    Gratis</span>
+                            </label>
+                        </div>
+                    </section>
+                </div>
+            </aside>
+            <!-- Product Grid -->
+            <div class="flex-1">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-lg">
+                    <!-- Product Card 1 -->
+                    <div
+                        class="bg-white rounded-[24px] border border-outline-variant overflow-hidden flex flex-col group hover:shadow-xl transition-all duration-300">
+                        <div
+                            class="relative aspect-square bg-surface-container-lowest flex items-center justify-center p-xl">
+                            <img class="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500"
+                                data-alt="Close-up professional studio photograph of a high-tech dental turbine handpiece. The metal tool is polished chrome and stainless steel, reflecting soft studio lights in a clinical, sterile environment. The background is a clean, neutral gray with subtle gradients. The lighting is precise and technical, emphasizing the engineering quality of the equipment."
+                                src="https://lh3.googleusercontent.com/aida-public/AB6AXuCJ2OTSxCzVb56eCgmPaLylrW5SYNTL0DEi3pOSybYc7LFjNvoQDVx-3a3RD7KKhzGjs8_36VCVWVBsqAqt1ctCAtRBE3cZ0qMGTAZ31UcFUFoBBN3rTnzN3NJNTDF-XDsncyCpWdWWTNyfgYVHXMjCjg0rqyek_F26qkl7aMkFcMxhVAGRNy0ceh9pQr_1qpeVU82F2HBHOvt8hwTugNTej4o3avUsWkxGC7ylz7oQ9b5_QojzBJYQs4MrTi5VfOby41tvZg6n91M">
+                            <div class="absolute top-md left-md flex flex-col gap-xs">
+                                <span
+                                    class="px-sm py-xs bg-primary-container text-white text-[10px] font-bold rounded uppercase tracking-tighter">En
+                                    Stock</span>
+                            </div>
+                            <button
+                                class="absolute top-md right-md bg-white/80 backdrop-blur-sm p-xs rounded-full text-on-surface-variant hover:text-secondary transition-colors">
+                                <span class="material-symbols-outlined">favorite</span>
+                            </button>
+                        </div>
+                        <div class="p-lg flex flex-col flex-1">
+                            <span
+                                class="text-on-surface-variant font-label-sm text-label-sm uppercase tracking-widest mb-xs">NSK</span>
+                            <h4
+                                class="font-headline-md text-headline-md text-primary-container mb-sm line-clamp-2 leading-tight">
+                                Pieza de mano alta velocidad Pana-Max</h4>
+                            <div class="mt-auto">
+                                <div class="flex flex-col mb-md">
+                                    <span
+                                        class="text-secondary font-headline-md text-headline-md font-bold">$120.000</span>
+                                    <span class="text-on-surface-variant font-label-md text-label-md">6 cuotas sin
+                                        interés de $20.000</span>
+                                </div>
+                                <button
+                                    class="w-full py-md bg-secondary hover:bg-secondary/90 text-white rounded-xl font-label-md text-label-md font-bold transition-all flex items-center justify-center gap-sm active:scale-95">
+                                    <span class="material-symbols-outlined text-[20px]">shopping_cart</span>
+                                    Agregar al carrito
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Product Card 2 -->
+                    <div
+                        class="bg-white rounded-[24px] border border-outline-variant overflow-hidden flex flex-col group hover:shadow-xl transition-all duration-300">
+                        <div
+                            class="relative aspect-square bg-surface-container-lowest flex items-center justify-center p-xl">
+                            <img class="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500"
+                                data-alt="High-end professional dental chair in a modern, minimalist dental office setting. The upholstery is a premium navy blue leather, and the mechanical parts are polished white and silver. Large windows in the background provide soft, natural daylight. The image has a clean, clinical, and luxurious feel consistent with high-end medical equipment branding."
+                                src="https://lh3.googleusercontent.com/aida-public/AB6AXuCMEQvAKXjBKrElLH-B0f6dpYqPrUD3MS9YqpSNy5EOjyPq-lqCMIEWQ9xEIMTiFO6MSicBxQTE3JT8Nihvf5_Wv0CzH5rQmdyeZa8if2Sf2aLPeWUPNBqVIfl5jIONnrtyKmH5mk7qGZ21GSnn6MzqJtssPSlmjYzoDtVhoiUWTVZkJvDK-MhXN7SBT3iX82KQLvR9rMnLmyYfnYAgP_UChS8-aY9xsyGCrg-cU8Dz7c0BiV6TZ22tVS8cUCIxnU2QVFr5flabmXQ">
+                            <div class="absolute top-md left-md flex flex-col gap-xs">
+                                <span
+                                    class="px-sm py-xs bg-tertiary-fixed text-on-tertiary-fixed text-[10px] font-bold rounded uppercase tracking-tighter">Envío
+                                    Gratis</span>
+                            </div>
+                            <button
+                                class="absolute top-md right-md bg-white/80 backdrop-blur-sm p-xs rounded-full text-on-surface-variant hover:text-secondary transition-colors">
+                                <span class="material-symbols-outlined">favorite</span>
+                            </button>
+                        </div>
+                        <div class="p-lg flex flex-col flex-1">
+                            <span
+                                class="text-on-surface-variant font-label-sm text-label-sm uppercase tracking-widest mb-xs">Dabi
+                                Atlante</span>
+                            <h4
+                                class="font-headline-md text-headline-md text-primary-container mb-sm line-clamp-2 leading-tight">
+                                Sillón Dental Ergonómico New G3</h4>
+                            <div class="mt-auto">
+                                <div class="flex flex-col mb-md">
+                                    <span
+                                        class="text-secondary font-headline-md text-headline-md font-bold">$2.450.000</span>
+                                    <span class="text-on-surface-variant font-label-md text-label-md">6 cuotas sin
+                                        interés de $408.333</span>
+                                </div>
+                                <button
+                                    class="w-full py-md bg-secondary hover:bg-secondary/90 text-white rounded-xl font-label-md text-label-md font-bold transition-all flex items-center justify-center gap-sm active:scale-95">
+                                    <span class="material-symbols-outlined text-[20px]">shopping_cart</span>
+                                    Agregar al carrito
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Product Card 3 -->
+                    <div
+                        class="bg-white rounded-[24px] border border-outline-variant overflow-hidden flex flex-col group hover:shadow-xl transition-all duration-300">
+                        <div
+                            class="relative aspect-square bg-surface-container-lowest flex items-center justify-center p-xl">
+                            <img class="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500"
+                                data-alt="Digital professional autoclave sterilizer machine for medical tools. The device has a sleek white exterior with a digital touchscreen display showing technical data. It is placed on a clean white countertop in a sterile laboratory environment. The mood is highly technical, precise, and sophisticated, illuminated by cool-toned architectural lighting."
+                                src="https://lh3.googleusercontent.com/aida-public/AB6AXuBKbB7hog8T25CvheO2pLutB3dbOxpDqHMMGckKSXIFuW6tavne2xJpFonOsHD5QWsffIIlhM9hxPHfZ5e2SBD4adkNUeG5Ci3csPUjb5POvFaxm6E5P6_ieEtrRnd9VRHpcqQysFn18yZqvZ1P-3EQiVbmCdcRI1DPn380TQu8THBSQ-6JnKwnyNTvyRtLtrdQ73aiKq7O8YZhYmKTHSJWXg9AZlfvaAcFlQ8o5K4VCgh8skJ_fvak0mpLahDy_AzJl9hll-ATXsI">
+                            <div class="absolute top-md left-md flex flex-col gap-xs">
+                                <span
+                                    class="px-sm py-xs bg-primary-container text-white text-[10px] font-bold rounded uppercase tracking-tighter">En
+                                    Stock</span>
+                            </div>
+                            <button
+                                class="absolute top-md right-md bg-white/80 backdrop-blur-sm p-xs rounded-full text-on-surface-variant hover:text-secondary transition-colors">
+                                <span class="material-symbols-outlined">favorite</span>
+                            </button>
+                        </div>
+                        <div class="p-lg flex flex-col flex-1">
+                            <span
+                                class="text-on-surface-variant font-label-sm text-label-sm uppercase tracking-widest mb-xs">W&amp;H</span>
+                            <h4
+                                class="font-headline-md text-headline-md text-primary-container mb-sm line-clamp-2 leading-tight">
+                                Autoclave Digital Clase B 18L</h4>
+                            <div class="mt-auto">
+                                <div class="flex flex-col mb-md">
+                                    <span
+                                        class="text-secondary font-headline-md text-headline-md font-bold">$1.890.000</span>
+                                    <span class="text-on-surface-variant font-label-md text-label-md">6 cuotas sin
+                                        interés de $315.000</span>
+                                </div>
+                                <button
+                                    class="w-full py-md bg-secondary hover:bg-secondary/90 text-white rounded-xl font-label-md text-label-md font-bold transition-all flex items-center justify-center gap-sm active:scale-95">
+                                    <span class="material-symbols-outlined text-[20px]">shopping_cart</span>
+                                    Agregar al carrito
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Row 2 Mockups -->
+                    <!-- Product Card 4 -->
+                    <div
+                        class="bg-white rounded-[24px] border border-outline-variant overflow-hidden flex flex-col group hover:shadow-xl transition-all duration-300">
+                        <div
+                            class="relative aspect-square bg-surface-container-lowest flex items-center justify-center p-xl">
+                            <img class="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500"
+                                data-alt="High-resolution digital intraoral X-ray sensor for dental diagnostics. The sensor is sleek, black, and compact, connected to a premium cable. It is presented in a minimalist, high-contrast studio setting with deep shadows and surgical blue light accents. The aesthetic is extremely professional and technically focused."
+                                src="https://lh3.googleusercontent.com/aida-public/AB6AXuAyyHhykTgQ82sRrjOfogh5nLsptsGubO2Ax-xbVRp1traBPNadiq7lcgbaeowmwe7ViEbG0KiBhOnwX9iNfsezOSf5MHkzsnUNafXGOwJ7-c8NS6ebEG1JrLy4VPveN7eAtY5joA0AP3S2tcfNtU6kln7nkHXgXP69bYneFBF-JrW6S2vEBpFuH4fZHxOjWnLQnwdyoeoFfsufvxZwuq_6GSCgTA2j2IGrYBNWBlhiV9BjLqPBgumZUCJdPETuHCblKFVYGwY2nBg">
+                            <div class="absolute top-md left-md flex flex-col gap-xs">
+                                <span
+                                    class="px-sm py-xs bg-tertiary-fixed text-on-tertiary-fixed text-[10px] font-bold rounded uppercase tracking-tighter">Envío
+                                    Gratis</span>
+                            </div>
+                            <button
+                                class="absolute top-md right-md bg-white/80 backdrop-blur-sm p-xs rounded-full text-on-surface-variant hover:text-secondary transition-colors">
+                                <span class="material-symbols-outlined">favorite</span>
+                            </button>
+                        </div>
+                        <div class="p-lg flex flex-col flex-1">
+                            <span
+                                class="text-on-surface-variant font-label-sm text-label-sm uppercase tracking-widest mb-xs">Schick</span>
+                            <h4
+                                class="font-headline-md text-headline-md text-primary-container mb-sm line-clamp-2 leading-tight">
+                                Sensor Radiográfico Digital Elite</h4>
+                            <div class="mt-auto">
+                                <div class="flex flex-col mb-md">
+                                    <span
+                                        class="text-secondary font-headline-md text-headline-md font-bold">$2.100.000</span>
+                                    <span class="text-on-surface-variant font-label-md text-label-md">6 cuotas sin
+                                        interés de $350.000</span>
+                                </div>
+                                <button
+                                    class="w-full py-md bg-secondary hover:bg-secondary/90 text-white rounded-xl font-label-md text-label-md font-bold transition-all flex items-center justify-center gap-sm active:scale-95">
+                                    <span class="material-symbols-outlined text-[20px]">shopping_cart</span>
+                                    Agregar al carrito
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Product Card 5 -->
+                    <div
+                        class="bg-white rounded-[24px] border border-outline-variant overflow-hidden flex flex-col group hover:shadow-xl transition-all duration-300">
+                        <div
+                            class="relative aspect-square bg-surface-container-lowest flex items-center justify-center p-xl">
+                            <img class="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500"
+                                data-alt="Professional LED curing light for dental resins. The device is ergonomic, finished in a matte white coating with a bright LED tip. It sits on a docking station in a modern clinical workstation. The lighting is crisp and clear, highlighting the tool's modern design and medical-grade materials."
+                                src="https://lh3.googleusercontent.com/aida-public/AB6AXuBtvFjkBtHyR3Ha9aT0_fTacsOvMitvbyH3nMJ0cB6HRmWk7SHlAai6Tc_WiHTMhiNKpksfqhRj8XlILcl-te1Gi_RXOOLRHf-PIjEFFGSHwBRJdMkUht_DY-3z5hiRI1pdjgueYOHGuEdAxBeL_nSae18qXYe285c-v538_qIlHvLY3uzJpBR1Rzi35Q2IUX9hl4MtXXdJF0WHpGlyJ9hRj5hEn4vBlgezXubqucAB2BXkgXqeGphFNwANDgP5moKJkqOd6rjyuEg">
+                            <button
+                                class="absolute top-md right-md bg-white/80 backdrop-blur-sm p-xs rounded-full text-on-surface-variant hover:text-secondary transition-colors">
+                                <span class="material-symbols-outlined">favorite</span>
+                            </button>
+                        </div>
+                        <div class="p-lg flex flex-col flex-1">
+                            <span
+                                class="text-on-surface-variant font-label-sm text-label-sm uppercase tracking-widest mb-xs">3M
+                                Espe</span>
+                            <h4
+                                class="font-headline-md text-headline-md text-primary-container mb-sm line-clamp-2 leading-tight">
+                                Lámpara de Fotocurado Elipar DeepCure</h4>
+                            <div class="mt-auto">
+                                <div class="flex flex-col mb-md">
+                                    <span
+                                        class="text-secondary font-headline-md text-headline-md font-bold">$450.000</span>
+                                    <span class="text-on-surface-variant font-label-md text-label-md">6 cuotas sin
+                                        interés de $75.000</span>
+                                </div>
+                                <button
+                                    class="w-full py-md bg-secondary hover:bg-secondary/90 text-white rounded-xl font-label-md text-label-md font-bold transition-all flex items-center justify-center gap-sm active:scale-95">
+                                    <span class="material-symbols-outlined text-[20px]">shopping_cart</span>
+                                    Agregar al carrito
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Product Card 6 -->
+                    <div
+                        class="bg-white rounded-[24px] border border-outline-variant overflow-hidden flex flex-col group hover:shadow-xl transition-all duration-300">
+                        <div
+                            class="relative aspect-square bg-surface-container-lowest flex items-center justify-center p-xl">
+                            <img class="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500"
+                                data-alt="Macro view of a dental ultrasound scaler tip vibrating in slow motion with water mist. The metal is surgical grade, reflecting intense cold white lighting. The background is dark, emphasizing the technical precision of the vibration and the water droplets. High-end medical photography style."
+                                src="https://lh3.googleusercontent.com/aida-public/AB6AXuBRGuUHiS9quB_dNV6Tft1gKh9TQ_8h9ucr7qHKsuocXt8IkHtxtfBcMGcxfAlPYJ3G7P5bQP1Ef9ahAqk5P1IXnad03BiCLsx835RVP2zzAaiLOErLd1Pncoyunnjf4XExDVLtuH_ALgKAIlv_umkPwezazTVu_eKR3tYZf18fKOhIJzQTJnOnwAY2X9L9KpnjvcOmxmk4A8CmVBGEzCbTqCBFZkEWm9ELda4CTgfDHG31qvllXaEeah4Fd8pG5w61CuA9qIO4fOM">
+                            <div class="absolute top-md left-md flex flex-col gap-xs">
+                                <span
+                                    class="px-sm py-xs bg-primary-container text-white text-[10px] font-bold rounded uppercase tracking-tighter">En
+                                    Stock</span>
+                            </div>
+                            <button
+                                class="absolute top-md right-md bg-white/80 backdrop-blur-sm p-xs rounded-full text-on-surface-variant hover:text-secondary transition-colors">
+                                <span class="material-symbols-outlined">favorite</span>
+                            </button>
+                        </div>
+                        <div class="p-lg flex flex-col flex-1">
+                            <span
+                                class="text-on-surface-variant font-label-sm text-label-sm uppercase tracking-widest mb-xs">Woodpecker</span>
+                            <h4
+                                class="font-headline-md text-headline-md text-primary-container mb-sm line-clamp-2 leading-tight">
+                                Ultrasonido Piezoeléctrico UDS-P con Luz</h4>
+                            <div class="mt-auto">
+                                <div class="flex flex-col mb-md">
+                                    <span
+                                        class="text-secondary font-headline-md text-headline-md font-bold">$185.000</span>
+                                    <span class="text-on-surface-variant font-label-md text-label-md">6 cuotas sin
+                                        interés de $30.833</span>
+                                </div>
+                                <button
+                                    class="w-full py-md bg-secondary hover:bg-secondary/90 text-white rounded-xl font-label-md text-label-md font-bold transition-all flex items-center justify-center gap-sm active:scale-95">
+                                    <span class="material-symbols-outlined text-[20px]">shopping_cart</span>
+                                    Agregar al carrito
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Pagination -->
+                <div class="mt-xxl flex justify-center items-center gap-sm"></div>
+            </div>
+        </div>
+    </main>
+    <!-- Footer -->
+    <footer class="bg-primary-container text-on-primary-container mt-xxl border-t border-outline-variant">
+        <div
+            class="w-full py-xl px-container-margin max-w-7xl mx-auto flex flex-col items-center gap-lg text-center md:text-left">
+            <div class="w-full grid grid-cols-1 md:grid-cols-4 gap-xl mb-xl text-left">
+                <div class="col-span-1 md:col-span-1">
+                    <span
+                        class="font-headline-md text-headline-md text-white font-bold mb-md block">ElectrodentalNea</span>
+                    <p class="font-body-md text-body-md text-on-primary-container/80 mb-md">Líderes en equipamiento
+                        odontológico para profesionales de todo el país.</p>
+                </div>
+                <div>
+                    <h5 class="font-label-md text-label-md text-secondary font-bold uppercase mb-md">Navegación</h5>
+                    <ul class="space-y-sm">
+                        <li class=""><a class="text-on-primary-container/80 hover:text-white transition-colors"
+                                href="#">Categorías</a></li>
+                        <li class=""><a class="text-on-primary-container/80 hover:text-white transition-colors"
+                                href="#">Ofertas</a></li>
+                        <li class=""><a class="text-on-primary-container/80 hover:text-white transition-colors"
+                                href="#">Novedades</a></li>
+                        <li class=""><a class="text-on-primary-container/80 hover:text-white transition-colors"
+                                href="#">Marcas</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h5 class="font-label-md text-label-md text-secondary font-bold uppercase mb-md">Información</h5>
+                    <ul class="space-y-sm">
+                        <li class=""><a class="text-on-primary-container/80 hover:text-white transition-colors"
+                                href="#">Contacto</a></li>
+                        <li class=""><a class="text-on-primary-container/80 hover:text-white transition-colors"
+                                href="#">WhatsApp</a></li>
+                        <li class=""><a class="text-on-primary-container/80 hover:text-white transition-colors"
+                                href="#">Sucursales</a></li>
+                        <li class=""><a class="text-on-primary-container/80 hover:text-white transition-colors"
+                                href="#">Términos y Condiciones</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h5 class="font-label-md text-label-md text-secondary font-bold uppercase mb-md">Newsletter</h5>
+                    <p class="text-on-primary-container/80 mb-md font-label-md">Suscribite para recibir ofertas
+                        exclusivas.</p>
+                    <div class="flex gap-xs">
+                        <input
+                            class="bg-white/10 border border-white/20 rounded px-sm py-xs w-full text-white placeholder:text-white/50 focus:outline-none focus:ring-1 focus:ring-secondary"
+                            placeholder="Tu email" type="email">
+                        <button
+                            class="bg-secondary text-white px-md py-xs rounded hover:bg-secondary/90 transition-colors">Enviar</button>
+                    </div>
+                </div>
+            </div>
+            <div
+                class="w-full pt-lg border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-md">
+                <p class="font-body-md text-body-md text-on-primary-container/60">© 2024 ElectrodentalNea. Equipamiento
+                    y Materiales Odontológicos de Alta Gama.</p>
+                <div class="flex gap-md">
+                    <span
+                        class="material-symbols-outlined text-white/50 hover:text-secondary cursor-pointer transition-colors">credit_card</span>
+                    <span
+                        class="material-symbols-outlined text-white/50 hover:text-secondary cursor-pointer transition-colors">local_shipping</span>
+                    <span
+                        class="material-symbols-outlined text-white/50 hover:text-secondary cursor-pointer transition-colors">shield</span>
+                </div>
+            </div>
+        </div>
+    </footer>
+    <script>
+        // Micro-interactions for product cards
+        document.querySelectorAll('.active\\:scale-95').forEach(button => {
+            button.addEventListener('mousedown', () => {
+                button.classList.add('scale-95');
+            });
+            button.addEventListener('mouseup', () => {
+                button.classList.remove('scale-95');
+            });
+        });
+
+        // Search Bar Toggle Effect
+        const searchInput = document.querySelector('select');
+        if (searchInput) {
+            searchInput.addEventListener('focus', () => {
+                searchInput.classList.add('ring-primary-container/30');
+            });
+            searchInput.addEventListener('blur', () => {
+                searchInput.classList.remove('ring-primary-container/30');
+            });
+        }
+    </script>
+
+
+
+
+
+
+</body>
+
+</html>

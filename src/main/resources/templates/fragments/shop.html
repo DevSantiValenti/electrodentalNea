@@ -36,6 +36,7 @@
 		.brand-logo { width: 150px; height: 72px; display: flex; align-items: center; justify-content: center; opacity: .62; filter: grayscale(1); transition: .2s ease; flex: 0 0 auto; }
 		.brand-logo:hover { opacity: 1; filter: grayscale(0); transform: translateY(-2px); }
 		.brand-logo img { max-width: 100%; max-height: 64px; object-fit: contain; }
+		.search-suggestions-scroll { max-height: min(420px, calc(100vh - 190px)); overflow-y: auto; }
 		@keyframes brand-scroll-left { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 		@media (prefers-reduced-motion: reduce) { .brand-carousel-track { animation: none; flex-wrap: wrap; width: 100%; justify-content: center; } }
 	</style>
@@ -53,11 +54,19 @@
 		<a th:href="@{/}" class="flex items-center">
 			<img src="/img/electrodentallarge.png" alt="ElectrodentalNea" class="h-16 w-auto object-contain">
 		</a>
-		<form th:action="@{/catalogo}" method="get" class="order-3 w-full flex-1 lg:order-2 lg:max-w-xl">
+		<form th:action="@{/catalogo}" method="get" class="relative order-3 w-full flex-1 lg:order-2 lg:max-w-xl" data-product-search th:data-search-url="@{/api/productos/buscar}">
 			<label class="relative block">
 				<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-500">search</span>
-				<input name="q" class="w-full rounded-lg border border-outline bg-surface-soft py-3 pl-12 pr-4 outline-none focus:ring-2 focus:ring-primary-container" placeholder="Buscar productos..." type="search">
+				<input name="q" autocomplete="off" class="w-full rounded-lg border border-outline bg-surface-soft py-3 pl-12 pr-4 outline-none focus:ring-2 focus:ring-primary-container" placeholder="Buscar productos..." type="search" data-product-search-input>
 			</label>
+			<div class="search-suggestions-scroll absolute left-0 right-0 top-[calc(100%+8px)] z-[70] hidden overflow-hidden rounded-2xl border border-outline bg-white shadow-2xl shadow-slate-900/12" data-product-search-panel>
+				<div class="border-b border-outline px-4 py-3 text-xs font-black uppercase tracking-wide text-slate-500">Coincidencias</div>
+				<div class="divide-y divide-outline" data-product-search-results></div>
+				<a th:href="@{/catalogo}" class="flex items-center justify-between bg-surface-soft px-4 py-3 text-sm font-black text-primary hover:bg-white" data-product-search-all>
+					<span>Ver todos los resultados</span>
+					<span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+				</a>
+			</div>
 		</form>
 		<nav class="order-2 flex items-center gap-2 text-sm font-semibold lg:order-3">
 			<a th:href="@{/catalogo}" class="hidden rounded-lg px-3 py-2 text-slate-700 hover:bg-surface-soft sm:inline-flex">Catálogo</a>
@@ -177,6 +186,136 @@
 					button?.removeAttribute("disabled");
 					button?.classList.remove("scale-95");
 				}
+			});
+
+			document.querySelectorAll("[data-product-search]").forEach((form) => {
+				const input = form.querySelector("[data-product-search-input]");
+				const panel = form.querySelector("[data-product-search-panel]");
+				const results = form.querySelector("[data-product-search-results]");
+				const allLink = form.querySelector("[data-product-search-all]");
+				const searchUrl = form.dataset.searchUrl;
+				let debounceId;
+				let controller;
+
+				if (!input || !panel || !results || !allLink || !searchUrl) return;
+
+				const hidePanel = () => {
+					panel.classList.add("hidden");
+					results.innerHTML = "";
+				};
+
+				const showPanel = () => {
+					panel.classList.remove("hidden");
+				};
+
+				const setAllLink = (query) => {
+					const url = new URL(form.action, window.location.origin);
+					if (query) {
+						url.searchParams.set("q", query);
+					}
+					allLink.href = url.pathname + url.search;
+				};
+
+				const renderEmpty = (message) => {
+					results.innerHTML = "";
+					const item = document.createElement("div");
+					item.className = "px-4 py-5 text-sm font-semibold text-slate-500";
+					item.textContent = message;
+					results.appendChild(item);
+					showPanel();
+				};
+
+				const renderResults = (items, query) => {
+					results.innerHTML = "";
+					setAllLink(query);
+					if (!items.length) {
+						renderEmpty("No encontramos productos con ese texto.");
+						return;
+					}
+					items.forEach((product) => {
+						const link = document.createElement("a");
+						link.href = product.url;
+						link.className = "grid grid-cols-[56px_1fr_auto] items-center gap-3 px-4 py-3 transition hover:bg-surface-soft";
+
+						const image = document.createElement("img");
+						image.src = product.imagen || "/img/electrodentallarge.png";
+						image.alt = product.nombre || "Producto";
+						image.loading = "lazy";
+						image.className = "h-14 w-14 rounded-xl border border-outline bg-white object-contain p-1.5";
+
+						const text = document.createElement("div");
+						text.className = "min-w-0";
+
+						const brand = document.createElement("p");
+						brand.className = "truncate text-[11px] font-black uppercase tracking-wide text-slate-500";
+						brand.textContent = product.marca || "Sin marca";
+
+						const name = document.createElement("p");
+						name.className = "mt-0.5 line-clamp-2 text-sm font-black leading-5 text-primary";
+						name.textContent = product.nombre || "Producto";
+
+						const icon = document.createElement("span");
+						icon.className = "material-symbols-outlined text-[20px] text-slate-400";
+						icon.textContent = "chevron_right";
+
+						text.append(brand, name);
+						link.append(image, text, icon);
+						results.appendChild(link);
+					});
+					showPanel();
+				};
+
+				const search = async () => {
+					const query = input.value.trim();
+					setAllLink(query);
+					if (query.length < 2) {
+						hidePanel();
+						return;
+					}
+					controller?.abort();
+					controller = new AbortController();
+					try {
+						const url = new URL(searchUrl, window.location.origin);
+						url.searchParams.set("q", query);
+						const response = await fetch(url, {
+							headers: { "X-Requested-With": "XMLHttpRequest", "Accept": "application/json" },
+							signal: controller.signal
+						});
+						if (!response.ok) {
+							renderEmpty("No se pudo buscar ahora.");
+							return;
+						}
+						renderResults(await response.json(), query);
+					} catch (error) {
+						if (error.name !== "AbortError") {
+							renderEmpty("No se pudo buscar ahora.");
+						}
+					}
+				};
+
+				input.addEventListener("input", () => {
+					window.clearTimeout(debounceId);
+					debounceId = window.setTimeout(search, 180);
+				});
+
+				input.addEventListener("focus", () => {
+					if (input.value.trim().length >= 2 && results.children.length) {
+						showPanel();
+					}
+				});
+
+				input.addEventListener("keydown", (event) => {
+					if (event.key === "Escape") {
+						hidePanel();
+						input.blur();
+					}
+				});
+
+				document.addEventListener("click", (event) => {
+					if (!form.contains(event.target)) {
+						hidePanel();
+					}
+				});
 			});
 		})();
 	</script>

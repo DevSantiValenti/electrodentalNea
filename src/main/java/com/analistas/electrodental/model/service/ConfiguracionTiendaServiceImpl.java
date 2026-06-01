@@ -18,14 +18,17 @@ public class ConfiguracionTiendaServiceImpl implements IConfiguracionTiendaServi
 
 	@Override
 	public ConfiguracionTienda obtener() {
-		return configuracionRepository.findById(ConfiguracionTienda.CONFIG_ID)
+		ConfiguracionTienda configuracion = configuracionRepository.findById(ConfiguracionTienda.CONFIG_ID)
 				.orElseGet(ConfiguracionTienda::new);
+		configuracion.completarDefaults();
+		return configuracion;
 	}
 
 	@Override
 	@Transactional
 	public ConfiguracionTienda guardar(ConfiguracionTienda configuracion) {
 		configuracion.setId(ConfiguracionTienda.CONFIG_ID);
+		configuracion.completarDefaults();
 		return configuracionRepository.save(configuracion);
 	}
 }

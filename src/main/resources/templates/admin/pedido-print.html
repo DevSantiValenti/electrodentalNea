@@ -61,9 +61,18 @@
 		<div class="box">
 			<h2>Entrega</h2>
 			<p><strong>Método:</strong> <span th:text="${pedido.metodoEntrega ?: 'ANDREANI'}">Entrega</span></p>
-			<p th:if="${pedido.direccionEnvio != null}"><strong>CP:</strong> <span th:text="${pedido.direccionEnvio.codigoPostal ?: '-'}">CP</span></p>
-			<p th:if="${pedido.direccionEnvio != null}"><strong>Ciudad:</strong> <span th:text="${pedido.direccionEnvio.ciudad ?: '-'}">Ciudad</span></p>
-			<p th:if="${pedido.direccionEnvio != null}"><strong>Dirección:</strong> <span th:text="|${pedido.direccionEnvio.calle ?: ''} ${pedido.direccionEnvio.numero ?: ''}|">Dirección</span></p>
+			<div th:if="${pedido.metodoEntrega == 'SUCURSAL'}">
+				<p><strong>CP:</strong> <span th:text="${configuracionTienda.codigoPostal ?: '-'}">3500</span></p>
+				<p><strong>Ciudad:</strong> <span th:text="${configuracionTienda.ciudad ?: '-'}">Resistencia</span></p>
+				<p><strong>Dirección:</strong> <span th:text="${configuracionTienda.direccion ?: '-'}">Sucursal</span></p>
+				<p><strong>Teléfono:</strong> <span th:text="${configuracionTienda.whatsapp ?: '-'}">Teléfono</span></p>
+				<p><strong>Horarios:</strong> <span th:text="${configuracionTienda.horarios ?: '-'}">Horarios</span></p>
+			</div>
+			<div th:unless="${pedido.metodoEntrega == 'SUCURSAL'}">
+				<p th:if="${pedido.direccionEnvio != null}"><strong>CP:</strong> <span th:text="${pedido.direccionEnvio.codigoPostal ?: '-'}">CP</span></p>
+				<p th:if="${pedido.direccionEnvio != null}"><strong>Ciudad:</strong> <span th:text="${pedido.direccionEnvio.ciudad ?: '-'}">Ciudad</span></p>
+				<p th:if="${pedido.direccionEnvio != null}"><strong>Dirección:</strong> <span th:text="|${pedido.direccionEnvio.calle ?: ''} ${pedido.direccionEnvio.numero ?: ''}|">Dirección</span></p>
+			</div>
 		</div>
 	</section>
 

@@ -240,6 +240,7 @@
 					<div id="panel-SUCURSAL" class="delivery-panel hidden rounded-xl border border-outline bg-slate-50 p-5">
 						<h2 class="text-lg font-black text-primary">Retiro en sucursal</h2>
 						<p class="mt-2 text-sm font-semibold text-slate-600">Te esperamos en <span th:text="${configuracionTienda.direccion}">Roque Sáenz Peña 539, Resistencia</span>.</p>
+						<p class="mt-1 text-sm font-semibold text-slate-600">CP <span th:text="${configuracionTienda.codigoPostal}">3500</span> · <span th:text="${configuracionTienda.ciudad}">Resistencia</span>.</p>
 						<p class="mt-1 text-sm font-semibold text-slate-600">Horario: <span th:text="${configuracionTienda.horarios}">08:00 a 12:30hs y 17:00 a 20:30hs</span>.</p>
 						<p class="mt-3 rounded-lg bg-white p-3 text-sm font-bold text-primary">Luego del pago se generará un código de retiro del pedido. Presentalo junto con tu DNI o comprobante al retirar.</p>
 						<div class="mt-4 overflow-hidden rounded-xl border border-outline">

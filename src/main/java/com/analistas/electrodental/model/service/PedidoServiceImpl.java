@@ -145,7 +145,7 @@ public class PedidoServiceImpl implements IPedidoService {
 				pedido.setEstadoPedido(EstadoPedido.CANCELADO);
 				pedido.setFechaCancelacion(LocalDateTime.now());
 			}
-			case "refunded" -> {
+			case "refunded", "charged_back" -> {
 				pago.setEstadoPago(EstadoPago.REEMBOLSADO);
 				pedido.setEstadoPedido(EstadoPedido.CANCELADO);
 				pedido.setFechaCancelacion(LocalDateTime.now());

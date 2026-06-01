@@ -26,6 +26,16 @@
 					<span class="text-sm font-bold text-primary">Dirección</span>
 					<input th:field="*{direccion}" class="mt-1 w-full rounded-lg border-outline" placeholder="Roque Sáenz Peña 539, Resistencia, Chaco">
 				</label>
+				<div class="grid gap-4 sm:grid-cols-2">
+					<label class="block">
+						<span class="text-sm font-bold text-primary">CP</span>
+						<input th:field="*{codigoPostal}" class="mt-1 w-full rounded-lg border-outline" placeholder="3500">
+					</label>
+					<label class="block">
+						<span class="text-sm font-bold text-primary">Ciudad</span>
+						<input th:field="*{ciudad}" class="mt-1 w-full rounded-lg border-outline" placeholder="Resistencia">
+					</label>
+				</div>
 				<label class="block">
 					<span class="text-sm font-bold text-primary">Horarios de atención</span>
 					<input th:field="*{horarios}" class="mt-1 w-full rounded-lg border-outline" placeholder="08:00 a 12:30hs y 17:00 a 20:30hs">

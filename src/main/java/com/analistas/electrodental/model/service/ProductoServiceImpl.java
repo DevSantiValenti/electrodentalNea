@@ -3,6 +3,7 @@ package com.analistas.electrodental.model.service;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -63,6 +64,15 @@ public class ProductoServiceImpl implements IProductoService {
 		return productoRepository.findTop4ByActivoTrueAndCategoriaIdAndIdNotOrderByNombreAsc(
 				producto.getCategoria().getId(),
 				producto.getId());
+	}
+
+	@Override
+	public List<Producto> buscarSugerencias(String termino, int limite) {
+		if (termino == null || termino.isBlank()) {
+			return List.of();
+		}
+		int limiteSeguro = Math.max(1, Math.min(limite, 12));
+		return productoRepository.buscarSugerencias(termino.trim(), PageRequest.of(0, limiteSeguro));
 	}
 
 	@Override

@@ -5,11 +5,13 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
 import org.springframework.stereotype.Controller;
+import org.springframework.util.StringUtils;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.web.client.RestClient;
 
 import com.analistas.electrodental.model.domain.Cliente;
 import com.analistas.electrodental.model.domain.DireccionEnvio;
@@ -29,6 +31,7 @@ import com.analistas.electrodental.web.config.MercadoPagoProperties;
 
 import jakarta.servlet.http.HttpSession;
 import jakarta.servlet.http.HttpServletRequest;
+import tools.jackson.databind.JsonNode;
 
 @Controller
 public class CheckoutController {
@@ -177,8 +180,14 @@ public class CheckoutController {
 			HttpServletRequest request) {
 		String codigoCompra = null;
 		String estado = resolverEstadoRetorno(status, request.getRequestURI());
-		if (externalReference != null && !externalReference.isBlank()) {
-			pedidoService.actualizarPagoMercadoPago(externalReference, paymentId, estado);
+		PagoMercadoPago pagoMercadoPago = obtenerPagoMercadoPago(paymentId);
+		if (pagoMercadoPago != null && StringUtils.hasText(pagoMercadoPago.externalReference())) {
+			estado = pagoMercadoPago.status();
+			pedidoService.actualizarPagoMercadoPago(
+					pagoMercadoPago.externalReference(),
+					pagoMercadoPago.paymentId(),
+					pagoMercadoPago.status());
+			externalReference = pagoMercadoPago.externalReference();
 		}
 		model.addAttribute("titulo", "Estado del pago");
 		model.addAttribute("mensaje", "Mercado Pago informó estado: " + (estado == null ? "sin estado" : estado));
@@ -323,5 +332,31 @@ public class CheckoutController {
 			return "pending";
 		}
 		return status;
+	}
+
+	private PagoMercadoPago obtenerPagoMercadoPago(String paymentId) {
+		if (!StringUtils.hasText(paymentId)) {
+			return null;
+		}
+		try {
+			JsonNode payment = RestClient.create(mercadoPagoProperties.getApiUrl())
+					.get()
+					.uri("/v1/payments/{paymentId}", paymentId)
+					.header("Authorization", "Bearer " + mercadoPagoProperties.getAccessToken())
+					.retrieve()
+					.body(JsonNode.class);
+			String externalReference = textOrNull(payment.path("external_reference"));
+			String status = textOrNull(payment.path("status"));
+			return new PagoMercadoPago(paymentId, externalReference, status);
+		} catch (RuntimeException ex) {
+			return null;
+		}
+	}
+
+	private String textOrNull(JsonNode node) {
+		return node == null || node.isMissingNode() || node.isNull() ? null : node.asText();
+	}
+
+	private record PagoMercadoPago(String paymentId, String externalReference, String status) {
 	}
 }

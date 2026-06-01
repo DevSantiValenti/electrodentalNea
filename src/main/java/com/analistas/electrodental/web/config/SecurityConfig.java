@@ -31,6 +31,7 @@ public class SecurityConfig {
 						"/admin",
 						"/admin/**",
 						"/panel",
+						"/api/productos/buscar",
 						"/api/mercadopago/webhook",
 						"/servicio-tecnico",
 						"/denttech",

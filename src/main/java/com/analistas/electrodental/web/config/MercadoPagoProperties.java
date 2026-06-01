@@ -12,12 +12,8 @@ import lombok.Setter;
 @Setter
 public class MercadoPagoProperties {
 
-	private String baseUrl = "https://api.mercadopago.com";
+	private String apiUrl = "https://api.mercadopago.com";
 	private boolean sandbox = true;
 	private String accessToken;
 	private String publicKey;
-	private String notificationUrl;
-	private String successUrl;
-	private String failureUrl;
-	private String pendingUrl;
 }

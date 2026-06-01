@@ -146,13 +146,13 @@ public class AdminController {
 		return "admin/ventas";
 	}
 
-	@GetMapping("/admin/configuracion")
+	@GetMapping({ "/admin/configuracion", "/admin/configuración" })
 	public String configuracion(Model model) {
 		model.addAttribute("configuracion", configuracionTiendaService.obtener());
 		return "admin/configuracion";
 	}
 
-	@PostMapping("/admin/configuracion")
+	@PostMapping({ "/admin/configuracion", "/admin/configuración" })
 	public String guardarConfiguracion(ConfiguracionTienda configuracion, RedirectAttributes redirectAttributes) {
 		configuracionTiendaService.guardar(configuracion);
 		redirectAttributes.addFlashAttribute("mensaje", "Configuración actualizada correctamente");

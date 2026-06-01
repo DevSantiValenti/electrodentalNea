@@ -40,13 +40,13 @@ public class AndreaniServiceImpl implements IAndreaniService {
 					"ANDREANI",
 					BigDecimal.ZERO,
 					"ARS",
-					"Configura andreani.base-url, andreani.token, andreani.contrato y andreani.cliente para cotizar.",
+					"Configura andreani.api-url, andreani.token, andreani.contrato y andreani.cliente para cotizar.",
 					requestJson,
 					null);
 		}
 
 		try {
-			RestClient restClient = RestClient.create(properties.getBaseUrl());
+			RestClient restClient = RestClient.create(properties.getApiUrl());
 			JsonNode response = restClient.get()
 					.uri(uriBuilder -> uriBuilder
 							.path("/v1/tarifas")
@@ -111,7 +111,7 @@ public class AndreaniServiceImpl implements IAndreaniService {
 	}
 
 	private boolean configuracionCompleta() {
-		return StringUtils.hasText(properties.getBaseUrl())
+		return StringUtils.hasText(properties.getApiUrl())
 				&& StringUtils.hasText(properties.getToken())
 				&& StringUtils.hasText(properties.getContrato())
 				&& StringUtils.hasText(properties.getCliente());

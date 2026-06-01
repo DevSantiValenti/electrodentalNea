@@ -52,6 +52,15 @@ public class MercadoPagoWebhookController {
 	@SuppressWarnings("unchecked")
 	private void procesarNotificacion(String externalReference, String paymentId, String status,
 			Map<String, Object> payload) {
+		if (payload != null) {
+			Object eventType = payload.get("type");
+			Object topic = payload.get("topic");
+			String tipoNotificacion = eventType == null ? String.valueOf(topic) : String.valueOf(eventType);
+			if (StringUtils.hasText(tipoNotificacion) && !"payment".equalsIgnoreCase(tipoNotificacion)) {
+				return;
+			}
+		}
+
 		String resolvedPaymentId = paymentId;
 		if (!StringUtils.hasText(resolvedPaymentId) && payload != null) {
 			Object data = payload.get("data");
@@ -76,7 +85,7 @@ public class MercadoPagoWebhookController {
 	}
 
 	private JsonNode obtenerPago(String paymentId) {
-		return RestClient.create(mercadoPagoProperties.getBaseUrl())
+		return RestClient.create(mercadoPagoProperties.getApiUrl())
 				.get()
 				.uri("/v1/payments/{paymentId}", paymentId)
 				.header("Authorization", "Bearer " + mercadoPagoProperties.getAccessToken())

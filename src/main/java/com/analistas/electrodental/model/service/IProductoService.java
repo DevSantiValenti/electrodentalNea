@@ -21,6 +21,8 @@ public interface IProductoService {
 
 	List<Producto> listarRelacionados(Producto producto);
 
+	List<Producto> buscarSugerencias(String termino, int limite);
+
 	Optional<Producto> buscarPorSlug(String slug);
 
 	Optional<Producto> buscarPorId(Long id);

@@ -12,7 +12,7 @@ import lombok.Setter;
 @Setter
 public class AndreaniProperties {
 
-	private String baseUrl = "https://apisqa.andreani.com";
+	private String apiUrl = "https://apisqa.andreani.com";
 	private String token;
 	private String contrato;
 	private String cliente;

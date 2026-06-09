@@ -1140,7 +1140,7 @@
 				<h2>¿Tu equipo necesita mantenimiento o reparacion?</h2>
 				<p>No arriesgues la operatividad de su clinica. Contactenos hoy y reciba un diagnostico tecnico profesional en menos de 24 horas.</p>
 				<div class="hero-actions" style="justify-content: center;">
-					<a class="btn btn-primary" th:href="${'mailto:' + configuracionTienda.email}">Solicitar diagnostico ahora</a>
+					<a class="btn btn-primary" th:href="${configuracionTienda.emailMailto}">Solicitar diagnostico ahora</a>
 					<a class="btn btn-glass" th:href="${configuracionTienda.whatsappLink}">Consultar por WhatsApp</a>
 				</div>
 			</div>
@@ -1173,7 +1173,7 @@
 			<div>
 				<h4>Contacto tecnico</h4>
 				<p th:text="${configuracionTienda.direccion}">NEA, Argentina</p>
-				<a th:href="${'mailto:' + configuracionTienda.email}" th:text="${configuracionTienda.email}">info@electrodentalnea.com</a>
+				<a th:each="correo : ${configuracionTienda.emailList}" th:href="${'mailto:' + correo}" th:text="${correo}">info@electrodentalnea.com</a>
 				<a th:href="${configuracionTienda.whatsappLink}" th:text="|WhatsApp ${configuracionTienda.whatsapp}|">WhatsApp</a>
 			</div>
 		</div>

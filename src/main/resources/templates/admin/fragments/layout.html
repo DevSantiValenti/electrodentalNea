@@ -80,16 +80,14 @@
 		<a th:href="@{/admin/productos/nuevo}" class="mb-4 flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 text-sm font-bold text-white hover:opacity-90">
 			<span class="material-symbols-outlined">add</span> Nuevo Producto
 		</a>
-		<div class="flex items-center gap-3 rounded-lg px-3 py-2">
-			<div class="flex h-9 w-9 items-center justify-center rounded-full bg-primary-container text-sm font-black text-white">A</div>
-			<div>
-				<p class="text-sm font-black text-primary">Admin Panel</p>
-				<p class="text-[10px] font-semibold uppercase text-muted">ElectrodentalNea Mgmt</p>
-			</div>
-		</div>
-		<a th:href="@{/}" class="mt-2 flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-bold text-slate-600 hover:bg-surface-soft">
-			<span class="material-symbols-outlined">storefront</span> Volver a tienda
+		<a th:href="@{/}" class="flex w-full items-center justify-center gap-2 rounded-lg border border-outline bg-white px-4 py-3 text-sm font-bold text-primary hover:bg-surface-soft">
+			<span class="material-symbols-outlined">storefront</span> Volver a la tienda
 		</a>
+		<form th:action="@{/admin/logout}" method="post" class="mt-2">
+			<button class="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-sm font-bold text-slate-600 hover:bg-surface-soft">
+				<span class="material-symbols-outlined">logout</span> Cerrar sesión
+			</button>
+		</form>
 	</div>
 </aside>
 
@@ -106,6 +104,7 @@
 		<a th:href="@{/admin/categorias}" th:classappend="${active == 'categorias'} ? ' bg-secondary-container text-on-secondary-container' : ' bg-surface-soft text-slate-600'" class="whitespace-nowrap rounded-full px-3 py-2">Categorías</a>
 		<a th:href="@{/admin/pedidos}" th:classappend="${active == 'pedidos'} ? ' bg-secondary-container text-on-secondary-container' : ' bg-surface-soft text-slate-600'" class="whitespace-nowrap rounded-full px-3 py-2">Pedidos</a>
 		<a th:href="@{/admin/ventas}" th:classappend="${active == 'ventas'} ? ' bg-secondary-container text-on-secondary-container' : ' bg-surface-soft text-slate-600'" class="whitespace-nowrap rounded-full px-3 py-2">Ventas</a>
+		<a th:href="@{/admin/clientes}" th:classappend="${active == 'clientes'} ? ' bg-secondary-container text-on-secondary-container' : ' bg-surface-soft text-slate-600'" class="whitespace-nowrap rounded-full px-3 py-2">Clientes</a>
 		<a th:href="@{/admin/configuracion}" th:classappend="${active == 'configuracion'} ? ' bg-secondary-container text-on-secondary-container' : ' bg-surface-soft text-slate-600'" class="whitespace-nowrap rounded-full px-3 py-2">Config</a>
 	</nav>
 </header>

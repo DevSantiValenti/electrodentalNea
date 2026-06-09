@@ -7,6 +7,11 @@ import com.analistas.electrodental.model.domain.MetodoPagoVenta;
 
 public record VentaPresencialRequestDTO(
 		List<VentaPresencialItemRequestDTO> items,
+		String clienteDniCuit,
+		String clienteNombre,
+		String clienteApellidoRazonSocial,
+		String clienteEmail,
+		String clienteTelefono,
 		MetodoPagoVenta metodoPago,
 		String usuarioAdmin,
 		String observaciones) {

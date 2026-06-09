@@ -60,7 +60,7 @@
 		</div>
 		<div class="box">
 			<h2>Entrega</h2>
-			<p><strong>Método:</strong> <span th:text="${pedido.metodoEntrega ?: 'ANDREANI'}">Entrega</span></p>
+			<p><strong>Método:</strong> <span th:text="${pedido.metodoEntrega ?: 'SUCURSAL'}">Entrega</span></p>
 			<div th:if="${pedido.metodoEntrega == 'SUCURSAL'}">
 				<p><strong>CP:</strong> <span th:text="${configuracionTienda.codigoPostal ?: '-'}">3500</span></p>
 				<p><strong>Ciudad:</strong> <span th:text="${configuracionTienda.ciudad ?: '-'}">Resistencia</span></p>

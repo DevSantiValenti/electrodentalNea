@@ -42,6 +42,9 @@ public class ProductoBusquedaController {
 				producto.getNombre(),
 				producto.getMarca(),
 				imagen,
-				"/productos/" + producto.getSlug());
+				"/productos/" + producto.getSlug(),
+				producto.getPrecio(),
+				producto.getStockFisico(),
+				producto.getStockWeb());
 	}
 }

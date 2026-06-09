@@ -56,7 +56,12 @@ public class PedidoServiceImpl implements IPedidoService {
 			throw new IllegalArgumentException("El carrito no puede estar vacio");
 		}
 
-		Cliente clientePersistido = clienteRepository.findByEmailIgnoreCase(cliente.getEmail())
+		String dniCuit = normalizarDniCuit(cliente.getDniCuit());
+		if (dniCuit.isBlank()) {
+			throw new IllegalArgumentException("El DNI del cliente es obligatorio");
+		}
+		cliente.setDniCuit(dniCuit);
+		Cliente clientePersistido = clienteRepository.findByDniCuitNormalizado(dniCuit)
 				.map(existente -> actualizarCliente(existente, cliente))
 				.orElseGet(() -> clienteRepository.save(cliente));
 		direccionEnvio.setCliente(clientePersistido);
@@ -106,7 +111,12 @@ public class PedidoServiceImpl implements IPedidoService {
 		existente.setApellidoRazonSocial(datos.getApellidoRazonSocial());
 		existente.setTelefono(datos.getTelefono());
 		existente.setDniCuit(datos.getDniCuit());
+		existente.setEmail(datos.getEmail());
 		return clienteRepository.save(existente);
+	}
+
+	private String normalizarDniCuit(String valor) {
+		return valor == null ? "" : valor.replaceAll("[^0-9]", "").trim();
 	}
 
 	@Override

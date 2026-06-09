@@ -6,33 +6,286 @@
 <header th:replace="~{admin/fragments/layout :: mobilebar('ventas')}"></header>
 <main class="p-4 sm:p-6 lg:ml-64 lg:p-8">
 	<div th:replace="~{admin/fragments/layout :: topbar('Nueva Venta Presencial', 'Registrá una venta física y descontá stock físico.')}"></div>
-	<form th:action="@{/admin/ventas/nueva}" method="post" class="admin-card max-w-3xl rounded-2xl p-6">
-		<div class="grid gap-5">
-			<label>
-				<span class="text-sm font-bold text-primary">Producto</span>
-				<select name="productoId" required class="mt-1 w-full rounded-lg border-outline">
-					<option value="">Seleccionar producto</option>
-					<option th:each="producto : ${productos}" th:value="${producto.id}" th:text="|${producto.nombre} - Stock físico: ${producto.stockFisico}|">Producto</option>
-				</select>
-			</label>
-			<label>
-				<span class="text-sm font-bold text-primary">Cantidad</span>
-				<input name="cantidad" type="number" min="1" value="1" required class="mt-1 w-full rounded-lg border-outline">
-			</label>
-			<label>
-				<span class="text-sm font-bold text-primary">Método de pago</span>
-				<select name="metodoPago" class="mt-1 w-full rounded-lg border-outline">
-					<option th:each="metodo : ${metodosPago}" th:value="${metodo}" th:text="${metodo}">EFECTIVO</option>
-				</select>
-			</label>
-			<label><span class="text-sm font-bold text-primary">Usuario admin</span><input name="usuarioAdmin" class="mt-1 w-full rounded-lg border-outline" placeholder="Admin"></label>
-			<label><span class="text-sm font-bold text-primary">Observaciones</span><textarea name="observaciones" rows="3" class="mt-1 w-full rounded-lg border-outline"></textarea></label>
-		</div>
-		<div class="mt-6 flex gap-3">
-			<button class="rounded-xl bg-secondary px-5 py-3 font-black text-white">Registrar venta</button>
-			<a th:href="@{/admin/ventas}" class="rounded-xl border border-outline px-5 py-3 font-bold text-primary hover:bg-surface-soft">Cancelar</a>
+
+	<div th:if="${mensaje}" class="mb-5 rounded-lg bg-amber-50 px-4 py-3 text-sm font-bold text-amber-900" th:text="${mensaje}">Mensaje</div>
+
+	<form th:action="@{/admin/ventas/nueva}" method="post" class="admin-card rounded-2xl p-5 lg:p-6"
+		  data-sale-form th:data-client-url="@{/api/clientes/buscar}" th:data-product-url="@{/api/productos/buscar}">
+		<div class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
+			<section class="min-w-0">
+				<div class="grid gap-4 md:grid-cols-2">
+					<label class="relative md:col-span-2">
+						<span class="text-sm font-bold text-primary">Cliente por DNI</span>
+						<div class="mt-1 flex gap-2">
+							<input name="clienteDniCuit" required autocomplete="off" inputmode="numeric" data-client-dni
+								   class="h-11 w-full rounded-lg border-outline" placeholder="Buscar o cargar DNI">
+							<button type="button" data-clear-client class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-outline text-primary hover:bg-surface-soft" title="Limpiar cliente">
+								<span class="material-symbols-outlined">close</span>
+							</button>
+						</div>
+						<div data-client-results class="absolute z-30 mt-1 hidden w-full overflow-hidden rounded-lg border border-outline bg-white shadow-lg"></div>
+					</label>
+					<label>
+						<span class="text-sm font-bold text-primary">Nombre</span>
+						<input name="clienteNombre" data-client-name class="mt-1 h-11 w-full rounded-lg border-outline" placeholder="Nombre">
+					</label>
+					<label>
+						<span class="text-sm font-bold text-primary">Apellido o razón social</span>
+						<input name="clienteApellidoRazonSocial" data-client-lastname class="mt-1 h-11 w-full rounded-lg border-outline" placeholder="Apellido o razón social">
+					</label>
+					<label>
+						<span class="text-sm font-bold text-primary">Email</span>
+						<input name="clienteEmail" data-client-email type="email" class="mt-1 h-11 w-full rounded-lg border-outline" placeholder="Email">
+					</label>
+					<label>
+						<span class="text-sm font-bold text-primary">Teléfono</span>
+						<input name="clienteTelefono" data-client-phone class="mt-1 h-11 w-full rounded-lg border-outline" placeholder="Teléfono">
+					</label>
+				</div>
+
+				<div class="mt-7">
+					<div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+						<label class="relative flex-1">
+							<span class="text-sm font-bold text-primary">Buscar producto</span>
+							<input type="search" data-product-search autocomplete="off"
+								   class="mt-1 h-11 w-full rounded-lg border-outline pl-10" placeholder="Nombre o marca">
+							<span class="material-symbols-outlined absolute bottom-2.5 left-3 text-muted">search</span>
+							<div data-product-results class="absolute z-30 mt-1 hidden w-full overflow-hidden rounded-lg border border-outline bg-white shadow-lg"></div>
+						</label>
+						<button type="button" data-add-empty-line class="inline-flex h-11 items-center justify-center gap-2 rounded-lg border border-outline px-4 text-sm font-black text-primary hover:bg-surface-soft">
+							<span class="material-symbols-outlined">add</span> Línea manual
+						</button>
+					</div>
+
+					<div class="mt-4 overflow-x-auto rounded-xl border border-outline">
+						<table class="w-full min-w-[760px] text-left text-sm">
+							<thead class="bg-surface-soft text-xs uppercase text-muted">
+								<tr>
+									<th class="px-4 py-3">Producto</th>
+									<th class="px-4 py-3">Stock físico</th>
+									<th class="px-4 py-3">Cantidad</th>
+									<th class="px-4 py-3">Precio</th>
+									<th class="px-4 py-3">Subtotal</th>
+									<th class="w-12 px-2 py-3"></th>
+								</tr>
+							</thead>
+							<tbody data-sale-lines class="divide-y divide-outline">
+								<tr data-empty-lines>
+									<td colspan="6" class="px-4 py-8 text-center text-sm font-semibold text-muted">Agregá productos con el buscador.</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+				</div>
+			</section>
+
+			<aside class="space-y-4">
+				<div class="rounded-xl border border-outline bg-surface-soft p-4">
+					<p class="text-xs font-black uppercase text-muted">Total de venta</p>
+					<p data-sale-total class="mt-2 text-4xl font-black text-secondary">$ 0,00</p>
+					<p data-sale-line-count class="mt-1 text-sm font-semibold text-muted">0 líneas cargadas</p>
+				</div>
+				<label class="block">
+					<span class="text-sm font-bold text-primary">Método de pago</span>
+					<select name="metodoPago" class="mt-1 h-11 w-full rounded-lg border-outline">
+						<option th:each="metodo : ${metodosPago}" th:value="${metodo}" th:text="${metodo}">EFECTIVO</option>
+					</select>
+				</label>
+				<label class="block">
+					<span class="text-sm font-bold text-primary">Usuario admin</span>
+					<input name="usuarioAdmin" class="mt-1 h-11 w-full rounded-lg border-outline" placeholder="Admin">
+				</label>
+				<label class="block">
+					<span class="text-sm font-bold text-primary">Observaciones</span>
+					<textarea name="observaciones" rows="4" class="mt-1 w-full rounded-lg border-outline"></textarea>
+				</label>
+				<div class="flex flex-col gap-3 pt-2 sm:flex-row xl:flex-col">
+					<button class="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-secondary px-5 font-black text-white hover:opacity-90">
+						<span class="material-symbols-outlined">payments</span> Finalizar venta
+					</button>
+					<a th:href="@{/admin/ventas}" class="inline-flex h-12 items-center justify-center rounded-xl border border-outline px-5 font-bold text-primary hover:bg-surface-soft">Cancelar</a>
+				</div>
+			</aside>
 		</div>
 	</form>
 </main>
+
+<template data-sale-line-template>
+	<tr data-sale-line>
+		<td class="px-4 py-3">
+			<input type="hidden" name="productoIds" data-line-product-id>
+			<p data-line-name class="font-black text-primary">Producto</p>
+			<p data-line-brand class="text-xs font-semibold text-muted"></p>
+		</td>
+		<td class="px-4 py-3">
+			<span data-line-stock class="rounded bg-surface-soft px-2 py-1 text-xs font-black text-primary">0</span>
+		</td>
+		<td class="px-4 py-3">
+			<input name="cantidades" data-line-quantity type="number" min="1" value="1" class="h-10 w-24 rounded-lg border-outline text-center font-bold">
+		</td>
+		<td class="px-4 py-3 font-black text-primary" data-line-price>$ 0,00</td>
+		<td class="px-4 py-3 font-black text-secondary" data-line-subtotal>$ 0,00</td>
+		<td class="px-2 py-3 text-right">
+			<button type="button" data-remove-line class="inline-flex h-9 w-9 items-center justify-center rounded-lg text-muted hover:bg-surface-soft hover:text-secondary" title="Quitar línea">
+				<span class="material-symbols-outlined">delete</span>
+			</button>
+		</td>
+	</tr>
+</template>
+
+<script>
+	(() => {
+		const form = document.querySelector("[data-sale-form]");
+		if (!form) return;
+
+		const money = new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS" });
+		const clientInput = form.querySelector("[data-client-dni]");
+		const clientResults = form.querySelector("[data-client-results]");
+		const productInput = form.querySelector("[data-product-search]");
+		const productResults = form.querySelector("[data-product-results]");
+		const linesBody = form.querySelector("[data-sale-lines]");
+		const emptyLines = form.querySelector("[data-empty-lines]");
+		const template = document.querySelector("[data-sale-line-template]");
+		const totalEl = form.querySelector("[data-sale-total]");
+		const countEl = form.querySelector("[data-sale-line-count]");
+		let clientTimer;
+		let productTimer;
+
+		const fetchJson = async (url, query) => {
+			const response = await fetch(`${url}?q=${encodeURIComponent(query)}`);
+			return response.ok ? response.json() : [];
+		};
+
+		const renderSuggestions = (container, items, renderItem) => {
+			container.innerHTML = "";
+			if (!items.length) {
+				container.classList.add("hidden");
+				return;
+			}
+			items.forEach(item => container.appendChild(renderItem(item)));
+			container.classList.remove("hidden");
+		};
+
+		const setValue = (selector, value) => {
+			const input = form.querySelector(selector);
+			if (input) input.value = value || "";
+		};
+
+		const selectClient = (client) => {
+			clientInput.value = client.dniCuit || "";
+			setValue("[data-client-name]", client.nombre);
+			setValue("[data-client-lastname]", client.apellidoRazonSocial);
+			setValue("[data-client-email]", client.email);
+			setValue("[data-client-phone]", client.telefono);
+			clientResults.classList.add("hidden");
+		};
+
+		clientInput.addEventListener("input", () => {
+			clearTimeout(clientTimer);
+			const query = clientInput.value.trim();
+			if (query.length < 2) {
+				clientResults.classList.add("hidden");
+				return;
+			}
+			clientTimer = setTimeout(async () => {
+				const clients = await fetchJson(form.dataset.clientUrl, query);
+				renderSuggestions(clientResults, clients, client => {
+					const button = document.createElement("button");
+					button.type = "button";
+					button.className = "block w-full px-4 py-3 text-left hover:bg-surface-soft";
+					button.innerHTML = `<span class="block font-black text-primary">${client.nombreCompleto || "Cliente"}</span><span class="text-xs font-semibold text-muted">DNI ${client.dniCuit || ""}</span>`;
+					button.addEventListener("click", () => selectClient(client));
+					return button;
+				});
+			}, 220);
+		});
+
+		form.querySelector("[data-clear-client]").addEventListener("click", () => {
+			["[data-client-dni]", "[data-client-name]", "[data-client-lastname]", "[data-client-email]", "[data-client-phone]"].forEach(selector => setValue(selector, ""));
+			clientResults.classList.add("hidden");
+		});
+
+		const updateTotals = () => {
+			const rows = [...linesBody.querySelectorAll("[data-sale-line]")];
+			let total = 0;
+			rows.forEach(row => {
+				const quantity = Number(row.querySelector("[data-line-quantity]").value || 0);
+				const price = Number(row.dataset.price || 0);
+				const subtotal = quantity * price;
+				row.querySelector("[data-line-subtotal]").textContent = money.format(subtotal);
+				total += subtotal;
+			});
+			totalEl.textContent = money.format(total);
+			countEl.textContent = `${rows.length} ${rows.length === 1 ? "línea cargada" : "líneas cargadas"}`;
+			emptyLines.classList.toggle("hidden", rows.length > 0);
+		};
+
+		const addProductLine = (product) => {
+			const existing = [...linesBody.querySelectorAll("[data-sale-line]")]
+				.find(row => row.querySelector("[data-line-product-id]").value === String(product.id));
+			if (existing) {
+				const quantity = existing.querySelector("[data-line-quantity]");
+				quantity.value = Number(quantity.value || 0) + 1;
+				updateTotals();
+				return;
+			}
+			const row = template.content.firstElementChild.cloneNode(true);
+			row.dataset.price = product.precio || 0;
+			row.querySelector("[data-line-product-id]").value = product.id || "";
+			row.querySelector("[data-line-name]").textContent = product.nombre || "Producto";
+			row.querySelector("[data-line-brand]").textContent = product.marca || "";
+			row.querySelector("[data-line-stock]").textContent = product.stockFisico ?? 0;
+			row.querySelector("[data-line-price]").textContent = money.format(Number(product.precio || 0));
+			const quantity = row.querySelector("[data-line-quantity]");
+			quantity.max = product.stockFisico ?? "";
+			quantity.addEventListener("input", updateTotals);
+			row.querySelector("[data-remove-line]").addEventListener("click", () => {
+				row.remove();
+				updateTotals();
+			});
+			linesBody.appendChild(row);
+			updateTotals();
+		};
+
+		productInput.addEventListener("input", () => {
+			clearTimeout(productTimer);
+			const query = productInput.value.trim();
+			if (query.length < 2) {
+				productResults.classList.add("hidden");
+				return;
+			}
+			productTimer = setTimeout(async () => {
+				const products = await fetchJson(form.dataset.productUrl, query);
+				renderSuggestions(productResults, products, product => {
+					const button = document.createElement("button");
+					button.type = "button";
+					button.className = "flex w-full items-center justify-between gap-3 px-4 py-3 text-left hover:bg-surface-soft";
+					button.innerHTML = `<span><span class="block font-black text-primary">${product.nombre || "Producto"}</span><span class="text-xs font-semibold text-muted">${product.marca || "Sin marca"} · Stock físico: ${product.stockFisico ?? 0}</span></span><span class="shrink-0 font-black text-secondary">${money.format(Number(product.precio || 0))}</span>`;
+					button.addEventListener("click", () => {
+						addProductLine(product);
+						productInput.value = "";
+						productResults.classList.add("hidden");
+					});
+					return button;
+				});
+			}, 220);
+		});
+
+		form.querySelector("[data-add-empty-line]").addEventListener("click", () => productInput.focus());
+
+		form.addEventListener("submit", event => {
+			const rows = linesBody.querySelectorAll("[data-sale-line]");
+			if (!rows.length) {
+				event.preventDefault();
+				productInput.focus();
+			}
+		});
+
+		document.addEventListener("click", event => {
+			if (!clientResults.contains(event.target) && event.target !== clientInput) clientResults.classList.add("hidden");
+			if (!productResults.contains(event.target) && event.target !== productInput) productResults.classList.add("hidden");
+		});
+	})();
+</script>
 </body>
 </html>

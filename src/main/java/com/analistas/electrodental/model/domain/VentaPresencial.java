@@ -13,6 +13,8 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
@@ -34,6 +36,10 @@ public class VentaPresencial {
 
 	@OneToMany(mappedBy = "ventaPresencial", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<VentaPresencialItem> items = new ArrayList<>();
+
+	@ManyToOne
+	@JoinColumn(name = "cliente_id")
+	private Cliente cliente;
 
 	@Column(nullable = false, precision = 14, scale = 2)
 	private BigDecimal total = BigDecimal.ZERO;

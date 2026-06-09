@@ -18,12 +18,10 @@ import com.analistas.electrodental.model.domain.DireccionEnvio;
 import com.analistas.electrodental.model.domain.Pedido;
 import com.analistas.electrodental.model.domain.PedidoItem;
 import com.analistas.electrodental.model.domain.Producto;
-import com.analistas.electrodental.model.domain.dto.AndreaniCotizacionResponseDTO;
 import com.analistas.electrodental.model.domain.dto.CarritoDTO;
 import com.analistas.electrodental.model.domain.dto.MercadoPagoPreferenceResponseDTO;
 import com.analistas.electrodental.model.repository.IProductoRepository;
 import com.analistas.electrodental.model.repository.IPagoRepository;
-import com.analistas.electrodental.model.service.IAndreaniService;
 import com.analistas.electrodental.model.service.IConfiguracionTiendaService;
 import com.analistas.electrodental.model.service.IMercadoPagoService;
 import com.analistas.electrodental.model.service.IPedidoService;
@@ -38,7 +36,6 @@ public class CheckoutController {
 
 	private final IPedidoService pedidoService;
 	private final IMercadoPagoService mercadoPagoService;
-	private final IAndreaniService andreaniService;
 	private final IProductoRepository productoRepository;
 	private final IPagoRepository pagoRepository;
 	private final MercadoPagoProperties mercadoPagoProperties;
@@ -47,14 +44,12 @@ public class CheckoutController {
 	public CheckoutController(
 			IPedidoService pedidoService,
 			IMercadoPagoService mercadoPagoService,
-			IAndreaniService andreaniService,
 			IProductoRepository productoRepository,
 			IPagoRepository pagoRepository,
 			MercadoPagoProperties mercadoPagoProperties,
 			IConfiguracionTiendaService configuracionTiendaService) {
 		this.pedidoService = pedidoService;
 		this.mercadoPagoService = mercadoPagoService;
-		this.andreaniService = andreaniService;
 		this.productoRepository = productoRepository;
 		this.pagoRepository = pagoRepository;
 		this.mercadoPagoProperties = mercadoPagoProperties;
@@ -89,7 +84,7 @@ public class CheckoutController {
 			redirectAttributes.addFlashAttribute("mensaje", "Agrega productos al carrito antes de pagar.");
 			return "redirect:/carrito";
 		}
-		session.setAttribute("envioSeleccionado", metodoEnvio == null || metodoEnvio.isBlank() ? "ANDREANI" : metodoEnvio);
+		session.setAttribute("envioSeleccionado", normalizarMetodoEntrega(metodoEnvio));
 		session.setAttribute("checkoutCliente", cliente);
 		session.setAttribute("checkoutDireccion", completarDireccion(direccionEnvio, session));
 		return "redirect:/checkout/pago";
@@ -116,6 +111,13 @@ public class CheckoutController {
 			@RequestParam String codigoPostalDestino,
 			HttpSession session,
 			RedirectAttributes redirectAttributes) {
+		// Andreani queda pausado temporalmente. Para reactivarlo, restaurar la cotizacion con andreaniService.cotizar.
+		redirectAttributes.addFlashAttribute("mensaje", "La cotización con Andreani está desactivada temporalmente.");
+		session.removeAttribute("cotizacionAndreani");
+		session.setAttribute("envioSeleccionado", "SUCURSAL");
+		session.setAttribute("codigoPostalDestino", codigoPostalDestino);
+		return "redirect:/checkout/datos";
+		/*
 		CarritoDTO carrito = (CarritoDTO) session.getAttribute("carrito");
 		if (carrito == null || carrito.items().isEmpty()) {
 			redirectAttributes.addFlashAttribute("mensaje", "Agrega productos al carrito antes de cotizar el envío.");
@@ -127,6 +129,7 @@ public class CheckoutController {
 		session.setAttribute("codigoPostalDestino", codigoPostalDestino);
 		session.setAttribute("cotizacionAndreani", cotizacion);
 		return "redirect:/checkout/datos";
+		*/
 	}
 
 	@PostMapping("/checkout/pagar")
@@ -228,20 +231,18 @@ public class CheckoutController {
 
 	private String resolverMetodoEntrega(String metodoEnvio, HttpSession session) {
 		if (metodoEnvio != null && !metodoEnvio.isBlank()) {
-			return metodoEnvio;
+			return normalizarMetodoEntrega(metodoEnvio);
 		}
 		Object sessionMetodo = session.getAttribute("envioSeleccionado");
-		return sessionMetodo instanceof String value && !value.isBlank() ? value : "ANDREANI";
+		return sessionMetodo instanceof String value && !value.isBlank() ? normalizarMetodoEntrega(value) : "SUCURSAL";
+	}
+
+	private String normalizarMetodoEntrega(String metodoEnvio) {
+		return "VENDEDOR".equals(metodoEnvio) ? "VENDEDOR" : "SUCURSAL";
 	}
 
 	private BigDecimal resolverCostoEnvio(String metodoEntrega, HttpSession session) {
-		if (!"ANDREANI".equals(metodoEntrega)) {
-			return BigDecimal.ZERO;
-		}
-		Object cotizacion = session.getAttribute("cotizacionAndreani");
-		if (cotizacion instanceof AndreaniCotizacionResponseDTO andreani && andreani.cotizada()) {
-			return andreani.costo();
-		}
+		// Andreani queda pausado temporalmente: no se suma costo de envio cotizado.
 		return BigDecimal.ZERO;
 	}
 

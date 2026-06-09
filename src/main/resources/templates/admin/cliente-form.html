@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/fragments/layout :: head(${cliente.id == null ? 'Admin | Nuevo cliente' : 'Admin | Editar cliente'})}"></head>
+<body class="admin-shell text-slate-900">
+<aside th:replace="~{admin/fragments/layout :: sidebar('clientes')}"></aside>
+<header th:replace="~{admin/fragments/layout :: mobilebar('clientes')}"></header>
+<main class="p-4 sm:p-6 lg:ml-64 lg:p-8">
+	<div th:replace="~{admin/fragments/layout :: topbar(${cliente.id == null ? 'Nuevo Cliente' : 'Editar Cliente'}, 'Datos reutilizados en checkout web y ventas presenciales.')}"></div>
+
+	<form th:action="${cliente.id == null ? '/admin/clientes' : '/admin/clientes/' + cliente.id}" th:object="${cliente}" method="post" class="admin-card max-w-3xl rounded-2xl p-6">
+		<div class="grid gap-5 md:grid-cols-2">
+			<label class="block">
+				<span class="text-sm font-bold text-primary">DNI / CUIT</span>
+				<input th:field="*{dniCuit}" inputmode="numeric" class="mt-1 h-11 w-full rounded-lg border-outline" placeholder="30111222">
+			</label>
+			<label class="block">
+				<span class="text-sm font-bold text-primary">Teléfono</span>
+				<input th:field="*{telefono}" class="mt-1 h-11 w-full rounded-lg border-outline" placeholder="3624541102">
+			</label>
+			<label class="block">
+				<span class="text-sm font-bold text-primary">Nombre</span>
+				<input th:field="*{nombre}" required class="mt-1 h-11 w-full rounded-lg border-outline" placeholder="Nombre">
+			</label>
+			<label class="block">
+				<span class="text-sm font-bold text-primary">Apellido o razón social</span>
+				<input th:field="*{apellidoRazonSocial}" class="mt-1 h-11 w-full rounded-lg border-outline" placeholder="Apellido o razón social">
+			</label>
+			<label class="block md:col-span-2">
+				<span class="text-sm font-bold text-primary">Email</span>
+				<input th:field="*{email}" type="email" class="mt-1 h-11 w-full rounded-lg border-outline" placeholder="cliente@email.com">
+			</label>
+		</div>
+		<div class="mt-6 flex flex-wrap gap-3 border-t border-outline pt-6">
+			<button class="rounded-xl bg-secondary px-5 py-3 font-black text-white hover:opacity-90">Guardar cliente</button>
+			<a th:href="@{/admin/clientes}" class="rounded-xl border border-outline px-5 py-3 font-bold text-primary hover:bg-surface-soft">Cancelar</a>
+		</div>
+	</form>
+</main>
+</body>
+</html>

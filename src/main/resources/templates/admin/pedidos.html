@@ -22,7 +22,7 @@
 						<td class="px-6 py-5 font-black" th:text="|#${pedido.id}|">#1</td>
 						<td class="px-6 py-5"><span class="rounded bg-surface-soft px-2 py-1 text-xs font-black text-primary" th:text="${pedido.codigoCompra ?: 'Sin código'}">RET-000</span></td>
 						<td class="px-6 py-5" th:text="|${pedido.cliente.nombre} ${pedido.cliente.apellidoRazonSocial ?: ''}|">Cliente</td>
-						<td class="px-6 py-5 text-muted" th:text="${pedido.metodoEntrega ?: 'ANDREANI'}">Entrega</td>
+						<td class="px-6 py-5 text-muted" th:text="${pedido.metodoEntrega ?: 'SUCURSAL'}">Entrega</td>
 						<td class="px-6 py-5 text-muted" th:text="${#temporals.format(pedido.fechaCreacion, 'dd-MM-yyyy HH:mm')}">Fecha</td>
 						<td class="px-6 py-5"><span class="rounded-full bg-surface-soft px-3 py-1 text-xs font-black" th:text="${pedido.estadoPedido}">Estado</span></td>
 						<td class="px-6 py-5 font-black" th:text="|$ ${pedido.total}|">$0</td>

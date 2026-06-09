@@ -66,7 +66,7 @@
 					</div>
 					<div class="flex justify-between gap-4">
 						<dt class="text-muted">Entrega</dt>
-						<dd class="text-right font-bold text-primary" th:text="${pedido.metodoEntrega ?: 'ANDREANI'}">Entrega</dd>
+						<dd class="text-right font-bold text-primary" th:text="${pedido.metodoEntrega ?: 'SUCURSAL'}">Entrega</dd>
 					</div>
 					<div class="flex justify-between gap-4">
 						<dt class="text-muted">Estado pedido</dt>
@@ -104,7 +104,7 @@
 			<section class="admin-card rounded-2xl p-6">
 				<h2 class="text-xl font-black text-primary">Datos de envío</h2>
 				<div class="mt-4 rounded-xl bg-surface-soft p-4 text-sm leading-6 text-muted">
-					<p class="font-black text-primary" th:text="${pedido.metodoEntrega ?: 'ANDREANI'}">Método</p>
+					<p class="font-black text-primary" th:text="${pedido.metodoEntrega ?: 'SUCURSAL'}">Método</p>
 					<p th:if="${pedido.direccionEnvio != null}" th:text="|CP ${pedido.direccionEnvio.codigoPostal ?: '-'} · ${pedido.direccionEnvio.ciudad ?: 'Ciudad sin definir'}|">Dirección</p>
 					<p th:if="${pedido.direccionEnvio != null}" th:text="|${pedido.direccionEnvio.calle ?: ''} ${pedido.direccionEnvio.numero ?: ''}|">Calle</p>
 					<p th:if="${pedido.metodoEntrega == 'SUCURSAL'}">Retiro en sucursal con código de compra.</p>

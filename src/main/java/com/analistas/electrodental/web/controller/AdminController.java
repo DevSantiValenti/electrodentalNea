@@ -3,6 +3,8 @@ package com.analistas.electrodental.web.controller;
 import java.util.List;
 import java.util.stream.IntStream;
 
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,9 +13,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.analistas.electrodental.model.domain.Cliente;
 import com.analistas.electrodental.model.domain.ConfiguracionTienda;
 import com.analistas.electrodental.model.domain.Producto;
 import com.analistas.electrodental.model.repository.IPedidoRepository;
+import com.analistas.electrodental.model.repository.IClienteRepository;
 import com.analistas.electrodental.model.repository.IVentaPresencialRepository;
 import com.analistas.electrodental.model.service.IAdminDashboardService;
 import com.analistas.electrodental.model.service.ICategoriaService;
@@ -26,6 +30,7 @@ public class AdminController {
 	private final IProductoService productoService;
 	private final IAdminDashboardService adminDashboardService;
 	private final IPedidoRepository pedidoRepository;
+	private final IClienteRepository clienteRepository;
 	private final IVentaPresencialRepository ventaPresencialRepository;
 	private final ICategoriaService categoriaService;
 	private final IConfiguracionTiendaService configuracionTiendaService;
@@ -34,15 +39,26 @@ public class AdminController {
 			IProductoService productoService,
 			IAdminDashboardService adminDashboardService,
 			IPedidoRepository pedidoRepository,
+			IClienteRepository clienteRepository,
 			IVentaPresencialRepository ventaPresencialRepository,
 			ICategoriaService categoriaService,
 			IConfiguracionTiendaService configuracionTiendaService) {
 		this.productoService = productoService;
 		this.adminDashboardService = adminDashboardService;
 		this.pedidoRepository = pedidoRepository;
+		this.clienteRepository = clienteRepository;
 		this.ventaPresencialRepository = ventaPresencialRepository;
 		this.categoriaService = categoriaService;
 		this.configuracionTiendaService = configuracionTiendaService;
+	}
+
+	@GetMapping("/admin/login")
+	public String login(Authentication authentication) {
+		if (authentication != null && authentication.isAuthenticated()
+				&& !"anonymousUser".equals(authentication.getPrincipal())) {
+			return "redirect:/admin";
+		}
+		return "admin/login";
 	}
 
 	@GetMapping({ "/admin", "/panel" })
@@ -153,17 +169,69 @@ public class AdminController {
 	}
 
 	@PostMapping({ "/admin/configuracion", "/admin/configuración" })
-	public String guardarConfiguracion(ConfiguracionTienda configuracion, RedirectAttributes redirectAttributes) {
-		configuracionTiendaService.guardar(configuracion);
+	public String guardarConfiguracion(
+			ConfiguracionTienda configuracion,
+			@RequestParam(required = false) List<String> emails,
+			@RequestParam(required = false) String adminPassword,
+			RedirectAttributes redirectAttributes) {
+		configuracion.setEmail(emails == null ? null : String.join(",", emails));
+		configuracionTiendaService.guardar(configuracion, adminPassword);
 		redirectAttributes.addFlashAttribute("mensaje", "Configuración actualizada correctamente");
 		return "redirect:/admin/configuracion";
 	}
 
 	@GetMapping("/admin/clientes")
-	public String seccionPendiente(Model model) {
-		model.addAttribute("titulo", "Sección en preparación");
-		model.addAttribute("mensaje", "Esta pantalla ya tiene ruta propia y queda lista para conectar el próximo módulo.");
-		return "admin/simple";
+	public String clientes(Model model) {
+		model.addAttribute("clientes", clienteRepository.findAll());
+		return "admin/clientes";
+	}
+
+	@GetMapping("/admin/clientes/nuevo")
+	public String nuevoCliente(Model model) {
+		model.addAttribute("cliente", new Cliente());
+		return "admin/cliente-form";
+	}
+
+	@PostMapping("/admin/clientes")
+	public String guardarCliente(Cliente cliente, RedirectAttributes redirectAttributes) {
+		prepararCliente(cliente);
+		clienteRepository.save(cliente);
+		redirectAttributes.addFlashAttribute("mensaje", "Cliente guardado correctamente");
+		return "redirect:/admin/clientes";
+	}
+
+	@GetMapping("/admin/clientes/{id}/editar")
+	public String editarCliente(@PathVariable Long id, Model model) {
+		model.addAttribute("cliente", clienteRepository.findById(id)
+				.orElseThrow(() -> new IllegalArgumentException("Cliente no encontrado: " + id)));
+		return "admin/cliente-form";
+	}
+
+	@PostMapping("/admin/clientes/{id}")
+	public String actualizarCliente(@PathVariable Long id, Cliente cliente, RedirectAttributes redirectAttributes) {
+		Cliente actual = clienteRepository.findById(id)
+				.orElseThrow(() -> new IllegalArgumentException("Cliente no encontrado: " + id));
+		copiarCliente(cliente, actual);
+		prepararCliente(actual);
+		clienteRepository.save(actual);
+		redirectAttributes.addFlashAttribute("mensaje", "Cliente actualizado correctamente");
+		return "redirect:/admin/clientes";
+	}
+
+	@PostMapping("/admin/clientes/{id}/eliminar")
+	public String eliminarCliente(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+		if (!clienteRepository.existsById(id)) {
+			redirectAttributes.addFlashAttribute("mensaje", "El cliente ya no existe.");
+			return "redirect:/admin/clientes";
+		}
+		try {
+			clienteRepository.deleteById(id);
+			clienteRepository.flush();
+			redirectAttributes.addFlashAttribute("mensaje", "Cliente eliminado correctamente.");
+		} catch (DataIntegrityViolationException ex) {
+			redirectAttributes.addFlashAttribute("mensaje", "No se puede eliminar: el cliente tiene pedidos o ventas asociadas.");
+		}
+		return "redirect:/admin/clientes";
 	}
 
 	private void prepararProducto(
@@ -267,6 +335,34 @@ public class AdminController {
 				.filter(linea -> !linea.isBlank())
 				.reduce((actual, siguiente) -> actual + "\n" + siguiente)
 				.orElse("");
+	}
+
+	private void copiarCliente(Cliente origen, Cliente destino) {
+		destino.setNombre(origen.getNombre());
+		destino.setApellidoRazonSocial(origen.getApellidoRazonSocial());
+		destino.setEmail(origen.getEmail());
+		destino.setTelefono(origen.getTelefono());
+		destino.setDniCuit(origen.getDniCuit());
+	}
+
+	private void prepararCliente(Cliente cliente) {
+		cliente.setNombre(valorConDefault(cliente.getNombre(), "Cliente sin nombre"));
+		cliente.setApellidoRazonSocial(normalizarValorSimple(cliente.getApellidoRazonSocial()));
+		cliente.setEmail(normalizarValorSimple(cliente.getEmail()));
+		cliente.setTelefono(normalizarValorSimple(cliente.getTelefono()));
+		cliente.setDniCuit(normalizarDniCuit(cliente.getDniCuit()));
+	}
+
+	private String normalizarDniCuit(String valor) {
+		return valor == null ? "" : valor.replaceAll("[^0-9]", "").trim();
+	}
+
+	private String normalizarValorSimple(String valor) {
+		return valor == null ? "" : valor.trim();
+	}
+
+	private String valorConDefault(String valor, String defaultValue) {
+		return valor == null || valor.isBlank() ? defaultValue : valor.trim();
 	}
 
 	private String normalizarValor(String valor) {

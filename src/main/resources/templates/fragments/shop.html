@@ -121,7 +121,7 @@
 		<div>
 			<h3 class="mb-3 text-sm font-bold uppercase text-white">Atención</h3>
 			<p class="text-sm text-white/75" th:text="${configuracionTienda.direccion}">Roque Sáenz Peña 539, Resistencia</p>
-			<a th:href="${'mailto:' + configuracionTienda.email}" class="mt-2 block text-sm text-white/75 hover:text-white" th:text="${configuracionTienda.email}">info@electrodentalnea.com</a>
+			<a th:each="correo : ${configuracionTienda.emailList}" th:href="${'mailto:' + correo}" class="mt-2 block text-sm text-white/75 hover:text-white" th:text="${correo}">info@electrodentalnea.com</a>
 			<a th:href="${configuracionTienda.whatsappLink}" target="_blank" rel="noopener" class="mt-2 block text-sm text-white/75 hover:text-white" th:text="|WhatsApp ${configuracionTienda.whatsapp}|">WhatsApp</a>
 			<p class="mt-2 text-sm text-white/75" th:text="${configuracionTienda.horarios}">08:00 a 12:30hs y 17:00 a 20:30hs</p>
 		</div>

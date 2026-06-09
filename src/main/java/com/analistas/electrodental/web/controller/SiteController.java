@@ -140,9 +140,7 @@ public class SiteController {
 
 	@GetMapping("/contacto")
 	public String contacto(Model model) {
-		model.addAttribute("titulo", "Contacto");
-		model.addAttribute("mensaje", "Escribinos para asesoramiento comercial, presupuestos o soporte técnico.");
-		return "simple-page";
+		return "contact";
 	}
 
 	private List<String> obtenerImagenesProducto(Producto producto) {

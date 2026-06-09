@@ -32,7 +32,7 @@ public class Cliente {
 	@Column(length = 160)
 	private String apellidoRazonSocial;
 
-	@Column(nullable = false, length = 180)
+	@Column(length = 180)
 	private String email;
 
 	@Column(length = 40)

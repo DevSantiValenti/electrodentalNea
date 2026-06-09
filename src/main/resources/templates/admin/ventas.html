@@ -16,12 +16,17 @@
 		<div class="overflow-x-auto">
 			<table class="w-full min-w-[720px] text-left text-sm">
 				<thead class="bg-surface-soft text-xs uppercase text-muted">
-					<tr><th class="px-6 py-4">ID</th><th class="px-6 py-4">Método</th><th class="px-6 py-4">Usuario</th><th class="px-6 py-4">Total</th><th class="px-6 py-4">Fecha</th></tr>
+					<tr><th class="px-6 py-4">ID</th><th class="px-6 py-4">Cliente</th><th class="px-6 py-4">Líneas</th><th class="px-6 py-4">Método</th><th class="px-6 py-4">Usuario</th><th class="px-6 py-4">Total</th><th class="px-6 py-4">Fecha</th></tr>
 				</thead>
 				<tbody class="divide-y divide-outline">
-					<tr th:if="${#lists.isEmpty(ventas)}"><td colspan="5" class="p-10 text-center text-muted">Aun no hay ventas...</td></tr>
+					<tr th:if="${#lists.isEmpty(ventas)}"><td colspan="7" class="p-10 text-center text-muted">Aun no hay ventas...</td></tr>
 					<tr th:each="venta : ${ventas}" class="hover:bg-surface-soft">
 						<td class="px-6 py-5 font-black" th:text="|#${venta.id}|">#1</td>
+						<td class="px-6 py-5">
+							<p class="font-black" th:text="${venta.cliente != null ? venta.cliente.nombre : 'Sin cliente'}">Cliente</p>
+							<p class="text-xs font-semibold text-muted" th:text="${venta.cliente != null ? 'DNI ' + venta.cliente.dniCuit : ''}">DNI</p>
+						</td>
+						<td class="px-6 py-5 font-bold" th:text="${#lists.size(venta.items)}">1</td>
 						<td class="px-6 py-5" th:text="${venta.metodoPago}">EFECTIVO</td>
 						<td class="px-6 py-5" th:text="${venta.usuarioAdmin ?: 'Admin'}">Admin</td>
 						<td class="px-6 py-5 font-black text-secondary" th:text="|$ ${venta.total}|">$0</td>

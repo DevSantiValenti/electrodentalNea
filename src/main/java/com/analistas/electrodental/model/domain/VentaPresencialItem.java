@@ -36,6 +36,9 @@ public class VentaPresencialItem {
 	@JoinColumn(name = "producto_id", nullable = false)
 	private Producto producto;
 
+	@Column(length = 180)
+	private String nombreSnapshot;
+
 	@Column(nullable = false)
 	private Integer cantidad = 1;
 

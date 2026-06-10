@@ -95,7 +95,7 @@ public class MercadoPagoServiceImpl implements IMercadoPagoService {
 		if (pedido.getCostoEnvio() != null && pedido.getCostoEnvio().signum() > 0) {
 			items = new java.util.ArrayList<>(items);
 			items.add(Map.of(
-					"title", "Envio Andreani",
+					"title", "Envio OCA",
 					"quantity", 1,
 					"currency_id", "ARS",
 					"unit_price", pedido.getCostoEnvio()));

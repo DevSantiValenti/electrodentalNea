@@ -1,5 +1,6 @@
 package com.analistas.electrodental.model.domain;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
@@ -46,6 +47,18 @@ public class Pago {
 
 	@Column(length = 120)
 	private String paymentId;
+
+	@Column(length = 120)
+	private String statusDetail;
+
+	@Column(length = 120)
+	private String paymentMethodId;
+
+	@Column(length = 120)
+	private String paymentTypeId;
+
+	@Column(precision = 14, scale = 2)
+	private BigDecimal transactionAmount = BigDecimal.ZERO;
 
 	@Column(length = 120, unique = true)
 	private String externalReference;

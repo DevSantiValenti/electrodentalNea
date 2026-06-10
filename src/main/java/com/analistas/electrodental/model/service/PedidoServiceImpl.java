@@ -16,6 +16,7 @@ import com.analistas.electrodental.model.domain.Pedido;
 import com.analistas.electrodental.model.domain.PedidoItem;
 import com.analistas.electrodental.model.domain.Producto;
 import com.analistas.electrodental.model.domain.dto.CarritoDTO;
+import com.analistas.electrodental.model.domain.dto.MercadoPagoPaymentDataDTO;
 import com.analistas.electrodental.model.repository.IClienteRepository;
 import com.analistas.electrodental.model.repository.IPagoRepository;
 import com.analistas.electrodental.model.repository.IPedidoRepository;
@@ -29,18 +30,21 @@ public class PedidoServiceImpl implements IPedidoService {
 	private final IClienteRepository clienteRepository;
 	private final IPagoRepository pagoRepository;
 	private final IStockService stockService;
+	private final IOcaService ocaService;
 
 	public PedidoServiceImpl(
 			IPedidoRepository pedidoRepository,
 			IProductoRepository productoRepository,
 			IClienteRepository clienteRepository,
 			IPagoRepository pagoRepository,
-			IStockService stockService) {
+			IStockService stockService,
+			IOcaService ocaService) {
 		this.pedidoRepository = pedidoRepository;
 		this.productoRepository = productoRepository;
 		this.clienteRepository = clienteRepository;
 		this.pagoRepository = pagoRepository;
 		this.stockService = stockService;
+		this.ocaService = ocaService;
 	}
 
 	@Override
@@ -71,7 +75,7 @@ public class PedidoServiceImpl implements IPedidoService {
 		pedido.setDireccionEnvio(direccionEnvio);
 		pedido.setCanal(CanalVenta.WEB);
 		pedido.setEstadoPedido(EstadoPedido.PENDIENTE_PAGO);
-		pedido.setMetodoEntrega(metodoEntrega == null || metodoEntrega.isBlank() ? "ANDREANI" : metodoEntrega);
+		pedido.setMetodoEntrega(metodoEntrega == null || metodoEntrega.isBlank() ? "SUCURSAL" : metodoEntrega);
 		pedido.setCodigoCompra(generarCodigoCompra(pedido.getMetodoEntrega()));
 		pedido.setCostoEnvio(costoEnvio == null ? BigDecimal.ZERO : costoEnvio);
 
@@ -128,13 +132,31 @@ public class PedidoServiceImpl implements IPedidoService {
 	@Override
 	@Transactional
 	public Pedido actualizarPagoMercadoPago(String externalReference, String paymentId, String status) {
+		return actualizarPagoMercadoPago(new MercadoPagoPaymentDataDTO(
+				externalReference,
+				paymentId,
+				status,
+				null,
+				null,
+				null,
+				null));
+	}
+
+	@Override
+	@Transactional
+	public Pedido actualizarPagoMercadoPago(MercadoPagoPaymentDataDTO paymentData) {
+		String externalReference = paymentData.externalReference();
 		Pago pago = pagoRepository.findByExternalReference(externalReference)
 				.orElseThrow(() -> new IllegalArgumentException("Pago no encontrado: " + externalReference));
 		Pedido pedido = pago.getPedido();
 		boolean pagoYaAprobado = pago.getEstadoPago() == EstadoPago.APROBADO || pedido.getEstadoPedido() == EstadoPedido.PAGADO;
 		boolean reservaActiva = pago.getEstadoPago() == EstadoPago.PENDIENTE && pedido.getEstadoPedido() == EstadoPedido.PENDIENTE_PAGO;
-		pago.setPaymentId(paymentId);
-		switch (status == null ? "" : status.toLowerCase()) {
+		pago.setPaymentId(paymentData.paymentId());
+		pago.setStatusDetail(paymentData.statusDetail());
+		pago.setPaymentMethodId(paymentData.paymentMethodId());
+		pago.setPaymentTypeId(paymentData.paymentTypeId());
+		pago.setTransactionAmount(paymentData.transactionAmount() == null ? pago.getTransactionAmount() : paymentData.transactionAmount());
+		switch (paymentData.status() == null ? "" : paymentData.status().toLowerCase()) {
 			case "approved", "200" -> {
 				pago.setEstadoPago(EstadoPago.APROBADO);
 				pago.setFechaAprobacion(LocalDateTime.now());
@@ -142,6 +164,7 @@ public class PedidoServiceImpl implements IPedidoService {
 				if (!pagoYaAprobado) {
 					pedido.setFechaPago(LocalDateTime.now());
 				}
+				crearEnvioOcaSiCorresponde(pedido);
 			}
 			case "pending", "in_process" -> {
 				pago.setEstadoPago(EstadoPago.PENDIENTE);
@@ -166,6 +189,17 @@ public class PedidoServiceImpl implements IPedidoService {
 			}
 		}
 		return pedidoRepository.save(pedido);
+	}
+
+	private void crearEnvioOcaSiCorresponde(Pedido pedido) {
+		if (!"OCA".equals(pedido.getMetodoEntrega())) {
+			return;
+		}
+		try {
+			ocaService.crearEnvio(pedido);
+		} catch (RuntimeException ignored) {
+			// El pago no debe fallar por un problema transitorio de OCA; admin puede reintentar la etiqueta.
+		}
 	}
 
 	private void liberarReservaWeb(Pedido pedido) {

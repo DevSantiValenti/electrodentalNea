@@ -16,6 +16,7 @@
 			<span class="rounded-full bg-secondary-container px-3 py-2 text-xs font-black text-on-secondary-container" th:text="${pedido.codigoCompra ?: 'Sin código'}">Código</span>
 		</div>
 	</div>
+	<div th:if="${mensaje}" class="mb-6 rounded-xl bg-amber-50 p-4 text-sm font-bold text-amber-800" th:text="${mensaje}">Mensaje</div>
 
 	<section class="grid gap-6 xl:grid-cols-[1fr_360px]">
 		<div class="admin-card overflow-hidden rounded-2xl">
@@ -100,6 +101,11 @@
 			   class="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-5 py-4 text-sm font-black text-white shadow-sm hover:opacity-90">
 				<span class="material-symbols-outlined">print</span> Imprimir / descargar PDF
 			</a>
+			<form th:if="${pedido.estadoPedido.name() == 'PENDIENTE_PAGO'}" th:action="@{/admin/pedidos/{id}/cancelar-pendiente(id=${pedido.id})}" method="post">
+				<button type="submit" class="flex w-full items-center justify-center gap-2 rounded-xl border border-secondary bg-white px-5 py-4 text-sm font-black text-secondary hover:bg-red-50">
+					<span class="material-symbols-outlined">inventory_2</span> Cancelar y liberar reserva
+				</button>
+			</form>
 
 			<section class="admin-card rounded-2xl p-6">
 				<h2 class="text-xl font-black text-primary">Datos de envío</h2>
@@ -109,6 +115,14 @@
 					<p th:if="${pedido.direccionEnvio != null}" th:text="|${pedido.direccionEnvio.calle ?: ''} ${pedido.direccionEnvio.numero ?: ''}|">Calle</p>
 					<p th:if="${pedido.metodoEntrega == 'SUCURSAL'}">Retiro en sucursal con código de compra.</p>
 					<p th:if="${pedido.metodoEntrega == 'VENDEDOR'}">Coordinar despacho y costo final con el vendedor.</p>
+					<div th:if="${pedido.metodoEntrega == 'OCA' && pedido.envio != null}" class="mt-3 border-t border-outline pt-3">
+						<p th:if="${pedido.envio.tipoEntregaOca != null}" th:text="|Modalidad OCA: ${pedido.envio.tipoEntregaOca}|">Modalidad OCA</p>
+						<p th:if="${pedido.envio.sucursalDestino != null}" th:text="|Sucursal OCA: ${pedido.envio.sucursalDestino}|">Sucursal OCA</p>
+						<p th:if="${pedido.envio.sucursalDestinoDireccion != null}" th:text="${pedido.envio.sucursalDestinoDireccion}">Dirección sucursal</p>
+						<p th:text="|Estado OCA: ${pedido.envio.estadoEnvio}|">Estado OCA</p>
+						<p th:if="${pedido.envio.numeroOrdenRetiro != null}" th:text="|Orden: ${pedido.envio.numeroOrdenRetiro}|">Orden</p>
+						<p th:if="${pedido.envio.numeroEnvio != null}" th:text="|Envío: ${pedido.envio.numeroEnvio}|">Envío</p>
+					</div>
 				</div>
 			</section>
 
@@ -119,10 +133,15 @@
 					</div>
 					<div>
 						<h2 class="text-lg font-black text-primary">Ticket de envío</h2>
-						<p class="mt-1 text-sm text-muted">Disponible cuando se active la generación de etiquetas/preenvíos de Andreani.</p>
+						<p class="mt-1 text-sm text-muted" th:if="${pedido.metodoEntrega == 'OCA'}">Descarga la etiqueta PDF de OCA. Si el envío aún no existe, se crea antes de generar el PDF.</p>
+						<p class="mt-1 text-sm text-muted" th:if="${pedido.metodoEntrega != 'OCA'}">Disponible para pedidos con envío OCA.</p>
 					</div>
 				</div>
-				<button type="button" disabled class="mt-5 flex w-full cursor-not-allowed items-center justify-center gap-2 rounded-lg bg-surface-soft px-4 py-3 text-sm font-black text-muted">
+				<a th:if="${pedido.metodoEntrega == 'OCA'}" th:href="@{/admin/pedidos/{id}/envio/ticket(id=${pedido.id})}"
+				   class="mt-5 flex w-full items-center justify-center gap-2 rounded-lg bg-secondary px-4 py-3 text-sm font-black text-white hover:opacity-90">
+					<span class="material-symbols-outlined">download</span> Descargar ticket de envío
+				</a>
+				<button th:if="${pedido.metodoEntrega != 'OCA'}" type="button" disabled class="mt-5 flex w-full cursor-not-allowed items-center justify-center gap-2 rounded-lg bg-surface-soft px-4 py-3 text-sm font-black text-muted">
 					<span class="material-symbols-outlined">download</span> Descargar ticket de envío
 				</button>
 			</section>

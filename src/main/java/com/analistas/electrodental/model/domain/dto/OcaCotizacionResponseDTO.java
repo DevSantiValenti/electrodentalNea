@@ -2,12 +2,13 @@ package com.analistas.electrodental.model.domain.dto;
 
 import java.math.BigDecimal;
 
-public record AndreaniCotizacionResponseDTO(
+public record OcaCotizacionResponseDTO(
 		boolean cotizada,
 		String proveedor,
 		BigDecimal costo,
 		String moneda,
 		String mensaje,
-		String requestJson,
-		String responseJson) {
+		String plazoEntrega,
+		String requestXml,
+		String responseXml) {
 }

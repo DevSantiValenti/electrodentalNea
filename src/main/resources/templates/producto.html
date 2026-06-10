@@ -81,25 +81,26 @@
 					</form>
 				</div>
 
-				<!-- Calculo de envio con Andreani pausado temporalmente.
-				<section class="border-t border-outline pt-5">
-					<h2 class="text-sm font-black uppercase tracking-wide text-primary">Calcular envío</h2>
-					<form class="mt-3 grid gap-3 sm:grid-cols-[1fr_auto]">
-						<input class="h-11 rounded-lg border-outline" placeholder="Tu Código Postal">
-						<button type="button" class="h-11 rounded-lg bg-primary px-6 font-black text-white hover:bg-primary-container">Calcular</button>
+				<section id="oca-producto-panel" class="border-t border-outline pt-5" th:attr="data-producto-id=${producto.id}">
+					<h2 class="text-sm font-black uppercase tracking-wide text-primary">Calcular envío OCA</h2>
+					<form id="oca-producto-form" class="mt-3 grid gap-3 sm:grid-cols-[1fr_auto]">
+						<input id="oca-producto-cp" class="h-11 rounded-lg border-outline" inputmode="numeric" autocomplete="postal-code" placeholder="Tu código postal">
+						<button type="submit" class="h-11 rounded-lg bg-primary px-6 font-black text-white hover:bg-primary-container">Calcular</button>
 					</form>
-					<div class="mt-3 flex items-center justify-between rounded-xl border border-outline bg-white p-4">
+					<p id="oca-producto-mensaje" class="mt-2 hidden text-xs font-bold text-amber-700"></p>
+					<div id="oca-producto-resultados" class="mt-3 space-y-3">
+					<div class="flex items-center justify-between rounded-xl border border-outline bg-white p-4">
 						<div class="flex items-center gap-3">
 							<span class="material-symbols-outlined text-primary">local_shipping</span>
 							<div>
-								<p class="text-sm font-black text-primary">Andreani a domicilio</p>
-								<p class="text-xs font-semibold text-slate-500">La cotización real se calculará en checkout.</p>
+								<p class="text-sm font-black text-primary">OCA a sucursal o domicilio</p>
+								<p class="text-xs font-semibold text-slate-500">Ingresá tu CP para ver sucursales disponibles, costo y plazo estimado.</p>
 							</div>
 						</div>
 						<p class="text-sm font-black text-secondary">A calcular</p>
 					</div>
+					</div>
 				</section>
-				-->
 			</div>
 		</section>
 
@@ -195,6 +196,92 @@
 			input.value = max > 0 ? Math.min(next, max) : next;
 		});
 	});
+
+	const ocaProductoForm = document.querySelector("#oca-producto-form");
+	const ocaProductoPanel = document.querySelector("#oca-producto-panel");
+	const ocaProductoMensaje = document.querySelector("#oca-producto-mensaje");
+	const ocaProductoResultados = document.querySelector("#oca-producto-resultados");
+	const formatoPesos = new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS" });
+
+	function escapeHtml(value) {
+		return String(value ?? "")
+			.replaceAll("&", "&amp;")
+			.replaceAll("<", "&lt;")
+			.replaceAll(">", "&gt;")
+			.replaceAll("\"", "&quot;")
+			.replaceAll("'", "&#039;");
+	}
+
+	function renderTarifa(nombre, icono, tarifa, detalle) {
+		const disponible = tarifa && tarifa.disponible;
+		const plazo = disponible && tarifa.plazoEntrega ? `<p class="text-xs font-semibold text-slate-500">Entrega estimada: ${escapeHtml(tarifa.plazoEntrega)} día(s)</p>` : "";
+		return `
+			<div class="rounded-xl border border-outline bg-white p-4">
+				<div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+					<div class="flex items-start gap-3">
+						<span class="material-symbols-outlined text-primary">${icono}</span>
+						<div>
+							<p class="text-sm font-black text-primary">${nombre}</p>
+							<p class="text-xs font-semibold ${disponible ? "text-green-700" : "text-amber-700"}">${escapeHtml(tarifa?.mensaje || "Ingresá tu CP para cotizar.")}</p>
+							${plazo}
+							${detalle || ""}
+						</div>
+					</div>
+					<p class="text-sm font-black text-secondary">${disponible ? formatoPesos.format(Number(tarifa.costo || 0)) : "A calcular"}</p>
+				</div>
+			</div>`;
+	}
+
+	function renderSucursales(data) {
+		if (!data.sucursales || data.sucursales.length === 0) {
+			return `<p class="mt-2 text-xs font-semibold text-slate-500">No encontramos sucursales OCA con retiro para ese CP.</p>`;
+		}
+		const items = data.sucursales.map((sucursal) => {
+			const direccion = `${sucursal.calle || ""} ${sucursal.numero || ""} - ${sucursal.localidad || ""}, ${sucursal.provincia || ""}`.replace(/\s+/g, " ").trim();
+			return `
+				<li class="rounded-lg border border-outline bg-slate-50 p-3" aria-label="Sucursal OCA disponible">
+					<div class="flex items-start gap-2">
+						<span class="material-symbols-outlined text-[18px] text-primary">location_on</span>
+						<div>
+							<p class="text-xs font-black text-primary">${escapeHtml(sucursal.nombre)}</p>
+							<p class="mt-1 text-xs font-semibold text-slate-600">${escapeHtml(direccion)}</p>
+							${sucursal.horarioAtencion ? `<p class="mt-1 text-xs font-semibold text-slate-500">${escapeHtml(sucursal.horarioAtencion)}</p>` : ""}
+						</div>
+					</div>
+				</li>`;
+		}).join("");
+		return `<ul class="mt-3 grid gap-2">${items}</ul>`;
+	}
+
+	if (ocaProductoForm && ocaProductoPanel) {
+		ocaProductoForm.addEventListener("submit", async (event) => {
+			event.preventDefault();
+			const cp = document.querySelector("#oca-producto-cp")?.value.trim();
+			const productoId = ocaProductoPanel.dataset.productoId;
+			const cantidad = document.querySelector(".qty-input")?.value || "1";
+			ocaProductoMensaje.classList.add("hidden");
+			if (!cp) {
+				ocaProductoMensaje.textContent = "Ingresá un código postal para consultar OCA.";
+				ocaProductoMensaje.classList.remove("hidden");
+				return;
+			}
+			ocaProductoResultados.innerHTML = `<div class="rounded-xl border border-outline bg-white p-4 text-sm font-bold text-slate-600">Consultando opciones OCA...</div>`;
+			try {
+				const response = await fetch(`/api/oca/productos/${productoId}/opciones?codigoPostal=${encodeURIComponent(cp)}&cantidad=${encodeURIComponent(cantidad)}`);
+				if (!response.ok) {
+					throw new Error("No se pudo consultar OCA.");
+				}
+				const data = await response.json();
+				const sucursalesDetalle = renderSucursales(data);
+				ocaProductoResultados.innerHTML = [
+					renderTarifa("Retirar en sucursal OCA", "storefront", data.sucursal, sucursalesDetalle),
+					renderTarifa("OCA a domicilio", "local_shipping", data.domicilio, "")
+				].join("");
+			} catch (error) {
+				ocaProductoResultados.innerHTML = `<div class="rounded-xl border border-outline bg-white p-4 text-sm font-bold text-amber-700">${escapeHtml(error.message)}</div>`;
+			}
+		});
+	}
 
 	const tabs = document.querySelectorAll(".product-tab");
 	const panels = document.querySelectorAll(".product-tab-panel");

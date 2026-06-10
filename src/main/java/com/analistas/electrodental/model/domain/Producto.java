@@ -96,9 +96,6 @@ public class Producto {
 	@Column(precision = 14, scale = 2)
 	private BigDecimal valorDeclarado = BigDecimal.ZERO;
 
-	@Column(length = 80)
-	private String categoriaAndreani;
-
 	@PrePersist
 	@PreUpdate
 	public void calcularVolumen() {

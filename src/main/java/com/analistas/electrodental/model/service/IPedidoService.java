@@ -6,6 +6,7 @@ import com.analistas.electrodental.model.domain.Cliente;
 import com.analistas.electrodental.model.domain.DireccionEnvio;
 import com.analistas.electrodental.model.domain.Pedido;
 import com.analistas.electrodental.model.domain.dto.CarritoDTO;
+import com.analistas.electrodental.model.domain.dto.MercadoPagoPaymentDataDTO;
 
 public interface IPedidoService {
 
@@ -16,6 +17,8 @@ public interface IPedidoService {
 	Pedido marcarPagado(String externalReference, String paymentId);
 
 	Pedido actualizarPagoMercadoPago(String externalReference, String paymentId, String status);
+
+	Pedido actualizarPagoMercadoPago(MercadoPagoPaymentDataDTO paymentData);
 
 	Pedido cancelarPedido(Long pedidoId, String motivo);
 }

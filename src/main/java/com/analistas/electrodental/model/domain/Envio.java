@@ -36,7 +36,7 @@ public class Envio {
 
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false, length = 40)
-	private ProveedorEnvio proveedor = ProveedorEnvio.ANDREANI;
+	private ProveedorEnvio proveedor = ProveedorEnvio.OCA;
 
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false, length = 40)
@@ -58,7 +58,28 @@ public class Envio {
 	private String contrato;
 
 	@Column(length = 80)
-	private String clienteAndreani;
+	private String cuit;
+
+	@Column(length = 80)
+	private String numeroCuenta;
+
+	@Column(length = 80)
+	private String operativa;
+
+	@Column(length = 30)
+	private String tipoEntregaOca;
+
+	@Column(length = 20)
+	private String idCentroImposicionDestino;
+
+	@Column(length = 160)
+	private String sucursalDestino;
+
+	@Column(length = 240)
+	private String sucursalDestinoDireccion;
+
+	@Column(length = 120)
+	private String sucursalDestinoHorario;
 
 	@Column(precision = 14, scale = 2)
 	private BigDecimal costoCotizado = BigDecimal.ZERO;
@@ -78,17 +99,28 @@ public class Envio {
 	@Column(precision = 10, scale = 2)
 	private BigDecimal largoMaxCm = BigDecimal.ZERO;
 
-	@Column(length = 80)
-	private String categoriaAndreani;
-
 	@Column(length = 120)
 	private String tracking;
 
+	@Column(length = 40)
+	private String numeroOrdenRetiro;
+
+	@Column(length = 40)
+	private String numeroEnvio;
+
 	private LocalDateTime fechaCotizacion;
+
+	private LocalDateTime fechaCreacionEnvio;
 
 	@Lob
 	private String requestCotizacion;
 
 	@Lob
 	private String responseCotizacion;
+
+	@Lob
+	private String requestCreacion;
+
+	@Lob
+	private String responseCreacion;
 }

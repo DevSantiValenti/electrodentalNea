@@ -16,4 +16,5 @@ public class MercadoPagoProperties {
 	private boolean sandbox = true;
 	private String accessToken;
 	private String publicKey;
+	private String webhookSecret;
 }

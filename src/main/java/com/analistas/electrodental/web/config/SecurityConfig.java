@@ -41,6 +41,7 @@ public class SecurityConfig {
 						"/marcas",
 						"/contacto",
 						"/api/productos/buscar",
+						"/api/oca/**",
 						"/api/mercadopago/webhook",
 						"/servicio-tecnico",
 						"/denttech",

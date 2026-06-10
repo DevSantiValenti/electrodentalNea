@@ -5,13 +5,13 @@
 Proyecto Spring Boot con arquitectura por capas:
 
 - `model/domain`: entidades JPA principales.
-- `model/domain/dto`: DTOs de carrito, dashboard, Andreani y Mercado Pago.
+- `model/domain/dto`: DTOs de carrito, dashboard, OCA y Mercado Pago.
 - `model/repository`: repositorios Spring Data.
 - `model/service`: servicios de negocio.
 - `web/controller`: controllers MVC y endpoints de integración.
 - `web/config`: configuración de seguridad e integraciones.
 
-La tienda tiene catálogo, carrito, checkout en 3 pasos, integración Mercado Pago Checkout Pro, cotización Andreani en preparación, panel admin, detalle de pedidos y vista imprimible para preparar pedidos.
+La tienda tiene catálogo, carrito, checkout en 3 pasos, integración Mercado Pago Checkout Pro, cotización/creación de envíos OCA, panel admin, detalle de pedidos y vista imprimible para preparar pedidos.
 
 ## Flujo actual de checkout
 
@@ -28,7 +28,7 @@ La tienda tiene catálogo, carrito, checkout en 3 pasos, integración Mercado Pa
    - Ruta: `GET /checkout/datos`.
    - Se capturan datos del comprador: nombre, apellido, DNI, email y teléfono.
    - Se elige método de entrega:
-     - `ANDREANI`
+     - `OCA`
      - `SUCURSAL`
      - `VENDEDOR`
    - Los datos se guardan temporalmente en sesión como `checkoutCliente` y `checkoutDireccion`.
@@ -85,7 +85,7 @@ Configuración:
 - `mercadopago.sandbox`
 - `mercadopago.access-token`
 - `mercadopago.public-key`
-- `andreani.api-url`
+- `oca.api-url`
 
 El túnel Cloudflare se cambia solo en `app.base-url`. Las URLs públicas de Mercado Pago (`notification`, `success`, `failure`, `pending`) se construyen en `MercadoPagoServiceImpl` desde esa línea al crear cada preferencia.
 
@@ -177,6 +177,11 @@ Corregido:
 - El retorno del navegador ya no marca pedidos como aprobados solo por caer en `/success`; si hay `payment_id`, consulta Mercado Pago y usa el estado real.
 - El webhook ahora ignora eventos con `type` o `topic` distinto de `payment`.
 - Se agregó manejo de `charged_back`.
+- El webhook valida `x-signature` y `x-request-id` cuando `mercadopago.webhook-secret` está configurado; si no hay secret, mantiene compatibilidad con el flujo local actual.
+- Se persisten datos de diagnóstico del pago: `status_detail`, `payment_method_id`, `payment_type_id` y `transaction_amount`.
+- Se agregó un scheduler que cancela pedidos `PENDIENTE_PAGO` vencidos y libera la reserva de stock.
+- El detalle admin permite cancelar manualmente pedidos pendientes y liberar la reserva.
+- Se agregaron tests para aprobación, rechazo, pendiente, webhook aprobado duplicado y retorno sin `payment_id`.
 
 Correcto según flujo esperado:
 
@@ -187,25 +192,22 @@ Correcto según flujo esperado:
 
 Riesgos pendientes:
 
-- Falta validar firma de webhook (`x-signature` y `x-request-id`) con el secret configurado en Mercado Pago.
-- Falta persistir `status_detail` del pago para diagnósticos finos.
 - Falta una tabla/log de notificaciones recibidas para auditoría e idempotencia avanzada.
-- Falta scheduler para liberar reservas de pedidos pendientes vencidos.
 - Las credenciales quedaron hardcodeadas en `application.properties` por decisión local del proyecto.
 
-## Andreani
+## OCA
 
 Estado actual:
 
-- Servicio: `AndreaniServiceImpl`.
-- Solo cotización en v1.
-- Usa API `/v1/tarifas`.
-- Requiere configurar credenciales y contrato.
+- Servicio: `OcaServiceImpl`.
+- Cotiza con `Tarifar_Envio_Corporativo`.
+- Crea envíos con `IngresoORMultiplesRetiros`.
+- Descarga etiquetas PDF con `GetPdfDeEtiquetasPorOrdenOrNumeroEnvio`.
+- En dev usa las credenciales públicas de prueba de OCA e-Pak; en producción requiere usuario, clave, CUIT, nro. de cuenta y operativa reales.
 
 Pendiente:
 
-- Generación de preenvío/etiqueta.
-- Activar botón de descarga de ticket de envío cuando esa integración esté lista.
+- Revisar si se desea confirmar el retiro automáticamente o dejarlo en carrito e-Pak según operación real de la tienda.
 
 ## Comandos útiles
 
@@ -231,8 +233,6 @@ Invoke-WebRequest -Method Post -UseBasicParsing http://localhost:8080/api/mercad
 
 ## Próximas mejoras recomendadas
 
-1. Validar firma de webhooks con `x-signature`.
-2. Guardar `status_detail`, `payment_method_id`, `payment_type_id` y `transaction_amount`.
-3. Agregar scheduler de expiración de pedidos pendientes.
-4. Agregar panel admin para liberar/cancelar reservas manualmente.
-5. Agregar tests unitarios e integración específicos para aprobación, rechazo, pendiente, webhook duplicado y retorno sin `payment_id`.
+1. Agregar tabla/log de notificaciones Mercado Pago recibidas para auditoría e idempotencia avanzada.
+2. Externalizar credenciales hardcodeadas de `application.properties` a variables de entorno también en desarrollo.
+3. Hacer configurable el tiempo de expiración de pedidos pendientes desde properties.

@@ -247,9 +247,9 @@
 <button class="p-2 text-primary hover:bg-primary/5 rounded-lg" title="Ver detalle">
 <span class="material-symbols-outlined" data-icon="visibility">visibility</span>
 </button>
-<button class="flex items-center gap-xs bg-[#0057B7] text-white px-3 py-1.5 rounded-lg font-label-sm text-[11px] hover:opacity-90" title="Generar Andreani">
+<button class="flex items-center gap-xs bg-[#0057B7] text-white px-3 py-1.5 rounded-lg font-label-sm text-[11px] hover:opacity-90" title="Generar OCA">
 <span class="material-symbols-outlined text-[16px]" data-icon="local_shipping">local_shipping</span>
-                                            Etiqueta Andreani
+                                            Etiqueta OCA
                                         </button>
 </div>
 </td>
@@ -396,8 +396,8 @@
             });
         });
 
-        // Simulating loading state for Andreani button
-        document.querySelectorAll('button[title="Generar Andreani"]').forEach(btn => {
+        // Simulating loading state for OCA button
+        document.querySelectorAll('button[title="Generar OCA"]').forEach(btn => {
             btn.addEventListener('click', function() {
                 const originalContent = this.innerHTML;
                 this.innerHTML = '<span class="material-symbols-outlined animate-spin text-[16px]" data-icon="sync">sync</span> Generando...';

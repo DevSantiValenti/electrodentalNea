@@ -2,16 +2,16 @@ package com.analistas.electrodental.model.domain.dto;
 
 import java.math.BigDecimal;
 
-public record AndreaniCotizacionRequestDTO(
+public record OcaCotizacionRequestDTO(
+		String cuit,
+		String operativa,
+		String codigoPostalOrigen,
 		String codigoPostalDestino,
-		String contrato,
-		String clienteAndreani,
-		String sucursalOrigen,
+		Integer cantidadPaquetes,
 		BigDecimal valorDeclarado,
 		BigDecimal pesoTotalKg,
-		BigDecimal volumenTotalCm3,
+		BigDecimal volumenTotalM3,
 		BigDecimal altoMaxCm,
 		BigDecimal anchoMaxCm,
-		BigDecimal largoMaxCm,
-		String categoriaAndreani) {
+		BigDecimal largoMaxCm) {
 }

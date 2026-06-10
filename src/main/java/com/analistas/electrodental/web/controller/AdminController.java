@@ -4,6 +4,10 @@ import java.util.List;
 import java.util.stream.IntStream;
 
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -22,6 +26,8 @@ import com.analistas.electrodental.model.repository.IVentaPresencialRepository;
 import com.analistas.electrodental.model.service.IAdminDashboardService;
 import com.analistas.electrodental.model.service.ICategoriaService;
 import com.analistas.electrodental.model.service.IConfiguracionTiendaService;
+import com.analistas.electrodental.model.service.IOcaService;
+import com.analistas.electrodental.model.service.IPedidoService;
 import com.analistas.electrodental.model.service.IProductoService;
 
 @Controller
@@ -34,6 +40,8 @@ public class AdminController {
 	private final IVentaPresencialRepository ventaPresencialRepository;
 	private final ICategoriaService categoriaService;
 	private final IConfiguracionTiendaService configuracionTiendaService;
+	private final IOcaService ocaService;
+	private final IPedidoService pedidoService;
 
 	public AdminController(
 			IProductoService productoService,
@@ -42,7 +50,9 @@ public class AdminController {
 			IClienteRepository clienteRepository,
 			IVentaPresencialRepository ventaPresencialRepository,
 			ICategoriaService categoriaService,
-			IConfiguracionTiendaService configuracionTiendaService) {
+			IConfiguracionTiendaService configuracionTiendaService,
+			IOcaService ocaService,
+			IPedidoService pedidoService) {
 		this.productoService = productoService;
 		this.adminDashboardService = adminDashboardService;
 		this.pedidoRepository = pedidoRepository;
@@ -50,6 +60,8 @@ public class AdminController {
 		this.ventaPresencialRepository = ventaPresencialRepository;
 		this.categoriaService = categoriaService;
 		this.configuracionTiendaService = configuracionTiendaService;
+		this.ocaService = ocaService;
+		this.pedidoService = pedidoService;
 	}
 
 	@GetMapping("/admin/login")
@@ -144,6 +156,27 @@ public class AdminController {
 		return "admin/pedido-print";
 	}
 
+	@GetMapping("/admin/pedidos/{id}/envio/ticket")
+	public Object descargarTicketEnvio(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+		var pedido = pedidoRepository.findDetalleById(id)
+				.orElseThrow(() -> new IllegalArgumentException("Pedido no encontrado: " + id));
+		if (!"OCA".equals(pedido.getMetodoEntrega())) {
+			throw new IllegalArgumentException("El pedido no tiene envío OCA.");
+		}
+		String html;
+		try {
+			html = ocaService.obtenerEtiquetaHtml(pedido);
+		} catch (RuntimeException ex) {
+			redirectAttributes.addFlashAttribute("mensaje", "No se pudo descargar la etiqueta OCA: " + ex.getMessage());
+			return "redirect:/admin/pedidos/" + id;
+		}
+		String filename = "etiqueta-oca-pedido-" + pedido.getId() + ".html";
+		return ResponseEntity.ok()
+				.contentType(MediaType.TEXT_HTML)
+				.header(HttpHeaders.CONTENT_DISPOSITION, ContentDisposition.attachment().filename(filename).build().toString())
+				.body(html);
+	}
+
 	@PostMapping("/admin/pedidos/{id}/eliminar")
 	public String eliminarPedido(@PathVariable Long id, RedirectAttributes redirectAttributes) {
 		if (!pedidoRepository.existsById(id)) {
@@ -153,6 +186,17 @@ public class AdminController {
 		pedidoRepository.deleteById(id);
 		redirectAttributes.addFlashAttribute("mensaje", "Pedido eliminado correctamente.");
 		return "redirect:/admin/pedidos";
+	}
+
+	@PostMapping("/admin/pedidos/{id}/cancelar-pendiente")
+	public String cancelarPedidoPendiente(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+		try {
+			pedidoService.cancelarPedido(id, "Cancelado manualmente desde admin");
+			redirectAttributes.addFlashAttribute("mensaje", "Pedido cancelado y reserva liberada.");
+		} catch (RuntimeException ex) {
+			redirectAttributes.addFlashAttribute("mensaje", "No se pudo cancelar el pedido: " + ex.getMessage());
+		}
+		return "redirect:/admin/pedidos/" + id;
 	}
 
 	@GetMapping("/admin/ventas")

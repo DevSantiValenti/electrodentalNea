@@ -12,6 +12,8 @@ import com.analistas.electrodental.model.domain.Producto;
 
 public interface IProductoRepository extends JpaRepository<Producto, Long> {
 
+	List<Producto> findAllByOrderByNombreAsc();
+
 	List<Producto> findByActivoTrueOrderByNombreAsc();
 
 	List<Producto> findByActivoTrueAndCategoriaSlugOrderByNombreAsc(String categoriaSlug);

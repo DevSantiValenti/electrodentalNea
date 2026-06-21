@@ -49,42 +49,45 @@
 	</style>
 </head>
 <body>
-<aside th:fragment="sidebar(active)" class="fixed inset-y-0 left-0 z-40 hidden w-64 flex-col border-r border-outline bg-white p-4 lg:flex">
-	<a th:href="@{/admin}" class="mb-6 flex items-center px-4 py-4">
-		<img src="/img/electrodentallarge.png" alt="ElectrodentalNea" class="h-14 w-auto object-contain">
+<aside th:fragment="sidebar(active)" class="fixed inset-y-0 left-0 z-40 hidden w-64 flex-col overflow-y-auto border-r border-outline bg-white p-3 lg:flex">
+	<a th:href="@{/admin}" class="mb-3 flex items-center px-4 py-2">
+		<img src="/img/electrodentallarge.png" alt="ElectrodentalNea" class="h-11 w-auto object-contain">
 	</a>
-	<nav class="flex flex-1 flex-col gap-1">
-		<a th:href="@{/admin}" th:classappend="${active == 'dashboard'} ? ' admin-link-active' : ''" class="flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-bold text-slate-600 hover:bg-surface-soft">
+	<nav class="flex flex-1 flex-col gap-0.5">
+		<a th:href="@{/admin}" th:classappend="${active == 'dashboard'} ? ' admin-link-active' : ''" class="flex items-center gap-3 rounded-lg px-4 py-2.5 text-sm font-bold text-slate-600 hover:bg-surface-soft">
 			<span class="material-symbols-outlined">dashboard</span> Panel Control
 		</a>
-		<a th:href="@{/admin/productos}" th:classappend="${active == 'productos'} ? ' admin-link-active' : ''" class="flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-bold text-slate-600 hover:bg-surface-soft">
+		<a th:href="@{/admin/productos}" th:classappend="${active == 'productos'} ? ' admin-link-active' : ''" class="flex items-center gap-3 rounded-lg px-4 py-2.5 text-sm font-bold text-slate-600 hover:bg-surface-soft">
 			<span class="material-symbols-outlined">inventory_2</span> Productos
 		</a>
-		<a th:href="@{/admin/categorias}" th:classappend="${active == 'categorias'} ? ' admin-link-active' : ''" class="flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-bold text-slate-600 hover:bg-surface-soft">
+		<a th:href="@{/admin/categorias}" th:classappend="${active == 'categorias'} ? ' admin-link-active' : ''" class="flex items-center gap-3 rounded-lg px-4 py-2.5 text-sm font-bold text-slate-600 hover:bg-surface-soft">
 			<span class="material-symbols-outlined">category</span> Categorías
 		</a>
-		<a th:href="@{/admin/pedidos}" th:classappend="${active == 'pedidos'} ? ' admin-link-active' : ''" class="flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-bold text-slate-600 hover:bg-surface-soft">
+		<a th:href="@{/admin/pedidos}" th:classappend="${active == 'pedidos'} ? ' admin-link-active' : ''" class="flex items-center gap-3 rounded-lg px-4 py-2.5 text-sm font-bold text-slate-600 hover:bg-surface-soft">
 			<span class="material-symbols-outlined">shopping_bag</span> Pedidos
 		</a>
-		<a th:href="@{/admin/ventas}" th:classappend="${active == 'ventas'} ? ' admin-link-active' : ''" class="flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-bold text-slate-600 hover:bg-surface-soft">
+		<a th:href="@{/admin/envios}" th:classappend="${active == 'envios'} ? ' admin-link-active' : ''" class="flex items-center gap-3 rounded-lg px-4 py-2.5 text-sm font-bold text-slate-600 hover:bg-surface-soft">
+			<span class="material-symbols-outlined">local_shipping</span> Envíos
+		</a>
+		<a th:href="@{/admin/ventas}" th:classappend="${active == 'ventas'} ? ' admin-link-active' : ''" class="flex items-center gap-3 rounded-lg px-4 py-2.5 text-sm font-bold text-slate-600 hover:bg-surface-soft">
 			<span class="material-symbols-outlined">point_of_sale</span> Ventas
 		</a>
-		<a th:href="@{/admin/clientes}" th:classappend="${active == 'clientes'} ? ' admin-link-active' : ''" class="flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-bold text-slate-600 hover:bg-surface-soft">
+		<a th:href="@{/admin/clientes}" th:classappend="${active == 'clientes'} ? ' admin-link-active' : ''" class="flex items-center gap-3 rounded-lg px-4 py-2.5 text-sm font-bold text-slate-600 hover:bg-surface-soft">
 			<span class="material-symbols-outlined">group</span> Clientes
 		</a>
-		<a th:href="@{/admin/configuracion}" th:classappend="${active == 'configuracion'} ? ' admin-link-active' : ''" class="flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-bold text-slate-600 hover:bg-surface-soft">
+		<a th:href="@{/admin/configuracion}" th:classappend="${active == 'configuracion'} ? ' admin-link-active' : ''" class="flex items-center gap-3 rounded-lg px-4 py-2.5 text-sm font-bold text-slate-600 hover:bg-surface-soft">
 			<span class="material-symbols-outlined">settings</span> Configuración
 		</a>
 	</nav>
-	<div class="border-t border-outline pt-4">
-		<a th:href="@{/admin/productos/nuevo}" class="mb-4 flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 text-sm font-bold text-white hover:opacity-90">
+	<div class="border-t border-outline pt-3">
+		<a th:href="@{/admin/productos/nuevo}" class="mb-3 flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-bold text-white hover:opacity-90">
 			<span class="material-symbols-outlined">add</span> Nuevo Producto
 		</a>
-		<a th:href="@{/}" class="flex w-full items-center justify-center gap-2 rounded-lg border border-outline bg-white px-4 py-3 text-sm font-bold text-primary hover:bg-surface-soft">
+		<a th:href="@{/}" class="flex w-full items-center justify-center gap-2 rounded-lg border border-outline bg-white px-4 py-2.5 text-sm font-bold text-primary hover:bg-surface-soft">
 			<span class="material-symbols-outlined">storefront</span> Volver a la tienda
 		</a>
 		<form th:action="@{/admin/logout}" method="post" class="mt-2">
-			<button class="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-sm font-bold text-slate-600 hover:bg-surface-soft">
+			<button class="flex w-full items-center gap-3 rounded-lg px-4 py-2.5 text-sm font-bold text-slate-600 hover:bg-surface-soft">
 				<span class="material-symbols-outlined">logout</span> Cerrar sesión
 			</button>
 		</form>
@@ -103,6 +106,7 @@
 		<a th:href="@{/admin/productos}" th:classappend="${active == 'productos'} ? ' bg-secondary-container text-on-secondary-container' : ' bg-surface-soft text-slate-600'" class="whitespace-nowrap rounded-full px-3 py-2">Productos</a>
 		<a th:href="@{/admin/categorias}" th:classappend="${active == 'categorias'} ? ' bg-secondary-container text-on-secondary-container' : ' bg-surface-soft text-slate-600'" class="whitespace-nowrap rounded-full px-3 py-2">Categorías</a>
 		<a th:href="@{/admin/pedidos}" th:classappend="${active == 'pedidos'} ? ' bg-secondary-container text-on-secondary-container' : ' bg-surface-soft text-slate-600'" class="whitespace-nowrap rounded-full px-3 py-2">Pedidos</a>
+		<a th:href="@{/admin/envios}" th:classappend="${active == 'envios'} ? ' bg-secondary-container text-on-secondary-container' : ' bg-surface-soft text-slate-600'" class="whitespace-nowrap rounded-full px-3 py-2">Envíos</a>
 		<a th:href="@{/admin/ventas}" th:classappend="${active == 'ventas'} ? ' bg-secondary-container text-on-secondary-container' : ' bg-surface-soft text-slate-600'" class="whitespace-nowrap rounded-full px-3 py-2">Ventas</a>
 		<a th:href="@{/admin/clientes}" th:classappend="${active == 'clientes'} ? ' bg-secondary-container text-on-secondary-container' : ' bg-surface-soft text-slate-600'" class="whitespace-nowrap rounded-full px-3 py-2">Clientes</a>
 		<a th:href="@{/admin/configuracion}" th:classappend="${active == 'configuracion'} ? ' bg-secondary-container text-on-secondary-container' : ' bg-surface-soft text-slate-600'" class="whitespace-nowrap rounded-full px-3 py-2">Config</a>
@@ -113,15 +117,6 @@
 	<div>
 		<h1 class="text-3xl font-black text-primary sm:text-4xl" th:text="${title}">Panel</h1>
 		<p class="mt-2 text-sm text-muted" th:text="${subtitle}">Resumen</p>
-	</div>
-	<div class="flex gap-3">
-		<label class="relative hidden sm:block">
-			<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-muted">search</span>
-			<input class="h-11 w-72 rounded-lg border border-outline bg-white pl-10 pr-4 text-sm outline-none focus:ring-2 focus:ring-primary/20" placeholder="Buscar pedido o producto...">
-		</label>
-		<button class="h-11 rounded-lg bg-white px-3 text-muted shadow-sm ring-1 ring-outline hover:bg-surface-soft">
-			<span class="material-symbols-outlined">notifications</span>
-		</button>
 	</div>
 </div>
 </body>

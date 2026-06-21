@@ -1,25 +1,36 @@
 package com.analistas.electrodental.web.controller;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.IntStream;
 
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
+import org.springframework.util.StringUtils;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.analistas.electrodental.model.domain.Cliente;
 import com.analistas.electrodental.model.domain.ConfiguracionTienda;
+import com.analistas.electrodental.model.domain.Envio;
+import com.analistas.electrodental.model.domain.Pedido;
 import com.analistas.electrodental.model.domain.Producto;
+import com.analistas.electrodental.model.repository.IEnvioRepository;
 import com.analistas.electrodental.model.repository.IPedidoRepository;
 import com.analistas.electrodental.model.repository.IClienteRepository;
 import com.analistas.electrodental.model.repository.IVentaPresencialRepository;
@@ -29,39 +40,49 @@ import com.analistas.electrodental.model.service.IConfiguracionTiendaService;
 import com.analistas.electrodental.model.service.IOcaService;
 import com.analistas.electrodental.model.service.IPedidoService;
 import com.analistas.electrodental.model.service.IProductoService;
+import com.analistas.electrodental.model.service.ProductoImagenStorageService;
 
 @Controller
 public class AdminController {
 
+	private static final int ENVIOS_PAGE_SIZE = 10;
+	private static final int PEDIDOS_PAGE_SIZE = 10;
+
 	private final IProductoService productoService;
 	private final IAdminDashboardService adminDashboardService;
 	private final IPedidoRepository pedidoRepository;
+	private final IEnvioRepository envioRepository;
 	private final IClienteRepository clienteRepository;
 	private final IVentaPresencialRepository ventaPresencialRepository;
 	private final ICategoriaService categoriaService;
 	private final IConfiguracionTiendaService configuracionTiendaService;
 	private final IOcaService ocaService;
 	private final IPedidoService pedidoService;
+	private final ProductoImagenStorageService productoImagenStorageService;
 
 	public AdminController(
 			IProductoService productoService,
 			IAdminDashboardService adminDashboardService,
 			IPedidoRepository pedidoRepository,
+			IEnvioRepository envioRepository,
 			IClienteRepository clienteRepository,
 			IVentaPresencialRepository ventaPresencialRepository,
 			ICategoriaService categoriaService,
 			IConfiguracionTiendaService configuracionTiendaService,
 			IOcaService ocaService,
-			IPedidoService pedidoService) {
+			IPedidoService pedidoService,
+			ProductoImagenStorageService productoImagenStorageService) {
 		this.productoService = productoService;
 		this.adminDashboardService = adminDashboardService;
 		this.pedidoRepository = pedidoRepository;
+		this.envioRepository = envioRepository;
 		this.clienteRepository = clienteRepository;
 		this.ventaPresencialRepository = ventaPresencialRepository;
 		this.categoriaService = categoriaService;
 		this.configuracionTiendaService = configuracionTiendaService;
 		this.ocaService = ocaService;
 		this.pedidoService = pedidoService;
+		this.productoImagenStorageService = productoImagenStorageService;
 	}
 
 	@GetMapping("/admin/login")
@@ -81,7 +102,7 @@ public class AdminController {
 
 	@GetMapping("/admin/productos")
 	public String productos(Model model) {
-		model.addAttribute("productos", productoService.listarActivos());
+		model.addAttribute("productos", productoService.listarTodos());
 		return "admin/productos";
 	}
 
@@ -100,12 +121,19 @@ public class AdminController {
 			@RequestParam(required = false) Long categoriaId,
 			@RequestParam(required = false) Long subcategoriaId,
 			@RequestParam(required = false) List<String> imagenesProducto,
+			@RequestParam(name = "imagenPrincipalArchivo", required = false) MultipartFile imagenPrincipalArchivo,
+			@RequestParam(name = "imagenesProductoArchivos", required = false) List<MultipartFile> imagenesProductoArchivos,
 			@RequestParam(required = false) List<String> caracteristicaNombres,
 			@RequestParam(required = false) List<String> caracteristicaDetalles,
 			RedirectAttributes redirectAttributes) {
-		prepararProducto(producto, categoriaId, subcategoriaId, imagenesProducto, caracteristicaNombres, caracteristicaDetalles);
-		productoService.guardar(producto);
-		redirectAttributes.addFlashAttribute("mensaje", "Producto guardado correctamente");
+		try {
+			prepararProducto(producto, categoriaId, subcategoriaId, imagenesProducto, imagenPrincipalArchivo, imagenesProductoArchivos, caracteristicaNombres, caracteristicaDetalles);
+			productoService.guardar(producto);
+			redirectAttributes.addFlashAttribute("mensaje", "Producto guardado correctamente");
+		} catch (RuntimeException ex) {
+			redirectAttributes.addFlashAttribute("mensaje", "No se pudo guardar el producto: " + ex.getMessage());
+			return "redirect:/admin/productos/nuevo";
+		}
 		return "redirect:/admin/productos";
 	}
 
@@ -113,6 +141,9 @@ public class AdminController {
 	public String editarProducto(@PathVariable Long id, Model model) {
 		Producto producto = productoService.buscarPorId(id)
 				.orElseThrow(() -> new IllegalArgumentException("Producto no encontrado: " + id));
+		if (producto.getCompraHabilitada() == null) {
+			producto.setCompraHabilitada(true);
+		}
 		model.addAttribute("producto", producto);
 		model.addAttribute("categorias", categoriaService.listarActivas());
 		cargarCamposEditablesProducto(model, producto);
@@ -126,20 +157,92 @@ public class AdminController {
 			@RequestParam(required = false) Long categoriaId,
 			@RequestParam(required = false) Long subcategoriaId,
 			@RequestParam(required = false) List<String> imagenesProducto,
+			@RequestParam(name = "imagenPrincipalArchivo", required = false) MultipartFile imagenPrincipalArchivo,
+			@RequestParam(name = "imagenesProductoArchivos", required = false) List<MultipartFile> imagenesProductoArchivos,
 			@RequestParam(required = false) List<String> caracteristicaNombres,
 			@RequestParam(required = false) List<String> caracteristicaDetalles,
 			RedirectAttributes redirectAttributes) {
 		producto.setId(id);
-		prepararProducto(producto, categoriaId, subcategoriaId, imagenesProducto, caracteristicaNombres, caracteristicaDetalles);
-		productoService.guardar(producto);
-		redirectAttributes.addFlashAttribute("mensaje", "Producto actualizado correctamente");
+		try {
+			prepararProducto(producto, categoriaId, subcategoriaId, imagenesProducto, imagenPrincipalArchivo, imagenesProductoArchivos, caracteristicaNombres, caracteristicaDetalles);
+			productoService.guardar(producto);
+			redirectAttributes.addFlashAttribute("mensaje", "Producto actualizado correctamente");
+		} catch (RuntimeException ex) {
+			redirectAttributes.addFlashAttribute("mensaje", "No se pudo actualizar el producto: " + ex.getMessage());
+			return "redirect:/admin/productos/" + id + "/editar";
+		}
+		return "redirect:/admin/productos";
+	}
+
+	@PostMapping("/admin/productos/{id}/eliminar")
+	public String eliminarProducto(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+		if (productoService.buscarPorId(id).isEmpty()) {
+			redirectAttributes.addFlashAttribute("mensaje", "El producto ya no existe.");
+			return "redirect:/admin/productos";
+		}
+		try {
+			productoService.eliminar(id);
+			redirectAttributes.addFlashAttribute("mensaje", "Producto eliminado correctamente.");
+		} catch (DataIntegrityViolationException ex) {
+			redirectAttributes.addFlashAttribute("mensaje",
+					"No se puede eliminar porque el producto tiene pedidos o ventas asociados. Podés marcarlo como inactivo.");
+		}
 		return "redirect:/admin/productos";
 	}
 
 	@GetMapping("/admin/pedidos")
-	public String pedidos(Model model) {
-		model.addAttribute("pedidos", pedidoRepository.findTop10ByOrderByFechaCreacionDesc());
+	public String pedidos(
+			@RequestParam(required = false) String q,
+			@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaDesde,
+			@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaHasta,
+			@RequestParam(defaultValue = "0") int page,
+			Model model) {
+		cargarPedidos(model, q, fechaDesde, fechaHasta, page);
 		return "admin/pedidos";
+	}
+
+	@GetMapping("/admin/pedidos/buscar")
+	public String buscarPedidos(
+			@RequestParam(required = false) String q,
+			@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaDesde,
+			@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaHasta,
+			@RequestParam(defaultValue = "0") int page,
+			Model model) {
+		cargarPedidos(model, q, fechaDesde, fechaHasta, page);
+		return "admin/pedidos :: tablaPedidos";
+	}
+
+	@GetMapping("/admin/envios")
+	public String envios(
+			@RequestParam(required = false) String q,
+			@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaDesde,
+			@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaHasta,
+			@RequestParam(defaultValue = "0") int page,
+			Model model) {
+		cargarEnvios(model, q, fechaDesde, fechaHasta, page);
+		return "admin/envios";
+	}
+
+	@GetMapping("/admin/envios/buscar")
+	public String buscarEnvios(
+			@RequestParam(required = false) String q,
+			@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaDesde,
+			@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaHasta,
+			@RequestParam(defaultValue = "0") int page,
+			Model model) {
+		cargarEnvios(model, q, fechaDesde, fechaHasta, page);
+		return "admin/envios :: tablaEnvios";
+	}
+
+	@PostMapping("/admin/envios/{id}/sincronizar")
+	public String sincronizarEnvio(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+		try {
+			var sincronizacion = ocaService.sincronizarEstadoEnvio(id);
+			redirectAttributes.addFlashAttribute("mensaje", sincronizacion.mensaje());
+		} catch (RuntimeException ex) {
+			redirectAttributes.addFlashAttribute("mensaje", "No se pudo sincronizar OCA: " + ex.getMessage());
+		}
+		return "redirect:/admin/envios";
 	}
 
 	@GetMapping("/admin/pedidos/{id}")
@@ -175,6 +278,23 @@ public class AdminController {
 				.contentType(MediaType.TEXT_HTML)
 				.header(HttpHeaders.CONTENT_DISPOSITION, ContentDisposition.attachment().filename(filename).build().toString())
 				.body(html);
+	}
+
+	@PostMapping("/admin/pedidos/{id}/envio/sincronizar")
+	public String sincronizarEnvioPedido(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+		var pedido = pedidoRepository.findDetalleById(id)
+				.orElseThrow(() -> new IllegalArgumentException("Pedido no encontrado: " + id));
+		if (pedido.getEnvio() == null) {
+			redirectAttributes.addFlashAttribute("mensaje", "El pedido no tiene envío OCA para sincronizar.");
+			return "redirect:/admin/pedidos/" + id;
+		}
+		try {
+			var sincronizacion = ocaService.sincronizarEstadoEnvio(pedido.getEnvio().getId());
+			redirectAttributes.addFlashAttribute("mensaje", sincronizacion.mensaje());
+		} catch (RuntimeException ex) {
+			redirectAttributes.addFlashAttribute("mensaje", "No se pudo sincronizar OCA: " + ex.getMessage());
+		}
+		return "redirect:/admin/pedidos/" + id;
 	}
 
 	@PostMapping("/admin/pedidos/{id}/eliminar")
@@ -283,12 +403,23 @@ public class AdminController {
 			Long categoriaId,
 			Long subcategoriaId,
 			List<String> imagenesProducto,
+			MultipartFile imagenPrincipalArchivo,
+			List<MultipartFile> imagenesProductoArchivos,
 			List<String> caracteristicaNombres,
 			List<String> caracteristicaDetalles) {
 		if (producto.getSlug() == null || producto.getSlug().isBlank()) {
 			producto.setSlug(generarSlug(producto.getNombre()));
 		}
-		producto.setImagenesAdicionales(formatearLineas(imagenesProducto, 10));
+		List<String> imagenesGaleria = prepararImagenesGaleria(imagenesProducto, imagenesProductoArchivos);
+		String imagenPrincipal = normalizarValorSimple(producto.getImagenPrincipal());
+		if (imagenPrincipalArchivo != null && !imagenPrincipalArchivo.isEmpty()) {
+			imagenPrincipal = productoImagenStorageService.guardar(imagenPrincipalArchivo);
+		}
+		if (imagenPrincipal.isBlank() && !imagenesGaleria.isEmpty()) {
+			imagenPrincipal = imagenesGaleria.remove(0);
+		}
+		producto.setImagenPrincipal(imagenPrincipal);
+		producto.setImagenesAdicionales(formatearLineas(imagenesGaleria, 10));
 		producto.setCaracteristicas(formatearCaracteristicas(caracteristicaNombres, caracteristicaDetalles));
 		if (categoriaId != null) {
 			categoriaService.buscarCategoriaPorId(categoriaId).ifPresent(producto::setCategoria);
@@ -302,9 +433,32 @@ public class AdminController {
 		producto.setActivo(producto.getActivo() != null && producto.getActivo());
 		producto.setDestacado(producto.getDestacado() != null && producto.getDestacado());
 		producto.setOferta(producto.getOferta() != null && producto.getOferta());
+		producto.setCompraHabilitada(producto.getCompraHabilitada() != null && producto.getCompraHabilitada());
 		producto.setStockWeb(producto.getStockWeb() == null ? 0 : producto.getStockWeb());
 		producto.setStockFisico(producto.getStockFisico() == null ? 0 : producto.getStockFisico());
 		producto.setStockMinimo(producto.getStockMinimo() == null ? 3 : producto.getStockMinimo());
+	}
+
+	private List<String> prepararImagenesGaleria(List<String> imagenesProducto, List<MultipartFile> imagenesProductoArchivos) {
+		List<String> imagenes = new ArrayList<>();
+		if (imagenesProducto != null) {
+			imagenesProducto.stream()
+					.map(this::normalizarValorSimple)
+					.filter(valor -> !valor.isBlank())
+					.limit(10)
+					.forEach(imagenes::add);
+		}
+		if (imagenesProductoArchivos != null) {
+			for (MultipartFile archivo : imagenesProductoArchivos) {
+				if (imagenes.size() >= 10) {
+					break;
+				}
+				if (archivo != null && !archivo.isEmpty()) {
+					imagenes.add(productoImagenStorageService.guardar(archivo));
+				}
+			}
+		}
+		return imagenes;
 	}
 
 	private String generarSlug(String nombre) {
@@ -407,6 +561,38 @@ public class AdminController {
 
 	private String valorConDefault(String valor, String defaultValue) {
 		return valor == null || valor.isBlank() ? defaultValue : valor.trim();
+	}
+
+	private void cargarEnvios(Model model, String q, LocalDate fechaDesde, LocalDate fechaHasta, int page) {
+		String termino = StringUtils.hasText(q) ? "%" + q.trim().toLowerCase() + "%" : null;
+		LocalDateTime desde = fechaDesde == null ? null : fechaDesde.atStartOfDay();
+		LocalDateTime hasta = fechaHasta == null ? null : fechaHasta.plusDays(1).atStartOfDay().minusNanos(1);
+		int pagina = Math.max(0, page);
+		Page<Envio> enviosPage = envioRepository.buscarDetalle(termino, desde, hasta, PageRequest.of(pagina, ENVIOS_PAGE_SIZE));
+		if (enviosPage.getTotalPages() > 0 && pagina >= enviosPage.getTotalPages()) {
+			enviosPage = envioRepository.buscarDetalle(termino, desde, hasta, PageRequest.of(enviosPage.getTotalPages() - 1, ENVIOS_PAGE_SIZE));
+		}
+		model.addAttribute("enviosPage", enviosPage);
+		model.addAttribute("envios", enviosPage.getContent());
+		model.addAttribute("q", StringUtils.hasText(q) ? q.trim() : "");
+		model.addAttribute("fechaDesde", fechaDesde);
+		model.addAttribute("fechaHasta", fechaHasta);
+	}
+
+	private void cargarPedidos(Model model, String q, LocalDate fechaDesde, LocalDate fechaHasta, int page) {
+		String termino = StringUtils.hasText(q) ? "%" + q.trim().toLowerCase() + "%" : null;
+		LocalDateTime desde = fechaDesde == null ? null : fechaDesde.atStartOfDay();
+		LocalDateTime hasta = fechaHasta == null ? null : fechaHasta.plusDays(1).atStartOfDay().minusNanos(1);
+		int pagina = Math.max(0, page);
+		Page<Pedido> pedidosPage = pedidoRepository.buscarDetalle(termino, desde, hasta, PageRequest.of(pagina, PEDIDOS_PAGE_SIZE));
+		if (pedidosPage.getTotalPages() > 0 && pagina >= pedidosPage.getTotalPages()) {
+			pedidosPage = pedidoRepository.buscarDetalle(termino, desde, hasta, PageRequest.of(pedidosPage.getTotalPages() - 1, PEDIDOS_PAGE_SIZE));
+		}
+		model.addAttribute("pedidosPage", pedidosPage);
+		model.addAttribute("pedidos", pedidosPage.getContent());
+		model.addAttribute("q", StringUtils.hasText(q) ? q.trim() : "");
+		model.addAttribute("fechaDesde", fechaDesde);
+		model.addAttribute("fechaHasta", fechaHasta);
 	}
 
 	private String normalizarValor(String valor) {

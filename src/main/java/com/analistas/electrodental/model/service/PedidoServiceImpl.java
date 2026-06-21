@@ -87,6 +87,9 @@ public class PedidoServiceImpl implements IPedidoService {
 		carrito.items().forEach(itemCarrito -> {
 			Producto producto = productoRepository.findById(itemCarrito.productoId())
 					.orElseThrow(() -> new IllegalArgumentException("Producto inexistente: " + itemCarrito.productoId()));
+			if (!producto.permiteCompraWeb()) {
+				throw new IllegalArgumentException("El producto " + producto.getNombre() + " está disponible solo para consulta");
+			}
 
 			PedidoItem item = new PedidoItem();
 			item.setProducto(producto);

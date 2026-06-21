@@ -7,43 +7,91 @@
 <main class="p-4 sm:p-6 lg:ml-64 lg:p-8">
 	<div th:replace="~{admin/fragments/layout :: topbar('Pedidos Recientes', 'Seguimiento de pedidos web, pago y envío cotizado.')}"></div>
 	<section class="admin-card overflow-hidden rounded-2xl">
-		<div class="border-b border-outline p-6">
-			<h2 class="text-2xl font-black text-primary">Pedidos</h2>
-			<p th:if="${mensaje}" class="mt-3 rounded-lg bg-green-50 px-4 py-3 text-sm font-bold text-green-800" th:text="${mensaje}">Mensaje</p>
+		<div class="border-b border-outline p-5">
+			<div class="flex flex-col gap-3 xl:flex-row xl:items-end xl:justify-between">
+				<div>
+					<h2 class="text-2xl font-black text-primary">Pedidos</h2>
+					<p class="mt-1 text-sm text-muted">Buscá por cliente, DNI, email o código de compra.</p>
+					<p th:if="${mensaje}" class="mt-3 rounded-lg bg-green-50 px-4 py-3 text-sm font-bold text-green-800" th:text="${mensaje}">Mensaje</p>
+				</div>
+				<form id="pedidos-filtros" class="grid gap-3 sm:grid-cols-[minmax(220px,1fr)_150px_150px_auto] xl:w-[760px]">
+					<label class="relative">
+						<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[20px] text-muted">search</span>
+						<input name="q" th:value="${q}" class="h-10 w-full rounded-lg border border-outline bg-white pl-10 pr-3 text-sm outline-none focus:ring-2 focus:ring-primary/20" placeholder="Cliente o código">
+					</label>
+					<input name="fechaDesde" type="date" th:value="${fechaDesde}" class="h-10 rounded-lg border border-outline bg-white px-3 text-sm outline-none focus:ring-2 focus:ring-primary/20">
+					<input name="fechaHasta" type="date" th:value="${fechaHasta}" class="h-10 rounded-lg border border-outline bg-white px-3 text-sm outline-none focus:ring-2 focus:ring-primary/20">
+					<button type="button" id="pedidos-limpiar" class="h-10 rounded-lg border border-outline bg-white px-4 text-sm font-black text-primary hover:bg-surface-soft">Limpiar</button>
+				</form>
+			</div>
 		</div>
-		<div class="overflow-x-auto">
-			<table class="w-full min-w-[760px] text-left text-sm">
-				<thead class="bg-surface-soft text-xs uppercase text-muted">
-					<tr><th class="px-6 py-4">ID</th><th class="px-6 py-4">Código</th><th class="px-6 py-4">Cliente</th><th class="px-6 py-4">Entrega</th><th class="px-6 py-4">Fecha</th><th class="px-6 py-4">Estado</th><th class="px-6 py-4">Total</th><th class="px-6 py-4 text-right">Acciones</th></tr>
-				</thead>
-				<tbody class="divide-y divide-outline">
-					<tr th:if="${#lists.isEmpty(pedidos)}"><td colspan="8" class="p-10 text-center text-muted">Aun no hay pedidos...</td></tr>
-					<tr th:each="pedido : ${pedidos}" class="hover:bg-surface-soft">
-						<td class="px-6 py-5 font-black" th:text="|#${pedido.id}|">#1</td>
-						<td class="px-6 py-5"><span class="rounded bg-surface-soft px-2 py-1 text-xs font-black text-primary" th:text="${pedido.codigoCompra ?: 'Sin código'}">RET-000</span></td>
-						<td class="px-6 py-5" th:text="|${pedido.cliente.nombre} ${pedido.cliente.apellidoRazonSocial ?: ''}|">Cliente</td>
-						<td class="px-6 py-5 text-muted" th:text="${pedido.metodoEntrega ?: 'SUCURSAL'}">Entrega</td>
-						<td class="px-6 py-5 text-muted" th:text="${#temporals.format(pedido.fechaCreacion, 'dd-MM-yyyy HH:mm')}">Fecha</td>
-						<td class="px-6 py-5"><span class="rounded-full bg-surface-soft px-3 py-1 text-xs font-black" th:text="${pedido.estadoPedido}">Estado</span></td>
-						<td class="px-6 py-5 font-black" th:text="|$ ${pedido.total}|">$0</td>
-						<td class="px-6 py-5 text-right">
-							<div class="flex justify-end gap-2">
-								<a th:href="@{/admin/pedidos/{id}(id=${pedido.id})}" class="rounded-lg p-2 text-primary hover:bg-primary/5" title="Ver detalle">
-									<span class="material-symbols-outlined">visibility</span>
-								</a>
-								<button type="button"
-										class="rounded-lg p-2 text-secondary hover:bg-secondary/10"
-										title="Eliminar pedido"
-										th:data-delete-url="@{/admin/pedidos/{id}/eliminar(id=${pedido.id})}"
-										th:data-delete-code="${pedido.codigoCompra ?: '#' + pedido.id}"
-										onclick="openDeletePedidoModal(this)">
-									<span class="material-symbols-outlined">delete</span>
-								</button>
-							</div>
-						</td>
-					</tr>
-				</tbody>
-			</table>
+
+		<div id="pedidos-results" th:fragment="tablaPedidos">
+			<div class="flex flex-col gap-2 border-b border-outline px-5 py-3 text-xs font-bold text-muted sm:flex-row sm:items-center sm:justify-between">
+				<span th:text="|${pedidosPage.totalElements} pedido(s) encontrado(s)|">0 pedido(s) encontrado(s)</span>
+				<span th:if="${pedidosPage.totalPages > 0}" th:text="|Página ${pedidosPage.number + 1} de ${pedidosPage.totalPages}|">Página 1 de 1</span>
+			</div>
+			<div class="overflow-x-auto">
+				<table class="w-full min-w-[900px] text-left text-sm">
+					<thead class="bg-surface-soft text-xs uppercase text-muted">
+						<tr>
+							<th class="px-5 py-3">ID</th>
+							<th class="px-5 py-3">Código</th>
+							<th class="px-5 py-3">Cliente</th>
+							<th class="px-5 py-3">Entrega</th>
+							<th class="px-5 py-3">Fecha</th>
+							<th class="px-5 py-3">Estado</th>
+							<th class="px-5 py-3">Total</th>
+							<th class="px-5 py-3 text-right">Acciones</th>
+						</tr>
+					</thead>
+					<tbody class="divide-y divide-outline">
+						<tr th:if="${#lists.isEmpty(pedidos)}">
+							<td colspan="8" class="p-10 text-center text-muted">No hay pedidos para esos filtros.</td>
+						</tr>
+						<tr th:each="pedido : ${pedidos}" class="hover:bg-surface-soft">
+							<td class="px-5 py-4 font-black" th:text="|#${pedido.id}|">#1</td>
+							<td class="px-5 py-4">
+								<span class="rounded bg-surface-soft px-2 py-1 text-xs font-black text-primary" th:text="${pedido.codigoCompra ?: 'Sin código'}">RET-000</span>
+							</td>
+							<td class="px-5 py-4">
+								<p class="font-bold text-primary" th:text="|${pedido.cliente.nombre} ${pedido.cliente.apellidoRazonSocial ?: ''}|">Cliente</p>
+								<p class="mt-1 text-xs font-semibold text-muted" th:text="${pedido.cliente.email ?: pedido.cliente.dniCuit ?: 'Sin dato'}">Dato</p>
+							</td>
+							<td class="px-5 py-4 text-muted" th:text="${pedido.metodoEntrega ?: 'SUCURSAL'}">Entrega</td>
+							<td class="px-5 py-4 text-muted" th:text="${#temporals.format(pedido.fechaCreacion, 'dd-MM-yyyy HH:mm')}">Fecha</td>
+							<td class="px-5 py-4">
+								<span class="rounded-full px-3 py-1 text-xs font-black"
+									  th:classappend="${pedido.estadoPedido.name() == 'PENDIENTE_PAGO'} ? ' bg-amber-100 text-amber-800' : (${pedido.estadoPedido.name() == 'PAGADO'} ? ' bg-blue-100 text-blue-800' : (${pedido.estadoPedido.name() == 'ENTREGADO'} ? ' bg-green-100 text-green-800' : (${pedido.estadoPedido.name() == 'CANCELADO'} ? ' bg-red-100 text-red-800' : ' bg-surface-soft text-primary')))"
+									  th:text="${pedido.estadoPedido}">Estado</span>
+							</td>
+							<td class="px-5 py-4 font-black text-primary" th:text="${@money.format(pedido.total)}">$ 0,00</td>
+							<td class="px-5 py-4 text-right">
+								<div class="flex justify-end gap-2">
+									<a th:href="@{/admin/pedidos/{id}(id=${pedido.id})}" class="rounded-lg p-2 text-primary hover:bg-primary/5" title="Ver detalle">
+										<span class="material-symbols-outlined">visibility</span>
+									</a>
+									<button type="button"
+											class="rounded-lg p-2 text-secondary hover:bg-secondary/10"
+											title="Eliminar pedido"
+											th:data-delete-url="@{/admin/pedidos/{id}/eliminar(id=${pedido.id})}"
+											th:data-delete-code="${pedido.codigoCompra ?: '#' + pedido.id}"
+											onclick="openDeletePedidoModal(this)">
+										<span class="material-symbols-outlined">delete</span>
+									</button>
+								</div>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+			<div class="flex flex-col gap-3 border-t border-outline px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+				<p class="text-xs font-bold text-muted" th:if="${pedidosPage.totalElements > 0}" th:text="|Mostrando ${pedidosPage.number * pedidosPage.size + 1}-${pedidosPage.number * pedidosPage.size + pedidosPage.numberOfElements} de ${pedidosPage.totalElements}|">Mostrando</p>
+				<div class="flex justify-end gap-2">
+					<button type="button" class="pedidos-page rounded-lg border border-outline px-3 py-2 text-xs font-black text-primary disabled:cursor-not-allowed disabled:opacity-40" th:disabled="${!pedidosPage.hasPrevious()}" th:attr="data-page=${pedidosPage.number - 1}">Anterior</button>
+					<button type="button" class="pedidos-page rounded-lg border border-outline px-3 py-2 text-xs font-black text-primary disabled:cursor-not-allowed disabled:opacity-40" th:disabled="${!pedidosPage.hasNext()}" th:attr="data-page=${pedidosPage.number + 1}">Siguiente</button>
+				</div>
+			</div>
 		</div>
 	</section>
 	<dialog id="deletePedidoModal" class="w-[min(92vw,420px)] rounded-2xl border border-outline p-0 shadow-2xl">
@@ -61,15 +109,65 @@
 	</dialog>
 </main>
 <script>
+	const filtrosPedidos = document.querySelector("#pedidos-filtros");
+	const limpiarPedidos = document.querySelector("#pedidos-limpiar");
+	let pedidosTimer;
+
+	function parametrosPedidos(page = 0) {
+		const params = new URLSearchParams(new FormData(filtrosPedidos));
+		params.set("page", page);
+		return params;
+	}
+
+	async function cargarPedidos(page = 0, actualizarUrl = true) {
+		const params = parametrosPedidos(page);
+		const response = await fetch(`/admin/pedidos/buscar?${params.toString()}`, { headers: { "X-Requested-With": "XMLHttpRequest" } });
+		if (!response.ok) {
+			throw new Error("No se pudieron cargar los pedidos.");
+		}
+		const html = await response.text();
+		document.querySelector("#pedidos-results").outerHTML = html;
+		vincularPaginadoPedidos();
+		if (actualizarUrl) {
+			window.history.replaceState(null, "", `/admin/pedidos?${params.toString()}`);
+		}
+	}
+
+	function buscarPedidosConEspera() {
+		clearTimeout(pedidosTimer);
+		pedidosTimer = setTimeout(() => cargarPedidos(0).catch(console.error), 250);
+	}
+
+	function vincularPaginadoPedidos() {
+		document.querySelectorAll(".pedidos-page").forEach((button) => {
+			button.addEventListener("click", () => cargarPedidos(Number(button.dataset.page || 0)).catch(console.error));
+		});
+	}
+
 	function openDeletePedidoModal(button) {
-		const modal = document.getElementById('deletePedidoModal');
-		document.getElementById('deletePedidoForm').action = button.dataset.deleteUrl;
-		document.getElementById('deletePedidoCode').textContent = button.dataset.deleteCode;
+		const modal = document.getElementById("deletePedidoModal");
+		document.getElementById("deletePedidoForm").action = button.dataset.deleteUrl;
+		document.getElementById("deletePedidoCode").textContent = button.dataset.deleteCode;
 		modal.showModal();
 	}
 
 	function closeDeletePedidoModal() {
-		document.getElementById('deletePedidoModal').close();
+		document.getElementById("deletePedidoModal").close();
+	}
+
+	if (filtrosPedidos) {
+		filtrosPedidos.addEventListener("submit", (event) => {
+			event.preventDefault();
+			cargarPedidos(0).catch(console.error);
+		});
+		filtrosPedidos.querySelectorAll("input").forEach((input) => {
+			input.addEventListener(input.type === "date" ? "change" : "input", buscarPedidosConEspera);
+		});
+		limpiarPedidos?.addEventListener("click", () => {
+			filtrosPedidos.reset();
+			cargarPedidos(0).catch(console.error);
+		});
+		vincularPaginadoPedidos();
 	}
 </script>
 </body>

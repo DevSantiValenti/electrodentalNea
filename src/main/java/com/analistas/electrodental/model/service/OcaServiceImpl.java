@@ -9,9 +9,11 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 
 import javax.xml.XMLConstants;
@@ -43,6 +45,7 @@ import com.analistas.electrodental.model.domain.ProveedorEnvio;
 import com.analistas.electrodental.model.domain.dto.OcaCotizacionRequestDTO;
 import com.analistas.electrodental.model.domain.dto.OcaCotizacionResponseDTO;
 import com.analistas.electrodental.model.domain.dto.OcaCreacionEnvioResponseDTO;
+import com.analistas.electrodental.model.domain.dto.OcaSincronizacionEnvioResponseDTO;
 import com.analistas.electrodental.model.domain.dto.OcaSucursalDTO;
 import com.analistas.electrodental.model.repository.IEnvioRepository;
 import com.analistas.electrodental.web.config.OcaProperties;
@@ -52,6 +55,7 @@ public class OcaServiceImpl implements IOcaService {
 
 	private static final BigDecimal CM3_EN_M3 = new BigDecimal("1000000");
 	private static final DateTimeFormatter FECHA_OCA = DateTimeFormatter.BASIC_ISO_DATE;
+	private static final DateTimeFormatter FECHA_LISTADO_OCA = DateTimeFormatter.ofPattern("dd-MM-yyyy");
 	private static final String TIPO_DOMICILIO = "DOMICILIO";
 	private static final String TIPO_SUCURSAL = "SUCURSAL";
 
@@ -331,6 +335,54 @@ public class OcaServiceImpl implements IOcaService {
 		return html;
 	}
 
+	@Override
+	@Transactional
+	public OcaSincronizacionEnvioResponseDTO sincronizarEstadoEnvio(Long envioId) {
+		Envio envio = envioRepository.findDetalleById(envioId)
+				.orElseThrow(() -> new IllegalArgumentException("Envio no encontrado: " + envioId));
+		if (!StringUtils.hasText(envio.getNumeroOrdenRetiro())
+				&& !StringUtils.hasText(envio.getNumeroEnvio())
+				&& !StringUtils.hasText(envio.getTracking())) {
+			throw new IllegalStateException("El envio aun no tiene orden, numero de envio ni tracking para consultar OCA.");
+		}
+		if (!StringUtils.hasText(properties.getApiUrl()) || !StringUtils.hasText(properties.getCuit())) {
+			throw new IllegalStateException("Configura oca.api-url y oca.cuit para sincronizar estados.");
+		}
+
+		LocalDate fechaReferencia = Optional.ofNullable(envio.getFechaCreacionEnvio())
+				.orElseGet(() -> Optional.ofNullable(envio.getFechaCotizacion()).orElse(LocalDateTime.now()))
+				.toLocalDate();
+		LocalDate fechaDesde = fechaReferencia.minusDays(10);
+		LocalDate fechaHasta = LocalDate.now().plusDays(1);
+
+		try {
+			String responseXml = RestClient.create()
+					.post()
+					.uri(endpoint("List_Envios"))
+					.contentType(MediaType.APPLICATION_FORM_URLENCODED)
+					.body(formListadoEnvios(fechaDesde, fechaHasta))
+					.retrieve()
+					.body(String.class);
+
+			Document response = parseXml(responseXml);
+			String estadoOca = buscarEstadoEnvioEnListado(response, envio);
+			EstadoEnvio estadoNuevo = mapearEstadoOca(estadoOca)
+					.orElseThrow(() -> new IllegalStateException("OCA no devolvio un estado reconocible para este envio."));
+			EstadoEnvio estadoAnterior = envio.getEstadoEnvio();
+			boolean actualizado = estadoAnterior != estadoNuevo;
+			if (actualizado) {
+				envio.setEstadoEnvio(estadoNuevo);
+				envioRepository.save(envio);
+			}
+			String mensaje = actualizado
+					? "Estado OCA actualizado: " + estadoAnterior + " -> " + estadoNuevo
+					: "Estado OCA sin cambios: " + estadoNuevo;
+			return new OcaSincronizacionEnvioResponseDTO(actualizado, estadoAnterior, estadoNuevo, mensaje, responseXml);
+		} catch (RestClientResponseException ex) {
+			throw new IllegalStateException(ex.getMessage(), ex);
+		}
+	}
+
 	private String solicitarEtiquetaPdf(Envio envio, String operacion) {
 		return RestClient.create()
 				.post()
@@ -523,6 +575,14 @@ public class OcaServiceImpl implements IOcaService {
 		return form;
 	}
 
+	private MultiValueMap<String, String> formListadoEnvios(LocalDate fechaDesde, LocalDate fechaHasta) {
+		MultiValueMap<String, String> form = new LinkedMultiValueMap<>();
+		form.add("CUIT", properties.getCuit());
+		form.add("FechaDesde", fechaDesde.format(FECHA_LISTADO_OCA));
+		form.add("FechaHasta", fechaHasta.format(FECHA_LISTADO_OCA));
+		return form;
+	}
+
 	private Envio obtenerEnvio(Pedido pedido) {
 		if (pedido.getId() != null) {
 			return envioRepository.findByPedidoId(pedido.getId()).orElseGet(Envio::new);
@@ -608,6 +668,92 @@ public class OcaServiceImpl implements IOcaService {
 		return "";
 	}
 
+	private String buscarEstadoEnvioEnListado(Document document, Envio envio) {
+		Set<String> claves = clavesEnvio(envio);
+		Element candidato = null;
+		int textoMasCorto = Integer.MAX_VALUE;
+		NodeList nodes = document.getElementsByTagName("*");
+		for (int i = 0; i < nodes.getLength(); i++) {
+			Element element = (Element) nodes.item(i);
+			String texto = normalizarClave(element.getTextContent());
+			if (!StringUtils.hasText(texto) || claves.stream().noneMatch(texto::contains)) {
+				continue;
+			}
+			if (texto.length() < textoMasCorto) {
+				candidato = element;
+				textoMasCorto = texto.length();
+			}
+		}
+		if (candidato == null) {
+			throw new IllegalStateException("No se encontro el envio en el listado devuelto por OCA.");
+		}
+		String estado = textOfFirst(candidato,
+				"Estado",
+				"EstadoEnvio",
+				"EstadoEntrega",
+				"DescripcionEstado",
+				"DescEstado",
+				"UltimoEstado",
+				"Evento",
+				"Descripcion",
+				"Resultado");
+		return StringUtils.hasText(estado) ? estado : candidato.getTextContent();
+	}
+
+	private Set<String> clavesEnvio(Envio envio) {
+		Set<String> claves = new LinkedHashSet<>();
+		agregarClave(claves, envio.getNumeroEnvio());
+		agregarClave(claves, envio.getNumeroOrdenRetiro());
+		agregarClave(claves, envio.getTracking());
+		if (envio.getPedido() != null) {
+			agregarClave(claves, envio.getPedido().getCodigoCompra());
+			if (envio.getPedido().getId() != null) {
+				agregarClave(claves, envio.getPedido().getId().toString());
+			}
+		}
+		return claves;
+	}
+
+	private void agregarClave(Set<String> claves, String valor) {
+		String clave = normalizarClave(valor);
+		if (StringUtils.hasText(clave) && clave.length() >= 3) {
+			claves.add(clave);
+		}
+	}
+
+	private Optional<EstadoEnvio> mapearEstadoOca(String estadoOca) {
+		String estado = normalizarClave(estadoOca);
+		if (!StringUtils.hasText(estado)) {
+			return Optional.empty();
+		}
+		if (estado.contains("entreg") || estado.contains("recibid")) {
+			return Optional.of(EstadoEnvio.ENTREGADO);
+		}
+		if (estado.contains("despach")
+				|| estado.contains("transito")
+				|| estado.contains("distribucion")
+				|| estado.contains("viaje")
+				|| estado.contains("admitid")
+				|| estado.contains("sucursal destino")) {
+			return Optional.of(EstadoEnvio.DESPACHADO);
+		}
+		if (estado.contains("pendiente")
+				|| estado.contains("generad")
+				|| estado.contains("ingresad")
+				|| estado.contains("orden")
+				|| estado.contains("retiro")) {
+			return Optional.of(EstadoEnvio.PENDIENTE_DESPACHO);
+		}
+		if (estado.contains("cancel")
+				|| estado.contains("rechaz")
+				|| estado.contains("error")
+				|| estado.contains("fall")
+				|| estado.contains("devuelt")) {
+			return Optional.of(EstadoEnvio.FALLIDO);
+		}
+		return Optional.empty();
+	}
+
 	private Document parseXml(String xml) {
 		try {
 			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -633,10 +779,14 @@ public class OcaServiceImpl implements IOcaService {
 	}
 
 	private String textOfFirst(Document document, String... nombres) {
+		return textOfFirst(document.getDocumentElement(), nombres);
+	}
+
+	private String textOfFirst(Element root, String... nombres) {
 		Set<String> buscados = Set.of(nombres).stream()
 				.map(nombre -> nombre.toLowerCase(Locale.ROOT))
 				.collect(java.util.stream.Collectors.toSet());
-		NodeList nodes = document.getElementsByTagName("*");
+		NodeList nodes = root.getElementsByTagName("*");
 		for (int i = 0; i < nodes.getLength(); i++) {
 			Element element = (Element) nodes.item(i);
 			String nombre = element.getLocalName() == null ? element.getNodeName() : element.getLocalName();
@@ -680,6 +830,14 @@ public class OcaServiceImpl implements IOcaService {
 				.replace("&", " ")
 				.replace("<", " ")
 				.replace(">", " ")
+				.replaceAll("\\s+", " ")
+				.trim();
+	}
+
+	private String normalizarClave(String valor) {
+		return normalizarOca(valor)
+				.toLowerCase(Locale.ROOT)
+				.replaceAll("[^a-z0-9]+", " ")
 				.replaceAll("\\s+", " ")
 				.trim();
 	}

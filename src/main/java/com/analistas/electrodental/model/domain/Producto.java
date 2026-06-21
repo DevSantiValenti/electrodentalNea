@@ -69,6 +69,8 @@ public class Producto {
 
 	private Boolean oferta = false;
 
+	private Boolean compraHabilitada = true;
+
 	@Column(precision = 5, scale = 2)
 	private BigDecimal porcentajeOferta = BigDecimal.ZERO;
 
@@ -113,5 +115,9 @@ public class Producto {
 
 	public boolean tieneStockFisico(Integer cantidad) {
 		return stockFisico != null && cantidad != null && stockFisico >= cantidad;
+	}
+
+	public boolean permiteCompraWeb() {
+		return !Boolean.FALSE.equals(compraHabilitada);
 	}
 }

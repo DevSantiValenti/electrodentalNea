@@ -29,7 +29,7 @@
 						<td class="px-6 py-5 font-bold" th:text="${#lists.size(venta.items)}">1</td>
 						<td class="px-6 py-5" th:text="${venta.metodoPago}">EFECTIVO</td>
 						<td class="px-6 py-5" th:text="${venta.usuarioAdmin ?: 'Admin'}">Admin</td>
-						<td class="px-6 py-5 font-black text-secondary" th:text="|$ ${venta.total}|">$0</td>
+						<td class="px-6 py-5 font-black text-secondary" th:text="${@money.format(venta.total)}">$ 0,00</td>
 						<td class="px-6 py-5 text-muted" th:text="${venta.fecha}">Fecha</td>
 					</tr>
 				</tbody>

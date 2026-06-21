@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/fragments/layout :: head('Admin | Envíos')}"></head>
+<body class="admin-shell text-slate-900">
+<aside th:replace="~{admin/fragments/layout :: sidebar('envios')}"></aside>
+<header th:replace="~{admin/fragments/layout :: mobilebar('envios')}"></header>
+<main class="p-4 sm:p-6 lg:ml-64 lg:p-8">
+	<div th:replace="~{admin/fragments/layout :: topbar('Envíos OCA', 'Listado local de envíos creados y cotizados para pedidos web.')}"></div>
+
+	<section class="admin-card overflow-hidden rounded-2xl">
+		<div class="border-b border-outline p-5">
+			<div class="flex flex-col gap-3 xl:flex-row xl:items-end xl:justify-between">
+				<div>
+					<h2 class="text-2xl font-black text-primary">Envíos</h2>
+					<p class="mt-1 text-sm text-muted">Buscá por pedido, orden, tracking o cliente.</p>
+					<p th:if="${mensaje}" class="mt-3 rounded-lg bg-amber-50 px-4 py-3 text-sm font-bold text-amber-800" th:text="${mensaje}">Mensaje</p>
+				</div>
+				<form id="envios-filtros" class="grid gap-3 sm:grid-cols-[minmax(220px,1fr)_150px_150px_auto] xl:w-[760px]">
+					<label class="relative">
+						<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[20px] text-muted">search</span>
+						<input name="q" th:value="${q}" class="h-10 w-full rounded-lg border border-outline bg-white pl-10 pr-3 text-sm outline-none focus:ring-2 focus:ring-primary/20" placeholder="Pedido, orden o cliente">
+					</label>
+					<input name="fechaDesde" type="date" th:value="${fechaDesde}" class="h-10 rounded-lg border border-outline bg-white px-3 text-sm outline-none focus:ring-2 focus:ring-primary/20">
+					<input name="fechaHasta" type="date" th:value="${fechaHasta}" class="h-10 rounded-lg border border-outline bg-white px-3 text-sm outline-none focus:ring-2 focus:ring-primary/20">
+					<button type="button" id="envios-limpiar" class="h-10 rounded-lg border border-outline bg-white px-4 text-sm font-black text-primary hover:bg-surface-soft">Limpiar</button>
+				</form>
+			</div>
+		</div>
+
+		<div id="envios-results" th:fragment="tablaEnvios">
+			<div class="flex flex-col gap-2 border-b border-outline px-5 py-3 text-xs font-bold text-muted sm:flex-row sm:items-center sm:justify-between">
+				<span th:text="|${enviosPage.totalElements} envío(s) encontrado(s)|">0 envío(s) encontrado(s)</span>
+				<span th:if="${enviosPage.totalPages > 0}" th:text="|Página ${enviosPage.number + 1} de ${enviosPage.totalPages}|">Página 1 de 1</span>
+			</div>
+			<div class="overflow-x-auto">
+				<table class="w-full min-w-[1080px] text-left text-sm">
+					<thead class="bg-surface-soft text-xs uppercase text-muted">
+						<tr>
+							<th class="px-5 py-3">Pedido</th>
+							<th class="px-5 py-3">Cliente</th>
+							<th class="px-5 py-3">Modalidad</th>
+							<th class="px-5 py-3">Destino</th>
+							<th class="px-5 py-3">Estado OCA</th>
+							<th class="px-5 py-3">Orden / Tracking</th>
+							<th class="px-5 py-3">Fecha</th>
+							<th class="px-5 py-3">Costo</th>
+							<th class="px-5 py-3 text-right">Acciones</th>
+						</tr>
+					</thead>
+					<tbody class="divide-y divide-outline">
+						<tr th:if="${#lists.isEmpty(envios)}">
+							<td colspan="9" class="p-10 text-center text-muted">No hay envíos OCA para esos filtros.</td>
+						</tr>
+						<tr th:each="envio : ${envios}" class="hover:bg-surface-soft">
+							<td class="px-5 py-4">
+								<p class="font-black text-primary" th:text="|#${envio.pedido.id}|">#1</p>
+								<p class="mt-1 w-fit rounded bg-surface-soft px-2 py-1 text-xs font-black text-primary" th:text="${envio.pedido.codigoCompra ?: 'Sin código'}">WEB-000</p>
+							</td>
+							<td class="px-5 py-4">
+								<p class="font-bold text-primary" th:text="|${envio.pedido.cliente.nombre} ${envio.pedido.cliente.apellidoRazonSocial ?: ''}|">Cliente</p>
+								<p class="mt-1 text-xs font-semibold text-muted" th:text="${envio.pedido.cliente.email ?: 'Sin email'}">email</p>
+							</td>
+							<td class="px-5 py-4">
+								<span class="rounded-full bg-surface-soft px-3 py-1 text-xs font-black text-primary" th:text="${envio.tipoEntregaOca ?: 'OCA'}">OCA</span>
+								<p class="mt-2 text-xs font-semibold text-muted" th:text="${envio.operativa != null ? 'Operativa ' + envio.operativa : 'Sin operativa'}">Operativa</p>
+							</td>
+							<td class="px-5 py-4">
+								<p class="font-bold text-primary" th:if="${envio.sucursalDestino != null}" th:text="${envio.sucursalDestino}">Sucursal</p>
+								<p class="font-bold text-primary" th:if="${envio.sucursalDestino == null}" th:text="${envio.ciudadDestino ?: 'Destino sin ciudad'}">Destino</p>
+								<p class="mt-1 text-xs font-semibold text-muted" th:text="${envio.sucursalDestinoDireccion ?: 'CP ' + (envio.codigoPostalDestino ?: '-')}">Dirección</p>
+							</td>
+							<td class="px-5 py-4">
+								<span class="rounded-full px-3 py-1 text-xs font-black"
+									  th:classappend="${envio.estadoEnvio.name() == 'PENDIENTE_DESPACHO'} ? ' bg-amber-100 text-amber-800' : (${envio.estadoEnvio.name() == 'DESPACHADO'} ? ' bg-blue-100 text-blue-800' : (${envio.estadoEnvio.name() == 'ENTREGADO'} ? ' bg-green-100 text-green-800' : (${envio.estadoEnvio.name() == 'FALLIDO'} ? ' bg-red-100 text-red-800' : ' bg-surface-soft text-primary')))"
+									  th:text="${envio.estadoEnvio}">Estado</span>
+							</td>
+							<td class="px-5 py-4">
+								<p class="font-bold text-primary" th:text="${envio.numeroOrdenRetiro != null ? 'Orden ' + envio.numeroOrdenRetiro : 'Sin orden'}">Orden</p>
+								<p class="mt-1 text-xs font-semibold text-muted" th:text="${envio.numeroEnvio != null ? 'Envío ' + envio.numeroEnvio : (envio.tracking != null ? 'Tracking ' + envio.tracking : 'Sin tracking')}">Tracking</p>
+							</td>
+							<td class="px-5 py-4 text-muted">
+								<span th:if="${envio.fechaCreacionEnvio != null}" th:text="${#temporals.format(envio.fechaCreacionEnvio, 'dd-MM-yyyy HH:mm')}">Fecha</span>
+								<span th:if="${envio.fechaCreacionEnvio == null && envio.fechaCotizacion != null}" th:text="${#temporals.format(envio.fechaCotizacion, 'dd-MM-yyyy HH:mm')}">Fecha</span>
+								<span th:if="${envio.fechaCreacionEnvio == null && envio.fechaCotizacion == null}">Sin fecha</span>
+							</td>
+							<td class="px-5 py-4 font-black text-primary" th:text="${@money.format(envio.costoCotizado ?: 0)}">$ 0,00</td>
+							<td class="px-5 py-4 text-right">
+								<div class="flex justify-end gap-2">
+									<a th:href="@{/admin/pedidos/{id}(id=${envio.pedido.id})}" class="inline-flex items-center gap-2 rounded-lg border border-outline bg-white px-3 py-2 text-xs font-black text-primary hover:bg-surface-soft" title="Ir al pedido">
+										<span class="material-symbols-outlined text-[18px]">open_in_new</span> Pedido
+									</a>
+								<a th:href="@{/admin/pedidos/{id}/envio/ticket(id=${envio.pedido.id})}" class="inline-flex items-center gap-2 rounded-lg bg-secondary px-3 py-2 text-xs font-black text-white hover:opacity-90" title="Descargar etiqueta">
+									<span class="material-symbols-outlined text-[18px]">download</span> Etiqueta
+								</a>
+								<form th:action="@{/admin/envios/{id}/sincronizar(id=${envio.id})}" method="post">
+									<button type="submit" class="inline-flex items-center gap-2 rounded-lg border border-outline bg-white px-3 py-2 text-xs font-black text-primary hover:bg-surface-soft" title="Sincronizar estado con OCA">
+										<span class="material-symbols-outlined text-[18px]">sync</span> Sync
+									</button>
+								</form>
+							</div>
+						</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+			<div class="flex flex-col gap-3 border-t border-outline px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+				<p class="text-xs font-bold text-muted" th:if="${enviosPage.totalElements > 0}" th:text="|Mostrando ${enviosPage.number * enviosPage.size + 1}-${enviosPage.number * enviosPage.size + enviosPage.numberOfElements} de ${enviosPage.totalElements}|">Mostrando</p>
+				<div class="flex justify-end gap-2">
+					<button type="button" class="envios-page rounded-lg border border-outline px-3 py-2 text-xs font-black text-primary disabled:cursor-not-allowed disabled:opacity-40" th:disabled="${!enviosPage.hasPrevious()}" th:attr="data-page=${enviosPage.number - 1}">Anterior</button>
+					<button type="button" class="envios-page rounded-lg border border-outline px-3 py-2 text-xs font-black text-primary disabled:cursor-not-allowed disabled:opacity-40" th:disabled="${!enviosPage.hasNext()}" th:attr="data-page=${enviosPage.number + 1}">Siguiente</button>
+				</div>
+			</div>
+		</div>
+	</section>
+</main>
+<script>
+	const filtrosEnvios = document.querySelector("#envios-filtros");
+	const limpiarEnvios = document.querySelector("#envios-limpiar");
+	let enviosTimer;
+
+	function parametrosEnvios(page = 0) {
+		const params = new URLSearchParams(new FormData(filtrosEnvios));
+		params.set("page", page);
+		return params;
+	}
+
+	async function cargarEnvios(page = 0, actualizarUrl = true) {
+		const params = parametrosEnvios(page);
+		const response = await fetch(`/admin/envios/buscar?${params.toString()}`, { headers: { "X-Requested-With": "XMLHttpRequest" } });
+		if (!response.ok) {
+			throw new Error("No se pudieron cargar los envíos.");
+		}
+		const html = await response.text();
+		document.querySelector("#envios-results").outerHTML = html;
+		vincularPaginadoEnvios();
+		if (actualizarUrl) {
+			window.history.replaceState(null, "", `/admin/envios?${params.toString()}`);
+		}
+	}
+
+	function buscarEnviosConEspera() {
+		clearTimeout(enviosTimer);
+		enviosTimer = setTimeout(() => cargarEnvios(0).catch(console.error), 250);
+	}
+
+	function vincularPaginadoEnvios() {
+		document.querySelectorAll(".envios-page").forEach((button) => {
+			button.addEventListener("click", () => cargarEnvios(Number(button.dataset.page || 0)).catch(console.error));
+		});
+	}
+
+	if (filtrosEnvios) {
+		filtrosEnvios.addEventListener("submit", (event) => {
+			event.preventDefault();
+			cargarEnvios(0).catch(console.error);
+		});
+		filtrosEnvios.querySelectorAll("input").forEach((input) => {
+			input.addEventListener(input.type === "date" ? "change" : "input", buscarEnviosConEspera);
+		});
+		limpiarEnvios?.addEventListener("click", () => {
+			filtrosEnvios.reset();
+			cargarEnvios(0).catch(console.error);
+		});
+		vincularPaginadoEnvios();
+	}
+</script>
+</body>
+</html>

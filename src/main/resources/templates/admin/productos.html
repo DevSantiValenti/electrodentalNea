@@ -21,9 +21,9 @@
 				<h2 class="text-2xl font-black text-primary">Gestión Rápida de Productos</h2>
 				<p class="text-sm text-muted">Así se va a ver el CRUD de productos en el panel.</p>
 			</div>
-			<button class="inline-flex items-center gap-2 rounded-xl border border-outline px-4 py-3 text-sm font-bold text-primary hover:bg-surface-soft">
+			<!-- <button class="inline-flex items-center gap-2 rounded-xl border border-outline px-4 py-3 text-sm font-bold text-primary hover:bg-surface-soft">
 				<span class="material-symbols-outlined">filter_list</span> Filtrar
-			</button>
+			</button> -->
 		</div>
 
 		<div th:if="${#lists.isEmpty(productos)}" class="rounded-xl border border-dashed border-outline p-10 text-center">
@@ -40,7 +40,11 @@
 						<h3 class="line-clamp-2 font-black leading-tight text-primary" th:text="${producto.nombre}">Producto</h3>
 						<p class="mb-2 text-xs text-muted" th:text="|SKU: ${producto.slug}|">SKU</p>
 						<div class="flex flex-wrap items-center gap-2">
-							<span class="font-black text-primary" th:text="|$ ${producto.precio}|">$0</span>
+							<span class="font-black text-primary" th:text="${@money.format(producto.precio)}">$ 0,00</span>
+							<span class="rounded px-2 py-1 text-[10px] font-black uppercase"
+								  th:classappend="${producto.activo != null && producto.activo} ? ' bg-green-100 text-green-800' : ' bg-slate-200 text-slate-700'"
+								  th:text="${producto.activo != null && producto.activo} ? 'Activo' : 'Inactivo'">Activo</span>
+							<span th:if="${!producto.permiteCompraWeb()}" class="rounded bg-amber-100 px-2 py-1 text-[10px] font-black uppercase text-amber-800">Solo consulta</span>
 							<span class="rounded px-2 py-1 text-[10px] font-bold" th:classappend="${producto.stockWeb <= producto.stockMinimo} ? ' bg-red-100 text-red-800' : ' bg-amber-100 text-amber-800'" th:text="|Web: ${producto.stockWeb}|">Web</span>
 							<span class="rounded bg-surface-soft px-2 py-1 text-[10px] font-bold text-primary" th:text="|Físico: ${producto.stockFisico}|">Físico</span>
 						</div>
@@ -48,6 +52,12 @@
 				</div>
 				<div class="mt-4 flex gap-2 border-t border-outline pt-4">
 					<a th:href="@{/admin/productos/{id}/editar(id=${producto.id})}" class="flex-1 rounded-lg border border-outline py-2 text-center text-xs font-black text-primary hover:bg-surface-soft">Editar</a>
+					<button type="button"
+							class="open-delete-product inline-flex h-10 w-10 items-center justify-center rounded-lg border border-red-200 text-red-600 hover:bg-red-600 hover:text-white"
+							th:attr="data-product-id=${producto.id},data-product-name=${producto.nombre}"
+							title="Eliminar producto" aria-label="Eliminar producto">
+						<span class="material-symbols-outlined text-[20px]">delete</span>
+					</button>
 					<a th:href="@{/productos/{slug}(slug=${producto.slug})}" class="rounded-lg border border-outline px-3 py-2 text-primary hover:bg-surface-soft" title="Ver ficha">
 						<span class="material-symbols-outlined text-[20px]">visibility</span>
 					</a>
@@ -55,6 +65,48 @@
 			</article>
 		</div>
 	</section>
+
+	<dialog id="delete-product-dialog" class="w-[min(92vw,460px)] rounded-xl border border-outline bg-white p-0 shadow-2xl backdrop:bg-slate-950/50">
+		<div class="p-6">
+			<div class="flex items-start justify-between gap-4">
+				<div>
+					<h2 class="text-xl font-black text-primary">Eliminar producto</h2>
+					<p class="mt-2 text-sm leading-6 text-slate-600">Esta acción eliminará permanentemente <strong id="delete-product-name" class="text-primary"></strong>.</p>
+				</div>
+				<button type="button" id="close-delete-product" class="inline-flex h-9 w-9 flex-none items-center justify-center rounded-lg text-slate-500 hover:bg-surface-soft" aria-label="Cerrar">
+					<span class="material-symbols-outlined">close</span>
+				</button>
+			</div>
+			<p class="mt-4 rounded-lg bg-red-50 p-3 text-sm font-semibold text-red-800">Si solo querés ocultarlo de la tienda, cancelá y desmarcá el estado Activo al editarlo.</p>
+			<form id="delete-product-form" method="post" class="mt-6 flex justify-end gap-3">
+				<button type="button" id="cancel-delete-product" class="rounded-lg border border-outline px-4 py-2.5 text-sm font-bold text-primary hover:bg-surface-soft">Cancelar</button>
+				<button type="submit" class="inline-flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2.5 text-sm font-black text-white hover:bg-red-700">
+					<span class="material-symbols-outlined text-[19px]">delete</span> Eliminar
+				</button>
+			</form>
+		</div>
+	</dialog>
 </main>
+<script>
+	const deleteDialog = document.querySelector("#delete-product-dialog");
+	const deleteForm = document.querySelector("#delete-product-form");
+	const deleteProductName = document.querySelector("#delete-product-name");
+
+	document.querySelectorAll(".open-delete-product").forEach((button) => {
+		button.addEventListener("click", () => {
+			deleteProductName.textContent = button.dataset.productName;
+			deleteForm.action = `/admin/productos/${button.dataset.productId}/eliminar`;
+			deleteDialog.showModal();
+		});
+	});
+
+	document.querySelector("#close-delete-product")?.addEventListener("click", () => deleteDialog.close());
+	document.querySelector("#cancel-delete-product")?.addEventListener("click", () => deleteDialog.close());
+	deleteDialog?.addEventListener("click", (event) => {
+		if (event.target === deleteDialog) {
+			deleteDialog.close();
+		}
+	});
+</script>
 </body>
 </html>

@@ -7,6 +7,8 @@ import com.analistas.electrodental.model.domain.Producto;
 
 public interface IProductoService {
 
+	List<Producto> listarTodos();
+
 	List<Producto> listarActivos();
 
 	List<Producto> listarPorCategoria(String categoriaSlug);
@@ -28,4 +30,6 @@ public interface IProductoService {
 	Optional<Producto> buscarPorId(Long id);
 
 	Producto guardar(Producto producto);
+
+	void eliminar(Long id);
 }

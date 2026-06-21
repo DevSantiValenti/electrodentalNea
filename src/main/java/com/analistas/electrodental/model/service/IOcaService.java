@@ -6,6 +6,7 @@ import com.analistas.electrodental.model.domain.Envio;
 import com.analistas.electrodental.model.domain.Pedido;
 import com.analistas.electrodental.model.domain.dto.OcaCotizacionResponseDTO;
 import com.analistas.electrodental.model.domain.dto.OcaCreacionEnvioResponseDTO;
+import com.analistas.electrodental.model.domain.dto.OcaSincronizacionEnvioResponseDTO;
 import com.analistas.electrodental.model.domain.dto.OcaSucursalDTO;
 
 public interface IOcaService {
@@ -27,4 +28,6 @@ public interface IOcaService {
 	byte[] obtenerEtiquetaPdf(Pedido pedido);
 
 	String obtenerEtiquetaHtml(Pedido pedido);
+
+	OcaSincronizacionEnvioResponseDTO sincronizarEstadoEnvio(Long envioId);
 }

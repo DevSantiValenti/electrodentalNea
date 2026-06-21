@@ -51,16 +51,17 @@
 					<a th:href="@{/productos/{slug}(slug=${producto.slug})}" class="mt-2 line-clamp-2 block min-h-12 font-bold text-primary hover:text-secondary" th:text="${producto.nombre}">Producto</a>
 					<div class="mt-4 flex items-end justify-between gap-3">
 						<div>
-							<p class="text-xl font-black text-secondary" th:text="|$ ${producto.precio}|">$ 0</p>
+							<p class="whitespace-nowrap text-xl font-black text-secondary" th:text="${@money.format(producto.precio)}">$ 0,00</p>
 							<p class="text-xs text-slate-500" th:text="${producto.stockWeb > 0 ? 'Stock web: ' + producto.stockWeb : 'Sin stock web'}">Stock</p>
 						</div>
-						<form th:action="@{/carrito/agregar}" method="post">
+						<form th:if="${producto.permiteCompraWeb()}" th:action="@{/carrito/agregar}" method="post">
 							<input type="hidden" name="productoId" th:value="${producto.id}">
 							<input type="hidden" name="cantidad" value="1">
 							<button th:disabled="${producto.stockWeb < 1}" class="rounded-lg bg-primary-container p-3 text-white hover:bg-primary disabled:cursor-not-allowed disabled:opacity-40" title="Agregar al carrito">
 								<span class="material-symbols-outlined">add_shopping_cart</span>
 							</button>
 						</form>
+						<a th:unless="${producto.permiteCompraWeb()}" th:href="@{/productos/{slug}(slug=${producto.slug})}" class="inline-flex h-11 items-center justify-center rounded-lg border border-secondary px-3 text-xs font-black text-secondary">Consultar</a>
 					</div>
 				</div>
 			</article>

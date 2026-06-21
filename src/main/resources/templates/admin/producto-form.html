@@ -8,7 +8,7 @@
 <main class="p-4 sm:p-6 lg:ml-64 lg:p-8">
 	<div th:replace="~{admin/fragments/layout :: topbar(${producto.id == null ? 'Nuevo Producto' : 'Editar Producto'}, 'Vista inicial del CRUD para cargar productos del catálogo.')}"></div>
 
-	<form th:action="${producto.id == null ? '/admin/productos' : '/admin/productos/' + producto.id}" th:object="${producto}" method="post" class="admin-card rounded-2xl p-6">
+	<form th:action="${producto.id == null ? '/admin/productos' : '/admin/productos/' + producto.id}" th:object="${producto}" method="post" enctype="multipart/form-data" class="admin-card rounded-2xl p-6">
 		<div class="grid gap-6 lg:grid-cols-3">
 			<section class="space-y-4 lg:col-span-2">
 				<div class="grid gap-4 md:grid-cols-2">
@@ -54,24 +54,36 @@
 						<span class="text-sm font-bold text-primary">Precio</span>
 						<input th:field="*{precio}" type="number" step="0.01" min="0" required class="mt-1 w-full rounded-lg border-outline">
 					</label>
-					<label class="md:col-span-2">
-						<span class="text-sm font-bold text-primary">Imagen principal URL</span>
-						<input th:field="*{imagenPrincipal}" class="mt-1 w-full rounded-lg border-outline" placeholder="/img/productos/turbina.png">
-					</label>
+					<div class="md:col-span-2">
+						<span class="text-sm font-bold text-primary">Foto principal</span>
+						<input type="hidden" th:field="*{imagenPrincipal}">
+						<div th:if="${producto.imagenPrincipal != null && !#strings.isEmpty(producto.imagenPrincipal)}" class="mt-2 flex items-center gap-3 rounded-lg border border-outline bg-white p-3">
+							<img class="h-16 w-16 rounded-lg bg-surface-soft object-contain" th:src="${producto.imagenPrincipal}" th:alt="|Foto principal de ${producto.nombre ?: 'producto'}|">
+							<div class="min-w-0">
+								<p class="text-xs font-black uppercase text-slate-500">Imagen actual</p>
+								<p class="truncate text-sm font-semibold text-slate-600" th:text="${producto.imagenPrincipal}">/uploads/productos/imagen.png</p>
+							</div>
+						</div>
+						<input name="imagenPrincipalArchivo" type="file" accept="image/*" class="mt-2 w-full rounded-lg border border-outline bg-white p-3 text-sm font-semibold text-slate-700">
+						<p class="mt-1 text-xs font-semibold text-muted">Subí una foto desde tu PC. Si no elegís una nueva, se conserva la actual.</p>
+					</div>
 					<div class="md:col-span-2 rounded-xl border border-outline bg-white p-4">
 						<div class="flex items-center justify-between gap-3">
 							<div>
 								<h2 class="font-black text-primary">Galería del producto</h2>
-								<p class="text-xs font-semibold text-muted">Agregá hasta 10 imágenes adicionales para las miniaturas.</p>
+								<p class="text-xs font-semibold text-muted">Subí hasta 10 fotos adicionales para las miniaturas.</p>
 							</div>
-							<button type="button" id="add-image-row" class="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-white hover:opacity-90">
-								<span class="material-symbols-outlined">add</span>
-							</button>
 						</div>
+						<input id="gallery-file-input" name="imagenesProductoArchivos" type="file" accept="image/*" multiple class="mt-4 w-full rounded-lg border border-outline bg-surface-soft p-3 text-sm font-semibold text-slate-700">
+						<p class="mt-1 text-xs font-semibold text-muted">Podés seleccionar varias fotos juntas desde la computadora o agregar más en otra selección.</p>
+						<p id="gallery-file-message" class="mt-2 hidden text-xs font-black text-amber-700"></p>
+						<div id="new-gallery-files" class="mt-4 hidden space-y-3"></div>
 						<div id="image-rows" class="mt-4 space-y-3">
-							<div th:each="imagen : ${imagenesProducto}" class="image-row flex gap-2">
-								<input name="imagenesProducto" th:value="${imagen}" class="w-full rounded-lg border-outline" placeholder="/img/productos/detalle-1.png">
-								<button type="button" class="remove-image-row inline-flex h-10 w-10 flex-none items-center justify-center rounded-lg border border-outline text-secondary hover:bg-secondary hover:text-white">
+							<div th:each="imagen : ${imagenesProducto}" th:if="${!#strings.isEmpty(imagen)}" class="image-row grid gap-3 rounded-lg border border-outline bg-surface-soft p-3 sm:grid-cols-[64px_1fr_40px] sm:items-center">
+								<input type="hidden" name="imagenesProducto" th:value="${imagen}">
+								<img class="h-16 w-16 rounded-lg bg-white object-contain" th:src="${imagen}" alt="Imagen de galería">
+								<p class="min-w-0 truncate text-sm font-semibold text-slate-600" th:text="${imagen}">/uploads/productos/detalle.png</p>
+								<button type="button" class="remove-image-row inline-flex h-10 w-10 flex-none items-center justify-center rounded-lg border border-outline bg-white text-secondary hover:bg-secondary hover:text-white">
 									<span class="material-symbols-outlined">delete</span>
 								</button>
 							</div>
@@ -139,6 +151,7 @@
 				<div class="rounded-xl border border-outline bg-surface-soft p-4">
 					<h2 class="font-black text-primary">Estado</h2>
 					<label class="mt-4 flex items-center gap-3 text-sm font-bold"><input th:field="*{activo}" type="checkbox" class="rounded border-outline"> Activo</label>
+					<label class="mt-3 flex items-center gap-3 text-sm font-bold"><input th:field="*{compraHabilitada}" type="checkbox" class="rounded border-outline"> Permitir agregar al carrito</label>
 					<label class="mt-3 flex items-center gap-3 text-sm font-bold"><input th:field="*{destacado}" type="checkbox" class="rounded border-outline"> Destacado</label>
 					<label class="mt-3 flex items-center gap-3 text-sm font-bold"><input th:field="*{oferta}" type="checkbox" class="rounded border-outline"> Oferta</label>
 				</div>
@@ -152,18 +165,106 @@
 </main>
 <script>
 	const imageRows = document.querySelector("#image-rows");
-	const addImageButton = document.querySelector("#add-image-row");
+	const galleryFileInput = document.querySelector("#gallery-file-input");
+	const newGalleryFiles = document.querySelector("#new-gallery-files");
+	const galleryFileMessage = document.querySelector("#gallery-file-message");
 	const characteristicRows = document.querySelector("#characteristic-rows");
 	const addCharacteristicButton = document.querySelector("#add-characteristic-row");
+	const selectedGalleryFiles = [];
+	let galleryPreviewUrls = [];
+
+	function existingGalleryCount() {
+		return imageRows.querySelectorAll(".image-row").length;
+	}
+
+	function gallerySlotsAvailable() {
+		return Math.max(0, 10 - existingGalleryCount() - selectedGalleryFiles.length);
+	}
+
+	function updateGalleryMessage(message) {
+		if (!galleryFileMessage) {
+			return;
+		}
+		galleryFileMessage.textContent = message || "";
+		galleryFileMessage.classList.toggle("hidden", !message);
+	}
+
+	function fileKey(file) {
+		return `${file.name}-${file.size}-${file.lastModified}`;
+	}
+
+	function syncGalleryInputFiles() {
+		const transfer = new DataTransfer();
+		selectedGalleryFiles.forEach((file) => transfer.items.add(file));
+		galleryFileInput.files = transfer.files;
+	}
+
+	function renderSelectedGalleryFiles() {
+		galleryPreviewUrls.forEach((url) => URL.revokeObjectURL(url));
+		galleryPreviewUrls = [];
+		newGalleryFiles.innerHTML = "";
+		newGalleryFiles.classList.toggle("hidden", selectedGalleryFiles.length === 0);
+
+		selectedGalleryFiles.forEach((file, index) => {
+			const previewUrl = URL.createObjectURL(file);
+			galleryPreviewUrls.push(previewUrl);
+			const row = document.createElement("div");
+			row.className = "new-gallery-row grid gap-3 rounded-lg border border-outline bg-white p-3 sm:grid-cols-[64px_1fr_40px] sm:items-center";
+			row.innerHTML = `
+				<img class="h-16 w-16 rounded-lg bg-surface-soft object-contain" src="${previewUrl}" alt="Nueva imagen de galería">
+				<div class="min-w-0">
+					<p class="text-xs font-black uppercase text-slate-500">Nueva foto</p>
+					<p class="truncate text-sm font-semibold text-slate-600"></p>
+				</div>
+				<button type="button" class="remove-new-gallery-file inline-flex h-10 w-10 flex-none items-center justify-center rounded-lg border border-outline bg-white text-secondary hover:bg-secondary hover:text-white" aria-label="Quitar foto nueva">
+					<span class="material-symbols-outlined">delete</span>
+				</button>
+			`;
+			row.querySelector("p:last-child").textContent = file.name;
+			row.querySelector(".remove-new-gallery-file").addEventListener("click", () => {
+				selectedGalleryFiles.splice(index, 1);
+				syncGalleryInputFiles();
+				renderSelectedGalleryFiles();
+				updateGalleryMessage("");
+			});
+			newGalleryFiles.appendChild(row);
+		});
+	}
+
+	function addGalleryFiles(files) {
+		const existingKeys = new Set(selectedGalleryFiles.map(fileKey));
+		let added = 0;
+		let skipped = 0;
+		for (const file of files) {
+			if (!file.type.startsWith("image/")) {
+				skipped++;
+				continue;
+			}
+			if (existingKeys.has(fileKey(file))) {
+				continue;
+			}
+			if (gallerySlotsAvailable() <= 0) {
+				skipped++;
+				continue;
+			}
+			selectedGalleryFiles.push(file);
+			existingKeys.add(fileKey(file));
+			added++;
+		}
+		syncGalleryInputFiles();
+		renderSelectedGalleryFiles();
+		if (skipped > 0 && gallerySlotsAvailable() === 0) {
+			updateGalleryMessage("La galería permite hasta 10 fotos adicionales. Quitá alguna para agregar más.");
+		} else if (added > 0) {
+			updateGalleryMessage("");
+		}
+	}
 
 	function wireRemoveButtons() {
 		document.querySelectorAll(".remove-image-row").forEach((button) => {
 			button.onclick = () => {
-				if (imageRows.querySelectorAll(".image-row").length > 1) {
-					button.closest(".image-row").remove();
-				} else {
-					button.closest(".image-row").querySelector("input").value = "";
-				}
+				button.closest(".image-row").remove();
+				updateGalleryMessage("");
 			};
 		});
 		document.querySelectorAll(".remove-characteristic-row").forEach((button) => {
@@ -177,20 +278,11 @@
 		});
 	}
 
-	addImageButton.addEventListener("click", () => {
-		if (imageRows.querySelectorAll(".image-row").length >= 10) {
-			return;
-		}
-		imageRows.insertAdjacentHTML("beforeend", `
-			<div class="image-row flex gap-2">
-				<input name="imagenesProducto" class="w-full rounded-lg border-outline" placeholder="/img/productos/detalle-1.png">
-				<button type="button" class="remove-image-row inline-flex h-10 w-10 flex-none items-center justify-center rounded-lg border border-outline text-secondary hover:bg-secondary hover:text-white">
-					<span class="material-symbols-outlined">delete</span>
-				</button>
-			</div>
-		`);
-		wireRemoveButtons();
-	});
+	if (galleryFileInput) {
+		galleryFileInput.addEventListener("change", () => {
+			addGalleryFiles(Array.from(galleryFileInput.files));
+		});
+	}
 
 	addCharacteristicButton.addEventListener("click", () => {
 		characteristicRows.insertAdjacentHTML("beforeend", `

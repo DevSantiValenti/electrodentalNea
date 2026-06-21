@@ -21,6 +21,11 @@ public class ProductoServiceImpl implements IProductoService {
 	}
 
 	@Override
+	public List<Producto> listarTodos() {
+		return productoRepository.findAllByOrderByNombreAsc();
+	}
+
+	@Override
 	public List<Producto> listarActivos() {
 		return productoRepository.findByActivoTrueOrderByNombreAsc();
 	}
@@ -89,5 +94,12 @@ public class ProductoServiceImpl implements IProductoService {
 	@Transactional
 	public Producto guardar(Producto producto) {
 		return productoRepository.save(producto);
+	}
+
+	@Override
+	@Transactional
+	public void eliminar(Long id) {
+		productoRepository.deleteById(id);
+		productoRepository.flush();
 	}
 }

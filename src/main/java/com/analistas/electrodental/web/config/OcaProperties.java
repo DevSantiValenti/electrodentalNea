@@ -19,8 +19,12 @@ public class OcaProperties {
 	private String password;
 	private String cuit;
 	private String numeroCuenta;
+	// Operativas automáticas actuales: origen en domicilio.
 	private String operativa;
 	private String operativaSucursal;
+	// Operativas disponibles cuando el comercio despacha desde una sucursal OCA.
+	private String operativaOrigenSucursalDomicilio;
+	private String operativaOrigenSucursalSucursal;
 	private String codigoPostalOrigen = "3500";
 	private String calleOrigen = "Roque Saenz Pena";
 	private String numeroOrigen = "539";

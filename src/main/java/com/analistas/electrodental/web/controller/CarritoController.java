@@ -40,6 +40,14 @@ public class CarritoController {
 		boolean ajax = "XMLHttpRequest".equalsIgnoreCase(requestedWith);
 		return productoService.buscarPorId(productoId)
 				.<Object>map(producto -> {
+					if (!producto.permiteCompraWeb()) {
+						return ajax
+								? ResponseEntity.badRequest().body(Map.of(
+										"ok", false,
+										"message", "Este producto está disponible solo para consulta.",
+										"cartCount", carrito.cantidadTotal()))
+								: "redirect:" + resolverRetorno(request);
+					}
 					int cantidadAnterior = carrito.cantidadTotal();
 					CarritoDTO actualizado = carritoService.agregarProducto(carrito, producto, cantidad);
 					session.setAttribute("carrito", actualizado);

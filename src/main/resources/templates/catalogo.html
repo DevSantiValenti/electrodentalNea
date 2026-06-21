@@ -94,21 +94,21 @@
 						<p class="text-[11px] font-black uppercase tracking-wide text-slate-500" th:text="${producto.marca ?: 'Sin marca'}">Marca</p>
 						<a th:href="@{/productos/{slug}(slug=${producto.slug})}" class="mt-1 line-clamp-2 block min-h-10 text-base font-black leading-5 text-primary hover:text-secondary" th:text="${producto.nombre}">Producto</a>
 						<p class="mt-2 line-clamp-2 min-h-10 text-[13px] leading-5 text-slate-600" th:text="${producto.descripcion ?: 'Producto odontológico profesional.'}">Descripción</p>
-						<div class="mt-4 flex items-end justify-between gap-3">
-							<div class="min-w-0">
-								<p class="flex items-start gap-1 text-secondary">
-									<span class="mt-1 text-sm font-black">$</span>
-									<span class="truncate text-xl font-black leading-none" th:text="${#numbers.formatDecimal(producto.precio, 0, 'POINT', 2, 'COMMA')}">0,00</span>
-								</p>
+						<div class="mt-4">
+							<div>
+								<p class="whitespace-nowrap text-xl font-black leading-none text-secondary" th:text="${@money.format(producto.precio)}">$ 0,00</p>
 								<p class="mt-1 text-[11px] font-bold" th:classappend="${producto.stockWeb <= producto.stockMinimo ? ' text-amber-600' : ' text-green-700'}" th:text="${producto.stockWeb > 0 ? 'Stock web: ' + producto.stockWeb : 'Sin stock web'}">Stock</p>
 							</div>
-							<form th:action="@{/carrito/agregar}" method="post" class="flex shrink-0 items-center gap-2">
+							<form th:if="${producto.permiteCompraWeb()}" th:action="@{/carrito/agregar}" method="post" class="mt-3 flex items-center justify-end gap-2">
 								<input type="hidden" name="productoId" th:value="${producto.id}">
 								<input name="cantidad" type="number" min="1" th:max="${producto.stockWeb}" value="1" th:disabled="${producto.stockWeb < 1}" class="h-10 w-14 rounded-lg border-outline px-1 text-center text-sm font-bold disabled:opacity-40">
 								<button th:disabled="${producto.stockWeb < 1}" class="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-secondary text-white hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40" aria-label="Agregar al carrito">
 									<span class="material-symbols-outlined text-[22px]">add_shopping_cart</span>
 								</button>
 							</form>
+							<a th:unless="${producto.permiteCompraWeb()}" th:href="@{/productos/{slug}(slug=${producto.slug})}" class="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-lg border border-secondary px-3 py-2 text-xs font-black text-secondary hover:bg-red-50">
+								<span class="material-symbols-outlined text-[18px]">chat</span> Consultar producto
+							</a>
 						</div>
 					</div>
 				</article>

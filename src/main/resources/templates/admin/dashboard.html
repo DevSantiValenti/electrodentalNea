@@ -15,7 +15,7 @@
 				<span class="material-symbols-outlined rounded-xl bg-primary/10 p-2 text-primary">payments</span>
 			</div>
 			<div>
-				<p class="text-3xl font-black text-primary" th:text="|$ ${dashboard != null ? dashboard.ventasDelMes : 0}|">$0</p>
+				<p class="text-3xl font-black text-primary" th:text="${@money.format(dashboard != null ? dashboard.ventasDelMes : 0)}">$ 0,00</p>
 				<p class="mt-1 flex items-center gap-1 text-xs font-bold text-secondary"><span class="material-symbols-outlined text-sm">trending_up</span> Ventas presenciales registradas</p>
 			</div>
 		</article>

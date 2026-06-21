@@ -20,6 +20,9 @@ public class CarritoServiceImpl implements ICarritoService {
 
 	@Override
 	public CarritoDTO agregarProducto(CarritoDTO carrito, Producto producto, Integer cantidad) {
+		if (!producto.permiteCompraWeb()) {
+			return carrito;
+		}
 		List<CarritoItemDTO> items = new ArrayList<>(normalizar(carrito).items());
 		int stockDisponible = stockDisponible(producto);
 		int cantidadFinal = limitarCantidad(cantidad == null || cantidad < 1 ? 1 : cantidad, stockDisponible);
@@ -62,6 +65,9 @@ public class CarritoServiceImpl implements ICarritoService {
 
 	@Override
 	public CarritoDTO actualizarCantidad(CarritoDTO carrito, Producto producto, Integer cantidad) {
+		if (!producto.permiteCompraWeb()) {
+			return quitarProducto(carrito, producto.getId());
+		}
 		if (cantidad == null || cantidad < 1) {
 			return quitarProducto(carrito, producto.getId());
 		}

@@ -43,6 +43,9 @@ public class OcaEnvioController {
 		Producto producto = productoRepository.findById(productoId)
 				.filter(item -> Boolean.TRUE.equals(item.getActivo()))
 				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Producto no encontrado."));
+		if (Boolean.TRUE.equals(producto.getEnvioOcaDesactivado())) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Este producto no permite envío OCA.");
+		}
 		Pedido pedido = crearPedidoTemporal(producto, cantidad, codigoPostal);
 		try {
 			List<OcaSucursalDTO> sucursales = ocaService.obtenerSucursales(codigoPostal);

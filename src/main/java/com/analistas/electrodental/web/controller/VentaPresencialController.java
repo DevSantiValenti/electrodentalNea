@@ -5,13 +5,15 @@ import java.util.List;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.analistas.electrodental.model.domain.MetodoPagoVenta;
-import com.analistas.electrodental.model.domain.dto.VentaPresencialRequestDTO;
+import com.analistas.electrodental.model.domain.VentaPresencial;
 import com.analistas.electrodental.model.domain.dto.VentaPresencialItemRequestDTO;
+import com.analistas.electrodental.model.domain.dto.VentaPresencialRequestDTO;
 import com.analistas.electrodental.model.service.IVentaPresencialService;
 
 @Controller
@@ -26,6 +28,7 @@ public class VentaPresencialController {
 	@GetMapping("/admin/ventas/nueva")
 	public String nueva(Model model) {
 		model.addAttribute("metodosPago", MetodoPagoVenta.values());
+		model.addAttribute("modoEdicion", false);
 		return "admin/ventas-nueva";
 	}
 
@@ -62,6 +65,69 @@ public class VentaPresencialController {
 		} catch (IllegalArgumentException | IllegalStateException ex) {
 			redirectAttributes.addFlashAttribute("mensaje", ex.getMessage());
 			return "redirect:/admin/ventas/nueva";
+		}
+		return "redirect:/admin/ventas";
+	}
+
+	@GetMapping("/admin/ventas/{id}/editar")
+	public String editar(@PathVariable Long id, Model model, RedirectAttributes redirectAttributes) {
+		try {
+			VentaPresencial venta = ventaPresencialService.obtenerVenta(id);
+			model.addAttribute("venta", venta);
+			model.addAttribute("metodosPago", MetodoPagoVenta.values());
+			model.addAttribute("modoEdicion", true);
+			return "admin/ventas-nueva";
+		} catch (IllegalArgumentException ex) {
+			redirectAttributes.addFlashAttribute("mensaje", ex.getMessage());
+			return "redirect:/admin/ventas";
+		}
+	}
+
+	@PostMapping("/admin/ventas/{id}/editar")
+	public String actualizar(
+			@PathVariable Long id,
+			@RequestParam(name = "productoIds") List<Long> productoIds,
+			@RequestParam(name = "cantidades") List<Integer> cantidades,
+			@RequestParam String clienteDniCuit,
+			@RequestParam(required = false) String clienteNombre,
+			@RequestParam(required = false) String clienteApellidoRazonSocial,
+			@RequestParam(required = false) String clienteEmail,
+			@RequestParam(required = false) String clienteTelefono,
+			@RequestParam(defaultValue = "EFECTIVO") MetodoPagoVenta metodoPago,
+			@RequestParam(required = false) String usuarioAdmin,
+			@RequestParam(required = false) String observaciones,
+			RedirectAttributes redirectAttributes) {
+		if (productoIds.size() != cantidades.size()) {
+			redirectAttributes.addFlashAttribute("mensaje", "Revisá las lineas de venta: falta producto o cantidad.");
+			return "redirect:/admin/ventas/" + id + "/editar";
+		}
+		VentaPresencialRequestDTO request = new VentaPresencialRequestDTO(
+				crearItems(productoIds, cantidades),
+				clienteDniCuit,
+				clienteNombre,
+				clienteApellidoRazonSocial,
+				clienteEmail,
+				clienteTelefono,
+				metodoPago,
+				usuarioAdmin,
+				observaciones);
+		try {
+			ventaPresencialService.actualizarVenta(id, request);
+			redirectAttributes.addFlashAttribute("mensaje", "Venta presencial actualizada");
+		} catch (IllegalArgumentException | IllegalStateException ex) {
+			redirectAttributes.addFlashAttribute("mensaje", ex.getMessage());
+			return "redirect:/admin/ventas/" + id + "/editar";
+		}
+		return "redirect:/admin/ventas";
+	}
+
+	@PostMapping("/admin/ventas/{id}/eliminar")
+	public String eliminar(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+		try {
+			ventaPresencialService.eliminarVenta(id);
+			redirectAttributes.addFlashAttribute("mensaje", "Venta presencial eliminada");
+		} catch (IllegalArgumentException | IllegalStateException ex) {
+			redirectAttributes.addFlashAttribute("mensaje", ex.getMessage());
 		}
 		return "redirect:/admin/ventas";
 	}

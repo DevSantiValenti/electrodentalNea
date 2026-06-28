@@ -69,6 +69,8 @@ public class Envio {
 	@Column(length = 30)
 	private String tipoEntregaOca;
 
+	private Boolean seguro = false;
+
 	@Column(length = 20)
 	private String idCentroImposicionDestino;
 

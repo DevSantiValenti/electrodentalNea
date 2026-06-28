@@ -91,9 +91,17 @@
 						<span class="text-muted">Envío</span>
 						<strong th:text="${@money.format(pedido.costoEnvio)}">$ 0,00</strong>
 					</div>
+					<div class="mt-2 flex justify-between text-sm">
+						<span class="text-muted">Total antes descuento</span>
+						<strong th:text="${@money.format(pedido.totalAntesDescuento)}">$ 0,00</strong>
+					</div>
+					<div class="mt-2 flex justify-between text-sm" th:if="${pedido.descuentoAplicado != null && pedido.descuentoAplicado.signum() > 0}">
+						<span class="text-green-700" th:text="|Descuento ${pedido.codigoDescuento}|">Descuento</span>
+						<strong class="text-green-700" th:text="|-${@money.format(pedido.descuentoAplicado)}|">-$ 0,00</strong>
+					</div>
 					<div class="mt-4 flex justify-between text-xl font-black">
-						<span>Total</span>
-						<span class="text-secondary" th:text="${@money.format(pedido.total)}">$ 0,00</span>
+						<span>Total después descuento</span>
+						<span class="text-secondary" th:text="${@money.format(pedido.totalDespuesDescuento)}">$ 0,00</span>
 					</div>
 				</div>
 			</section>

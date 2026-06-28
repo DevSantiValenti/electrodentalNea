@@ -9,6 +9,8 @@ public interface IProductoService {
 
 	List<Producto> listarTodos();
 
+	List<Producto> filtrarAdmin(Long categoriaId, Long subcategoriaId, boolean soloBajoStock);
+
 	List<Producto> listarActivos();
 
 	List<Producto> listarPorCategoria(String categoriaSlug);
@@ -20,6 +22,8 @@ public interface IProductoService {
 	List<Producto> listarOfertas();
 
 	List<Producto> listarBajoStock();
+
+	long contarBajoStockAdmin();
 
 	List<Producto> listarRelacionados(Producto producto);
 

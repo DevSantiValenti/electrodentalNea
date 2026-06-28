@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{admin/fragments/layout :: head('Admin | Nueva venta')}"></head>
+<head th:replace="~{admin/fragments/layout :: head(${modoEdicion} ? 'Admin | Editar venta' : 'Admin | Nueva venta')}"></head>
 <body class="admin-shell text-slate-900">
 <aside th:replace="~{admin/fragments/layout :: sidebar('ventas')}"></aside>
 <header th:replace="~{admin/fragments/layout :: mobilebar('ventas')}"></header>
 <main class="p-4 sm:p-6 lg:ml-64 lg:p-8">
-	<div th:replace="~{admin/fragments/layout :: topbar('Nueva Venta Presencial', 'Registrá una venta física y descontá stock físico.')}"></div>
+	<div th:replace="~{admin/fragments/layout :: topbar(${modoEdicion} ? 'Editar Venta Presencial' : 'Nueva Venta Presencial', ${modoEdicion} ? 'Modificá cliente, productos y cantidades de la venta.' : 'Registrá una venta física y descontá stock físico.')}"></div>
 
 	<div th:if="${mensaje}" class="mb-5 rounded-lg bg-amber-50 px-4 py-3 text-sm font-bold text-amber-900" th:text="${mensaje}">Mensaje</div>
 
-	<form th:action="@{/admin/ventas/nueva}" method="post" class="admin-card rounded-2xl p-5 lg:p-6"
+	<form th:action="${modoEdicion} ? @{/admin/ventas/{id}/editar(id=${venta.id})} : @{/admin/ventas/nueva}" method="post" class="admin-card rounded-2xl p-5 lg:p-6"
 		  data-sale-form th:data-client-url="@{/api/clientes/buscar}" th:data-product-url="@{/api/productos/buscar}">
 		<div class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
 			<section class="min-w-0">
@@ -18,6 +18,7 @@
 						<span class="text-sm font-bold text-primary">Cliente por DNI</span>
 						<div class="mt-1 flex gap-2">
 							<input name="clienteDniCuit" required autocomplete="off" inputmode="numeric" data-client-dni
+								   th:value="${venta != null && venta.cliente != null ? venta.cliente.dniCuit : ''}"
 								   class="h-11 w-full rounded-lg border-outline" placeholder="Buscar o cargar DNI">
 							<button type="button" data-clear-client class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-outline text-primary hover:bg-surface-soft" title="Limpiar cliente">
 								<span class="material-symbols-outlined">close</span>
@@ -27,19 +28,19 @@
 					</label>
 					<label>
 						<span class="text-sm font-bold text-primary">Nombre</span>
-						<input name="clienteNombre" data-client-name class="mt-1 h-11 w-full rounded-lg border-outline" placeholder="Nombre">
+						<input name="clienteNombre" data-client-name th:value="${venta != null && venta.cliente != null ? venta.cliente.nombre : ''}" class="mt-1 h-11 w-full rounded-lg border-outline" placeholder="Nombre">
 					</label>
 					<label>
 						<span class="text-sm font-bold text-primary">Apellido o razón social</span>
-						<input name="clienteApellidoRazonSocial" data-client-lastname class="mt-1 h-11 w-full rounded-lg border-outline" placeholder="Apellido o razón social">
+						<input name="clienteApellidoRazonSocial" data-client-lastname th:value="${venta != null && venta.cliente != null ? venta.cliente.apellidoRazonSocial : ''}" class="mt-1 h-11 w-full rounded-lg border-outline" placeholder="Apellido o razón social">
 					</label>
 					<label>
 						<span class="text-sm font-bold text-primary">Email</span>
-						<input name="clienteEmail" data-client-email type="email" class="mt-1 h-11 w-full rounded-lg border-outline" placeholder="Email">
+						<input name="clienteEmail" data-client-email type="email" th:value="${venta != null && venta.cliente != null ? venta.cliente.email : ''}" class="mt-1 h-11 w-full rounded-lg border-outline" placeholder="Email">
 					</label>
 					<label>
 						<span class="text-sm font-bold text-primary">Teléfono</span>
-						<input name="clienteTelefono" data-client-phone class="mt-1 h-11 w-full rounded-lg border-outline" placeholder="Teléfono">
+						<input name="clienteTelefono" data-client-phone th:value="${venta != null && venta.cliente != null ? venta.cliente.telefono : ''}" class="mt-1 h-11 w-full rounded-lg border-outline" placeholder="Teléfono">
 					</label>
 				</div>
 
@@ -70,7 +71,27 @@
 								</tr>
 							</thead>
 							<tbody data-sale-lines class="divide-y divide-outline">
-								<tr data-empty-lines>
+								<tr th:each="item : ${venta != null ? venta.items : null}" data-sale-line th:data-price="${item.precioUnitarioSnapshot}">
+									<td class="px-4 py-3">
+										<input type="hidden" name="productoIds" data-line-product-id th:value="${item.producto.id}">
+										<p data-line-name class="font-black text-primary" th:text="${item.nombreSnapshot}">Producto</p>
+										<p data-line-brand class="text-xs font-semibold text-muted" th:text="${item.producto.marca ?: ''}"></p>
+									</td>
+									<td class="px-4 py-3">
+										<span data-line-stock class="rounded bg-surface-soft px-2 py-1 text-xs font-black text-primary" th:text="${(item.producto.stockFisico != null ? item.producto.stockFisico : 0) + item.cantidad}">0</span>
+									</td>
+									<td class="px-4 py-3">
+										<input name="cantidades" data-line-quantity type="number" min="1" th:value="${item.cantidad}" th:max="${(item.producto.stockFisico != null ? item.producto.stockFisico : 0) + item.cantidad}" class="h-10 w-24 rounded-lg border-outline text-center font-bold">
+									</td>
+									<td class="px-4 py-3 font-black text-primary" data-line-price th:text="${@money.format(item.precioUnitarioSnapshot)}">$ 0,00</td>
+									<td class="px-4 py-3 font-black text-secondary" data-line-subtotal th:text="${@money.format(item.subtotal)}">$ 0,00</td>
+									<td class="px-2 py-3 text-right">
+										<button type="button" data-remove-line class="inline-flex h-9 w-9 items-center justify-center rounded-lg text-muted hover:bg-surface-soft hover:text-secondary" title="Quitar línea">
+											<span class="material-symbols-outlined">delete</span>
+										</button>
+									</td>
+								</tr>
+								<tr data-empty-lines th:classappend="${venta != null && !#lists.isEmpty(venta.items)} ? ' hidden' : ''">
 									<td colspan="6" class="px-4 py-8 text-center text-sm font-semibold text-muted">Agregá productos con el buscador.</td>
 								</tr>
 							</tbody>
@@ -88,20 +109,21 @@
 				<label class="block">
 					<span class="text-sm font-bold text-primary">Método de pago</span>
 					<select name="metodoPago" class="mt-1 h-11 w-full rounded-lg border-outline">
-						<option th:each="metodo : ${metodosPago}" th:value="${metodo}" th:text="${metodo}">EFECTIVO</option>
+						<option th:each="metodo : ${metodosPago}" th:value="${metodo}" th:selected="${venta != null && venta.metodoPago == metodo}" th:text="${metodo}">EFECTIVO</option>
 					</select>
 				</label>
 				<label class="block">
 					<span class="text-sm font-bold text-primary">Usuario admin</span>
-					<input name="usuarioAdmin" class="mt-1 h-11 w-full rounded-lg border-outline" placeholder="Admin">
+					<input name="usuarioAdmin" th:value="${venta != null ? venta.usuarioAdmin : ''}" class="mt-1 h-11 w-full rounded-lg border-outline" placeholder="Admin">
 				</label>
 				<label class="block">
 					<span class="text-sm font-bold text-primary">Observaciones</span>
-					<textarea name="observaciones" rows="4" class="mt-1 w-full rounded-lg border-outline"></textarea>
+					<textarea name="observaciones" rows="4" class="mt-1 w-full rounded-lg border-outline" th:text="${venta != null ? venta.observaciones : ''}"></textarea>
 				</label>
 				<div class="flex flex-col gap-3 pt-2 sm:flex-row xl:flex-col">
 					<button class="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-secondary px-5 font-black text-white hover:opacity-90">
-						<span class="material-symbols-outlined">payments</span> Finalizar venta
+						<span class="material-symbols-outlined" th:text="${modoEdicion} ? 'save' : 'payments'">payments</span>
+						<span th:text="${modoEdicion} ? 'Guardar cambios' : 'Finalizar venta'">Finalizar venta</span>
 					</button>
 					<a th:href="@{/admin/ventas}" class="inline-flex h-12 items-center justify-center rounded-xl border border-outline px-5 font-bold text-primary hover:bg-surface-soft">Cancelar</a>
 				</div>
@@ -225,7 +247,9 @@
 				.find(row => row.querySelector("[data-line-product-id]").value === String(product.id));
 			if (existing) {
 				const quantity = existing.querySelector("[data-line-quantity]");
-				quantity.value = Number(quantity.value || 0) + 1;
+				const max = Number(quantity.max || 0);
+				const nextValue = Number(quantity.value || 0) + 1;
+				quantity.value = max > 0 ? Math.min(nextValue, max) : nextValue;
 				updateTotals();
 				return;
 			}
@@ -272,6 +296,15 @@
 		});
 
 		form.querySelector("[data-add-empty-line]").addEventListener("click", () => productInput.focus());
+
+		linesBody.querySelectorAll("[data-sale-line]").forEach(row => {
+			row.querySelector("[data-line-quantity]").addEventListener("input", updateTotals);
+			row.querySelector("[data-remove-line]").addEventListener("click", () => {
+				row.remove();
+				updateTotals();
+			});
+		});
+		updateTotals();
 
 		form.addEventListener("submit", event => {
 			const rows = linesBody.querySelectorAll("[data-sale-line]");

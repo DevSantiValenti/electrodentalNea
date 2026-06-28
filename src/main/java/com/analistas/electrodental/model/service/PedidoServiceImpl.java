@@ -16,6 +16,7 @@ import com.analistas.electrodental.model.domain.Pedido;
 import com.analistas.electrodental.model.domain.PedidoItem;
 import com.analistas.electrodental.model.domain.Producto;
 import com.analistas.electrodental.model.domain.dto.CarritoDTO;
+import com.analistas.electrodental.model.domain.dto.DescuentoAplicadoDTO;
 import com.analistas.electrodental.model.domain.dto.MercadoPagoPaymentDataDTO;
 import com.analistas.electrodental.model.repository.IClienteRepository;
 import com.analistas.electrodental.model.repository.IPagoRepository;
@@ -31,6 +32,7 @@ public class PedidoServiceImpl implements IPedidoService {
 	private final IPagoRepository pagoRepository;
 	private final IStockService stockService;
 	private final IOcaService ocaService;
+	private final IDescuentoService descuentoService;
 
 	public PedidoServiceImpl(
 			IPedidoRepository pedidoRepository,
@@ -38,13 +40,15 @@ public class PedidoServiceImpl implements IPedidoService {
 			IClienteRepository clienteRepository,
 			IPagoRepository pagoRepository,
 			IStockService stockService,
-			IOcaService ocaService) {
+			IOcaService ocaService,
+			IDescuentoService descuentoService) {
 		this.pedidoRepository = pedidoRepository;
 		this.productoRepository = productoRepository;
 		this.clienteRepository = clienteRepository;
 		this.pagoRepository = pagoRepository;
 		this.stockService = stockService;
 		this.ocaService = ocaService;
+		this.descuentoService = descuentoService;
 	}
 
 	@Override
@@ -59,6 +63,7 @@ public class PedidoServiceImpl implements IPedidoService {
 		if (carrito == null || carrito.items().isEmpty()) {
 			throw new IllegalArgumentException("El carrito no puede estar vacio");
 		}
+		CarritoDTO carritoValidado = validarDescuento(carrito);
 
 		String dniCuit = normalizarDniCuit(cliente.getDniCuit());
 		if (dniCuit.isBlank()) {
@@ -84,11 +89,12 @@ public class PedidoServiceImpl implements IPedidoService {
 		pago.setExternalReference("PEDIDO-" + System.currentTimeMillis());
 		pedido.setPago(pago);
 
-		carrito.items().forEach(itemCarrito -> {
+		carritoValidado.items().forEach(itemCarrito -> {
 			Producto producto = productoRepository.findById(itemCarrito.productoId())
 					.orElseThrow(() -> new IllegalArgumentException("Producto inexistente: " + itemCarrito.productoId()));
-			if (!producto.permiteCompraWeb()) {
-				throw new IllegalArgumentException("El producto " + producto.getNombre() + " está disponible solo para consulta");
+			if (!producto.disponibleParaCompraWeb()) {
+				String motivo = producto.permiteCompraWeb() ? "no tiene stock disponible" : "está disponible solo para consulta";
+				throw new IllegalArgumentException("El producto " + producto.getNombre() + " " + motivo);
 			}
 
 			PedidoItem item = new PedidoItem();
@@ -101,7 +107,34 @@ public class PedidoServiceImpl implements IPedidoService {
 			stockService.reservarStockWeb(producto, itemCarrito.cantidad(), pago.getExternalReference());
 		});
 
-		return pedidoRepository.save(pedido);
+		aplicarDescuento(pedido, carritoValidado.descuento());
+		Pedido guardado = pedidoRepository.save(pedido);
+		if (carritoValidado.tieneDescuento()) {
+			descuentoService.registrarUso(carritoValidado.descuento().codigo());
+		}
+		return guardado;
+	}
+
+	private CarritoDTO validarDescuento(CarritoDTO carrito) {
+		if (carrito.descuento() == null) {
+			return carrito;
+		}
+		var resultado = descuentoService.aplicar(carrito.sinDescuento(), carrito.descuento().codigo());
+		if (!resultado.valido()) {
+			throw new IllegalArgumentException(resultado.mensaje());
+		}
+		return resultado.carrito();
+	}
+
+	private void aplicarDescuento(Pedido pedido, DescuentoAplicadoDTO descuento) {
+		if (descuento == null) {
+			pedido.setCodigoDescuento(null);
+			pedido.setDescuentoAplicado(BigDecimal.ZERO);
+		} else {
+			pedido.setCodigoDescuento(descuento.codigo());
+			pedido.setDescuentoAplicado(descuento.monto() == null ? BigDecimal.ZERO : descuento.monto());
+		}
+		pedido.recalcularTotales();
 	}
 
 	private String generarCodigoCompra(String metodoEntrega) {

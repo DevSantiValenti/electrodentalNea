@@ -6,9 +6,12 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import com.analistas.electrodental.model.domain.Categoria;
 import com.analistas.electrodental.model.domain.ConfiguracionTienda;
 import com.analistas.electrodental.model.domain.dto.CarritoDTO;
+import com.analistas.electrodental.model.domain.Producto;
+import com.analistas.electrodental.model.repository.IProductoRepository;
 import com.analistas.electrodental.model.service.ICategoriaService;
 import com.analistas.electrodental.model.service.ICarritoService;
 import com.analistas.electrodental.model.service.IConfiguracionTiendaService;
+import com.analistas.electrodental.model.service.IDescuentoService;
 
 import jakarta.servlet.http.HttpSession;
 import java.util.List;
@@ -19,21 +22,31 @@ public class GlobalModelControllerAdvice {
 	private final ICarritoService carritoService;
 	private final ICategoriaService categoriaService;
 	private final IConfiguracionTiendaService configuracionTiendaService;
+	private final IProductoRepository productoRepository;
+	private final IDescuentoService descuentoService;
 
 	public GlobalModelControllerAdvice(
 			ICarritoService carritoService,
 			ICategoriaService categoriaService,
-			IConfiguracionTiendaService configuracionTiendaService) {
+			IConfiguracionTiendaService configuracionTiendaService,
+			IProductoRepository productoRepository,
+			IDescuentoService descuentoService) {
 		this.carritoService = carritoService;
 		this.categoriaService = categoriaService;
 		this.configuracionTiendaService = configuracionTiendaService;
+		this.productoRepository = productoRepository;
+		this.descuentoService = descuentoService;
 	}
 
 	@ModelAttribute("carrito")
 	public CarritoDTO carrito(HttpSession session) {
 		Object carrito = session.getAttribute("carrito");
 		if (carrito instanceof CarritoDTO carritoDTO) {
-			return carritoDTO;
+			CarritoDTO actualizado = descuentoService.recalcular(carritoDTO);
+			if (actualizado != carritoDTO) {
+				session.setAttribute("carrito", actualizado);
+			}
+			return actualizado;
 		}
 		CarritoDTO nuevo = carritoService.nuevoCarrito();
 		session.setAttribute("carrito", nuevo);
@@ -48,5 +61,24 @@ public class GlobalModelControllerAdvice {
 	@ModelAttribute("configuracionTienda")
 	public ConfiguracionTienda configuracionTienda() {
 		return configuracionTiendaService.obtener();
+	}
+
+	@ModelAttribute("ocaDisponible")
+	public boolean ocaDisponible(HttpSession session) {
+		CarritoDTO carrito = carrito(session);
+		if (carrito == null || carrito.items().isEmpty()) {
+			return true;
+		}
+		boolean bloqueadoEnCarrito = carrito.items().stream()
+				.anyMatch(item -> Boolean.TRUE.equals(item.envioOcaDesactivado()));
+		if (bloqueadoEnCarrito) {
+			return false;
+		}
+		return carrito.items().stream()
+				.map(item -> productoRepository.findById(item.productoId()))
+				.noneMatch(producto -> producto
+						.map(Producto::getEnvioOcaDesactivado)
+						.map(Boolean.TRUE::equals)
+						.orElse(false));
 	}
 }

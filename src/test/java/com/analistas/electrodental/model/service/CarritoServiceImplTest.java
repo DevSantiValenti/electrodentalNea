@@ -35,6 +35,28 @@ class CarritoServiceImplTest {
 		assertThat(carrito.cantidadTotal()).isEqualTo(1);
 	}
 
+	@Test
+	void noAgregaProductosSinStockWeb() {
+		Producto producto = producto();
+		producto.setStockWeb(0);
+
+		CarritoDTO carrito = service.agregarProducto(service.nuevoCarrito(), producto, 1);
+
+		assertThat(carrito.items()).isEmpty();
+		assertThat(carrito.cantidadTotal()).isZero();
+	}
+
+	@Test
+	void copiaBloqueoDeEnvioOcaAlItemDelCarrito() {
+		Producto producto = producto();
+		producto.setEnvioOcaDesactivado(true);
+
+		CarritoDTO carrito = service.agregarProducto(service.nuevoCarrito(), producto, 1);
+
+		assertThat(carrito.items()).hasSize(1);
+		assertThat(carrito.items().get(0).envioOcaDesactivado()).isTrue();
+	}
+
 	private Producto producto() {
 		Producto producto = new Producto();
 		producto.setId(1L);

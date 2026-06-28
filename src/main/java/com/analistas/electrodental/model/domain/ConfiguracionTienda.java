@@ -1,5 +1,6 @@
 package com.analistas.electrodental.model.domain;
 
+import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -55,6 +56,9 @@ public class ConfiguracionTienda {
 	@Column(length = 600)
 	private String mapsEmbedUrl = "https://www.google.com/maps?q=Roque%20S%C3%A1enz%20Pe%C3%B1a%20539%20Resistencia%20Chaco&output=embed";
 
+	@Column(precision = 14, scale = 2)
+	private BigDecimal montoEnvioGratis = BigDecimal.ZERO;
+
 	@Column(length = 80)
 	private String adminUsuario = "admin";
 
@@ -95,6 +99,9 @@ public class ConfiguracionTienda {
 		if (adminUsuario == null || adminUsuario.isBlank()) {
 			adminUsuario = "admin";
 		}
+		if (montoEnvioGratis == null || montoEnvioGratis.compareTo(BigDecimal.ZERO) < 0) {
+			montoEnvioGratis = BigDecimal.ZERO;
+		}
 	}
 
 	public String getWhatsappLink() {
@@ -122,6 +129,24 @@ public class ConfiguracionTienda {
 				.map(String::trim)
 				.filter(email -> !email.isBlank())
 				.toList();
+	}
+
+	public boolean envioGratisHabilitado() {
+		return montoEnvioGratis != null && montoEnvioGratis.compareTo(BigDecimal.ZERO) > 0;
+	}
+
+	public boolean alcanzaEnvioGratis(BigDecimal subtotal) {
+		return envioGratisHabilitado()
+				&& subtotal != null
+				&& subtotal.compareTo(montoEnvioGratis) >= 0;
+	}
+
+	public BigDecimal faltanteEnvioGratis(BigDecimal subtotal) {
+		if (!envioGratisHabilitado()) {
+			return BigDecimal.ZERO;
+		}
+		BigDecimal faltante = montoEnvioGratis.subtract(subtotal == null ? BigDecimal.ZERO : subtotal);
+		return faltante.compareTo(BigDecimal.ZERO) > 0 ? faltante : BigDecimal.ZERO;
 	}
 
 	private static String normalizarEmails(String emails) {

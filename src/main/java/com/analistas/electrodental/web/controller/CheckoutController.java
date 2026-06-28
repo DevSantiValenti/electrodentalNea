@@ -28,6 +28,7 @@ import com.analistas.electrodental.model.domain.dto.OcaSucursalDTO;
 import com.analistas.electrodental.model.repository.IProductoRepository;
 import com.analistas.electrodental.model.repository.IPagoRepository;
 import com.analistas.electrodental.model.service.IConfiguracionTiendaService;
+import com.analistas.electrodental.model.service.IDescuentoService;
 import com.analistas.electrodental.model.service.IMercadoPagoService;
 import com.analistas.electrodental.model.service.IOcaService;
 import com.analistas.electrodental.model.service.IPedidoService;
@@ -50,6 +51,7 @@ public class CheckoutController {
 	private final MercadoPagoProperties mercadoPagoProperties;
 	private final IConfiguracionTiendaService configuracionTiendaService;
 	private final IOcaService ocaService;
+	private final IDescuentoService descuentoService;
 
 	public CheckoutController(
 			IPedidoService pedidoService,
@@ -58,7 +60,8 @@ public class CheckoutController {
 			IPagoRepository pagoRepository,
 			MercadoPagoProperties mercadoPagoProperties,
 			IConfiguracionTiendaService configuracionTiendaService,
-			IOcaService ocaService) {
+			IOcaService ocaService,
+			IDescuentoService descuentoService) {
 		this.pedidoService = pedidoService;
 		this.mercadoPagoService = mercadoPagoService;
 		this.productoRepository = productoRepository;
@@ -66,17 +69,25 @@ public class CheckoutController {
 		this.mercadoPagoProperties = mercadoPagoProperties;
 		this.configuracionTiendaService = configuracionTiendaService;
 		this.ocaService = ocaService;
+		this.descuentoService = descuentoService;
 	}
 
 	@GetMapping("/checkout/datos")
 	public String datos(HttpSession session, Model model, RedirectAttributes redirectAttributes) {
-		CarritoDTO carrito = (CarritoDTO) session.getAttribute("carrito");
+		CarritoDTO carrito = obtenerCarritoActualizado(session);
 		if (carrito == null || carrito.items().isEmpty()) {
 			redirectAttributes.addFlashAttribute("mensaje", "Agrega productos al carrito antes de continuar.");
 			return "redirect:/carrito";
 		}
+		boolean ocaDisponible = carritoPermiteOca(carrito);
+		String envioSeleccionado = resolverMetodoEntrega(null, session);
+		if (!ocaDisponible && "OCA".equals(envioSeleccionado)) {
+			desactivarOcaEnSession(session);
+			envioSeleccionado = "SUCURSAL";
+		}
 		model.addAttribute("pasoCheckout", 2);
-		model.addAttribute("envioSeleccionado", session.getAttribute("envioSeleccionado"));
+		model.addAttribute("envioSeleccionado", envioSeleccionado);
+		model.addAttribute("ocaDisponible", ocaDisponible);
 		model.addAttribute("codigoPostalDestino", session.getAttribute("codigoPostalDestino"));
 		model.addAttribute("cotizacionOca", session.getAttribute("cotizacionOca"));
 		model.addAttribute("cotizacionOcaDomicilio", session.getAttribute("cotizacionOcaDomicilio"));
@@ -87,9 +98,10 @@ public class CheckoutController {
 		model.addAttribute("ocaSucursalSeleccionada", obtenerSucursalSeleccionada(session));
 		model.addAttribute("checkoutCliente", session.getAttribute("checkoutCliente"));
 		model.addAttribute("checkoutDireccion", session.getAttribute("checkoutDireccion"));
-		BigDecimal costoEnvio = resolverCostoEnvio(resolverMetodoEntrega(null, session), session);
+		BigDecimal costoEnvio = resolverCostoEnvio(envioSeleccionado, session, carrito);
 		model.addAttribute("costoEnvioCheckout", costoEnvio);
-		model.addAttribute("totalCheckout", dinero(carrito.subtotal().add(costoEnvio)));
+		model.addAttribute("envioGratisAplicado", envioGratisAplicado(envioSeleccionado, carrito));
+		model.addAttribute("totalCheckout", dinero(carrito.total().add(costoEnvio)));
 		return "finalizar-compra";
 	}
 
@@ -102,12 +114,17 @@ public class CheckoutController {
 			DireccionEnvio direccionEnvio,
 			HttpSession session,
 			RedirectAttributes redirectAttributes) {
-		CarritoDTO carrito = (CarritoDTO) session.getAttribute("carrito");
+		CarritoDTO carrito = obtenerCarritoActualizado(session);
 		if (carrito == null || carrito.items().isEmpty()) {
 			redirectAttributes.addFlashAttribute("mensaje", "Agrega productos al carrito antes de pagar.");
 			return "redirect:/carrito";
 		}
 		String metodoEntrega = normalizarMetodoEntrega(metodoEnvio);
+		if ("OCA".equals(metodoEntrega) && !carritoPermiteOca(carrito)) {
+			desactivarOcaEnSession(session);
+			redirectAttributes.addFlashAttribute("mensaje", "El carrito contiene productos que no permiten envío OCA. Elegí retiro en sucursal o coordinación con vendedor.");
+			return "redirect:/checkout/datos";
+		}
 		if ("OCA".equals(metodoEntrega)) {
 			guardarSeleccionOca(session, ocaTipoEntrega, ocaSucursalId);
 		}
@@ -127,13 +144,21 @@ public class CheckoutController {
 
 	@GetMapping("/checkout/pago")
 	public String pago(HttpSession session, Model model, RedirectAttributes redirectAttributes) {
-		CarritoDTO carrito = (CarritoDTO) session.getAttribute("carrito");
+		CarritoDTO carrito = obtenerCarritoActualizado(session);
 		if (carrito == null || carrito.items().isEmpty()) {
 			redirectAttributes.addFlashAttribute("mensaje", "Agrega productos al carrito antes de pagar.");
 			return "redirect:/carrito";
 		}
+		boolean ocaDisponible = carritoPermiteOca(carrito);
+		String envioSeleccionado = resolverMetodoEntrega(null, session);
+		if (!ocaDisponible && "OCA".equals(envioSeleccionado)) {
+			desactivarOcaEnSession(session);
+			redirectAttributes.addFlashAttribute("mensaje", "El carrito contiene productos que no permiten envío OCA. Elegí retiro en sucursal o coordinación con vendedor.");
+			return "redirect:/checkout/datos";
+		}
 		model.addAttribute("pasoCheckout", 3);
-		model.addAttribute("envioSeleccionado", session.getAttribute("envioSeleccionado"));
+		model.addAttribute("envioSeleccionado", envioSeleccionado);
+		model.addAttribute("ocaDisponible", ocaDisponible);
 		model.addAttribute("codigoPostalDestino", session.getAttribute("codigoPostalDestino"));
 		model.addAttribute("cotizacionOca", session.getAttribute("cotizacionOca"));
 		model.addAttribute("cotizacionOcaDomicilio", session.getAttribute("cotizacionOcaDomicilio"));
@@ -144,9 +169,10 @@ public class CheckoutController {
 		model.addAttribute("ocaSucursalSeleccionada", obtenerSucursalSeleccionada(session));
 		model.addAttribute("checkoutCliente", session.getAttribute("checkoutCliente"));
 		model.addAttribute("checkoutDireccion", session.getAttribute("checkoutDireccion"));
-		BigDecimal costoEnvio = resolverCostoEnvio(resolverMetodoEntrega(null, session), session);
+		BigDecimal costoEnvio = resolverCostoEnvio(envioSeleccionado, session, carrito);
 		model.addAttribute("costoEnvioCheckout", costoEnvio);
-		model.addAttribute("totalCheckout", dinero(carrito.subtotal().add(costoEnvio)));
+		model.addAttribute("envioGratisAplicado", envioGratisAplicado(envioSeleccionado, carrito));
+		model.addAttribute("totalCheckout", dinero(carrito.total().add(costoEnvio)));
 		return "finalizar-compra";
 	}
 
@@ -157,10 +183,15 @@ public class CheckoutController {
 			DireccionEnvio direccionEnvio,
 			HttpSession session,
 			RedirectAttributes redirectAttributes) {
-		CarritoDTO carrito = (CarritoDTO) session.getAttribute("carrito");
+		CarritoDTO carrito = obtenerCarritoActualizado(session);
 		if (carrito == null || carrito.items().isEmpty()) {
 			redirectAttributes.addFlashAttribute("mensaje", "Agrega productos al carrito antes de cotizar el envío.");
 			return "redirect:/carrito";
+		}
+		if (!carritoPermiteOca(carrito)) {
+			desactivarOcaEnSession(session);
+			redirectAttributes.addFlashAttribute("mensaje", "El carrito contiene productos que no permiten envío OCA. Elegí retiro en sucursal o coordinación con vendedor.");
+			return "redirect:/checkout/datos";
 		}
 		DireccionEnvio direccion = completarDireccion(direccionEnvio, session);
 		if (StringUtils.hasText(codigoPostal)) {
@@ -205,7 +236,7 @@ public class CheckoutController {
 			@RequestParam(required = false) String ocaSucursalId,
 			HttpSession session,
 			RedirectAttributes redirectAttributes) {
-		CarritoDTO carrito = (CarritoDTO) session.getAttribute("carrito");
+		CarritoDTO carrito = obtenerCarritoActualizado(session);
 		if (carrito == null || carrito.items().isEmpty()) {
 			redirectAttributes.addFlashAttribute("mensaje", "Agrega productos al carrito antes de pagar.");
 			return "redirect:/carrito";
@@ -213,6 +244,11 @@ public class CheckoutController {
 		cliente = resolverCliente(cliente, session);
 		direccionEnvio = resolverDireccion(direccionEnvio, session);
 		String metodoEntrega = resolverMetodoEntrega(metodoEnvio, session);
+		if ("OCA".equals(metodoEntrega) && !carritoPermiteOca(carrito)) {
+			desactivarOcaEnSession(session);
+			redirectAttributes.addFlashAttribute("mensaje", "El carrito contiene productos que no permiten envío OCA. Elegí retiro en sucursal o coordinación con vendedor.");
+			return "redirect:/checkout/datos";
+		}
 		if ("OCA".equals(metodoEntrega)) {
 			guardarSeleccionOca(session, ocaTipoEntrega, ocaSucursalId);
 		}
@@ -224,7 +260,7 @@ public class CheckoutController {
 			redirectAttributes.addFlashAttribute("mensaje", "Elegí una sucursal OCA para retirar el envío.");
 			return "redirect:/checkout/datos";
 		}
-		BigDecimal costoEnvio = resolverCostoEnvio(metodoEntrega, session);
+		BigDecimal costoEnvio = resolverCostoEnvio(metodoEntrega, session, carrito);
 		session.setAttribute("envioSeleccionado", metodoEntrega);
 		Pedido pedido;
 		try {
@@ -239,6 +275,8 @@ public class CheckoutController {
 					cotizacionOcaSeleccionada(session),
 					resolverTipoEntregaOca(null, session),
 					obtenerSucursalSeleccionada(session));
+			pedido.setCostoEnvio(costoEnvio);
+			pedido.recalcularTotales();
 		}
 		MercadoPagoPreferenceResponseDTO preference;
 		try {
@@ -306,12 +344,52 @@ public class CheckoutController {
 		return pedido;
 	}
 
+	private CarritoDTO obtenerCarritoActualizado(HttpSession session) {
+		Object carrito = session.getAttribute("carrito");
+		if (!(carrito instanceof CarritoDTO carritoDTO)) {
+			return null;
+		}
+		CarritoDTO actualizado = descuentoService.recalcular(carritoDTO);
+		if (actualizado != carritoDTO) {
+			session.setAttribute("carrito", actualizado);
+		}
+		return actualizado;
+	}
+
 	private String resolverMetodoEntrega(String metodoEnvio, HttpSession session) {
 		if (metodoEnvio != null && !metodoEnvio.isBlank()) {
 			return normalizarMetodoEntrega(metodoEnvio);
 		}
 		Object sessionMetodo = session.getAttribute("envioSeleccionado");
 		return sessionMetodo instanceof String value && !value.isBlank() ? normalizarMetodoEntrega(value) : "SUCURSAL";
+	}
+
+	private boolean carritoPermiteOca(CarritoDTO carrito) {
+		if (carrito == null || carrito.items().isEmpty()) {
+			return true;
+		}
+		boolean bloqueadoEnCarrito = carrito.items().stream()
+				.anyMatch(item -> Boolean.TRUE.equals(item.envioOcaDesactivado()));
+		if (bloqueadoEnCarrito) {
+			return false;
+		}
+		return carrito.items().stream()
+				.map(item -> productoRepository.findById(item.productoId()))
+				.noneMatch(producto -> producto
+						.map(Producto::getEnvioOcaDesactivado)
+						.map(Boolean.TRUE::equals)
+						.orElse(false));
+	}
+
+	private void desactivarOcaEnSession(HttpSession session) {
+		session.setAttribute("envioSeleccionado", "SUCURSAL");
+		session.removeAttribute("codigoPostalDestino");
+		session.removeAttribute("cotizacionOca");
+		session.removeAttribute("cotizacionOcaDomicilio");
+		session.removeAttribute("cotizacionOcaSucursal");
+		session.removeAttribute("ocaSucursales");
+		session.removeAttribute("ocaTipoEntrega");
+		session.removeAttribute("ocaSucursalId");
 	}
 
 	private String normalizarMetodoEntrega(String metodoEnvio) {
@@ -322,14 +400,23 @@ public class CheckoutController {
 		};
 	}
 
-	private BigDecimal resolverCostoEnvio(String metodoEntrega, HttpSession session) {
+	private BigDecimal resolverCostoEnvio(String metodoEntrega, HttpSession session, CarritoDTO carrito) {
 		if ("OCA".equals(metodoEntrega)) {
 			OcaCotizacionResponseDTO ocaCotizacion = cotizacionOcaSeleccionada(session);
 			if (ocaCotizacion != null && ocaCotizacion.cotizada()) {
+				if (envioGratisAplicado(metodoEntrega, carrito)) {
+					return dinero(BigDecimal.ZERO);
+				}
 				return dinero(ocaCotizacion.costo());
 			}
 		}
 		return dinero(BigDecimal.ZERO);
+	}
+
+	private boolean envioGratisAplicado(String metodoEntrega, CarritoDTO carrito) {
+		return "OCA".equals(metodoEntrega)
+				&& carrito != null
+				&& configuracionTiendaService.obtener().alcanzaEnvioGratis(carrito.subtotal());
 	}
 
 	private BigDecimal dinero(BigDecimal valor) {
@@ -343,14 +430,19 @@ public class CheckoutController {
 
 	private OcaCotizacionResponseDTO cotizacionOcaSeleccionada(HttpSession session) {
 		String tipoEntrega = resolverTipoEntregaOca(null, session);
-		Object cotizacion = OCA_SUCURSAL.equals(tipoEntrega)
-				? session.getAttribute("cotizacionOcaSucursal")
-				: session.getAttribute("cotizacionOcaDomicilio");
+		Object cotizacion = cotizacionOcaPorSeleccion(session, tipoEntrega);
 		if (cotizacion instanceof OcaCotizacionResponseDTO ocaCotizacion) {
 			return ocaCotizacion;
 		}
 		Object fallback = session.getAttribute("cotizacionOca");
 		return fallback instanceof OcaCotizacionResponseDTO ocaCotizacion ? ocaCotizacion : null;
+	}
+
+	private Object cotizacionOcaPorSeleccion(HttpSession session, String tipoEntrega) {
+		if (OCA_SUCURSAL.equals(tipoEntrega)) {
+			return session.getAttribute("cotizacionOcaSucursal");
+		}
+		return session.getAttribute("cotizacionOcaDomicilio");
 	}
 
 	private void actualizarCotizacionSeleccionada(HttpSession session) {

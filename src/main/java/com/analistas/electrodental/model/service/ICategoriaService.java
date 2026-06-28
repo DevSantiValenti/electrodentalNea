@@ -25,4 +25,8 @@ public interface ICategoriaService {
 	Categoria guardarCategoria(Categoria categoria);
 
 	Subcategoria guardarSubcategoria(Long categoriaId, Subcategoria subcategoria);
+
+	void eliminarCategoria(Long id);
+
+	void eliminarSubcategoria(Long id);
 }

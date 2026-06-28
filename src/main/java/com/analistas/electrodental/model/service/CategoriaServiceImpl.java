@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.analistas.electrodental.model.domain.Categoria;
 import com.analistas.electrodental.model.domain.Subcategoria;
 import com.analistas.electrodental.model.repository.ICategoriaRepository;
+import com.analistas.electrodental.model.repository.IProductoRepository;
 import com.analistas.electrodental.model.repository.ISubcategoriaRepository;
 
 @Service
@@ -17,10 +18,15 @@ public class CategoriaServiceImpl implements ICategoriaService {
 
 	private final ICategoriaRepository categoriaRepository;
 	private final ISubcategoriaRepository subcategoriaRepository;
+	private final IProductoRepository productoRepository;
 
-	public CategoriaServiceImpl(ICategoriaRepository categoriaRepository, ISubcategoriaRepository subcategoriaRepository) {
+	public CategoriaServiceImpl(
+			ICategoriaRepository categoriaRepository,
+			ISubcategoriaRepository subcategoriaRepository,
+			IProductoRepository productoRepository) {
 		this.categoriaRepository = categoriaRepository;
 		this.subcategoriaRepository = subcategoriaRepository;
+		this.productoRepository = productoRepository;
 	}
 
 	@Override
@@ -61,6 +67,15 @@ public class CategoriaServiceImpl implements ICategoriaService {
 	@Override
 	@Transactional
 	public Categoria guardarCategoria(Categoria categoria) {
+		if (categoria.getId() != null) {
+			Categoria actual = categoriaRepository.findById(categoria.getId())
+					.orElseThrow(() -> new IllegalArgumentException("Categoria no encontrada: " + categoria.getId()));
+			actual.setNombre(categoria.getNombre());
+			actual.setSlug(categoria.getSlug());
+			actual.setDescripcion(categoria.getDescripcion());
+			actual.setActivo(categoria.getActivo());
+			return categoriaRepository.save(actual);
+		}
 		return categoriaRepository.save(categoria);
 	}
 
@@ -69,7 +84,36 @@ public class CategoriaServiceImpl implements ICategoriaService {
 	public Subcategoria guardarSubcategoria(Long categoriaId, Subcategoria subcategoria) {
 		Categoria categoria = categoriaRepository.findById(categoriaId)
 				.orElseThrow(() -> new IllegalArgumentException("Categoria no encontrada: " + categoriaId));
+		if (subcategoria.getId() != null) {
+			Subcategoria actual = subcategoriaRepository.findById(subcategoria.getId())
+					.orElseThrow(() -> new IllegalArgumentException("Subcategoria no encontrada: " + subcategoria.getId()));
+			actual.setNombre(subcategoria.getNombre());
+			actual.setSlug(subcategoria.getSlug());
+			actual.setDescripcion(subcategoria.getDescripcion());
+			actual.setActivo(subcategoria.getActivo());
+			actual.setCategoria(categoria);
+			return subcategoriaRepository.save(actual);
+		}
 		subcategoria.setCategoria(categoria);
 		return subcategoriaRepository.save(subcategoria);
+	}
+
+	@Override
+	@Transactional
+	public void eliminarCategoria(Long id) {
+		Categoria categoria = categoriaRepository.findById(id)
+				.orElseThrow(() -> new IllegalArgumentException("Categoria no encontrada: " + id));
+		productoRepository.desvincularSubcategoriasDeCategoria(id);
+		productoRepository.desvincularCategoria(id);
+		categoriaRepository.delete(categoria);
+	}
+
+	@Override
+	@Transactional
+	public void eliminarSubcategoria(Long id) {
+		Subcategoria subcategoria = subcategoriaRepository.findById(id)
+				.orElseThrow(() -> new IllegalArgumentException("Subcategoria no encontrada: " + id));
+		productoRepository.desvincularSubcategoria(id);
+		subcategoriaRepository.delete(subcategoria);
 	}
 }

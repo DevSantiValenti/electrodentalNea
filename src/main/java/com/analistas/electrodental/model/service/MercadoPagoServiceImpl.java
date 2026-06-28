@@ -88,11 +88,13 @@ public class MercadoPagoServiceImpl implements IMercadoPagoService {
 
 	private Map<String, Object> crearRequest(Pedido pedido, Pago pago) {
 		Map<String, Object> request = new LinkedHashMap<>();
-		List<Map<String, Object>> items = pedido.getItems().stream()
-				.map(this::crearItem)
-				.toList();
+		List<Map<String, Object>> items = tieneDescuento(pedido)
+				? List.of(crearItemPedidoConDescuento(pedido))
+				: pedido.getItems().stream()
+						.map(this::crearItem)
+						.toList();
 
-		if (pedido.getCostoEnvio() != null && pedido.getCostoEnvio().signum() > 0) {
+		if (!tieneDescuento(pedido) && pedido.getCostoEnvio() != null && pedido.getCostoEnvio().signum() > 0) {
 			items = new java.util.ArrayList<>(items);
 			items.add(Map.of(
 					"title", "Envio OCA",
@@ -130,6 +132,20 @@ public class MercadoPagoServiceImpl implements IMercadoPagoService {
 				"quantity", item.getCantidad(),
 				"currency_id", "ARS",
 				"unit_price", item.getPrecioUnitarioSnapshot());
+	}
+
+	private Map<String, Object> crearItemPedidoConDescuento(Pedido pedido) {
+		String codigo = StringUtils.hasText(pedido.getCodigoDescuento()) ? " - descuento " + pedido.getCodigoDescuento() : "";
+		return Map.of(
+				"id", "pedido-" + (pedido.getId() == null ? pedido.getCodigoCompra() : pedido.getId()),
+				"title", "Pedido ElectrodentalNea" + codigo,
+				"quantity", 1,
+				"currency_id", "ARS",
+				"unit_price", pedido.getTotal());
+	}
+
+	private boolean tieneDescuento(Pedido pedido) {
+		return pedido.getDescuentoAplicado() != null && pedido.getDescuentoAplicado().signum() > 0;
 	}
 
 	private String toJson(Object value) {

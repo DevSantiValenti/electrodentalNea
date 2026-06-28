@@ -8,11 +8,68 @@
 <main class="p-4 sm:p-6 lg:ml-64 lg:p-8">
 	<div th:replace="~{admin/fragments/layout :: topbar('Productos', 'Administrá catálogo, precios, stock web y stock físico.')}"></div>
 
-	<div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-		<div th:if="${mensaje}" class="rounded-lg bg-green-50 px-4 py-3 text-sm font-bold text-green-800" th:text="${mensaje}">Mensaje</div>
-		<a th:href="@{/admin/productos/nuevo}" class="inline-flex items-center justify-center gap-2 rounded-xl bg-secondary px-4 py-3 text-sm font-bold text-white hover:opacity-90">
-			<span class="material-symbols-outlined">add_circle</span> Añadir Nuevo
-		</a>
+	<div th:if="${mensaje}" class="mb-6 rounded-lg bg-green-50 px-4 py-3 text-sm font-bold text-green-800" th:text="${mensaje}">Mensaje</div>
+	<div th:if="${mensajeError}" class="mb-6 rounded-lg bg-red-50 px-4 py-3 text-sm font-bold text-red-800" th:text="${mensajeError}">Mensaje</div>
+
+	<div class="mb-6 flex flex-col gap-3 xl:flex-row xl:items-end xl:justify-between">
+		<form th:action="@{/admin/productos}" method="get" class="admin-card grid gap-3 rounded-2xl p-4 md:grid-cols-[1fr_1fr_auto_auto] md:items-end xl:flex-1">
+			<label>
+				<span class="text-xs font-black uppercase text-muted">Categoría</span>
+				<select id="categoria-filter" name="categoriaId" class="mt-1 w-full rounded-lg border-outline">
+					<option value="">Todas</option>
+					<option th:each="categoria : ${categorias}"
+							th:value="${categoria.id}"
+							th:selected="${categoriaSeleccionadaId != null && categoriaSeleccionadaId == categoria.id}"
+							th:text="${categoria.nombre}">Categoría</option>
+				</select>
+			</label>
+			<label>
+				<span class="text-xs font-black uppercase text-muted">Subcategoría</span>
+				<select id="subcategoria-filter" name="subcategoriaId" class="mt-1 w-full rounded-lg border-outline">
+					<option value="">Todas</option>
+					<optgroup th:each="categoria : ${categorias}" th:label="${categoria.nombre}">
+						<option th:each="subcategoria : ${categoria.subcategorias}"
+								th:value="${subcategoria.id}"
+								th:data-category-id="${categoria.id}"
+								th:data-category-name="${categoria.nombre}"
+								th:selected="${subcategoriaSeleccionadaId != null && subcategoriaSeleccionadaId == subcategoria.id}"
+								th:text="${subcategoria.nombre}">Subcategoría</option>
+					</optgroup>
+				</select>
+			</label>
+			<input type="hidden" name="bajoStock" th:if="${bajoStockSeleccionado}" value="true">
+			<button class="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-primary px-4 text-sm font-black text-white hover:opacity-90">
+				<span class="material-symbols-outlined text-[19px]">filter_alt</span> Aplicar
+			</button>
+			<a th:href="@{/admin/productos}" class="inline-flex h-11 items-center justify-center gap-2 rounded-lg border border-outline px-4 text-sm font-black text-primary hover:bg-surface-soft">
+				<span class="material-symbols-outlined text-[19px]">filter_alt_off</span> Limpiar
+			</a>
+		</form>
+		<div class="grid w-full grid-cols-2 gap-3 sm:w-auto xl:flex-none">
+			<a th:if="${!bajoStockSeleccionado}"
+			   th:href="@{/admin/productos(categoriaId=${categoriaSeleccionadaId},subcategoriaId=${subcategoriaSeleccionadaId},bajoStock=true)}"
+			   class="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-black text-amber-800 hover:bg-amber-100">
+				<span class="material-symbols-outlined">notifications_active</span>
+				<span th:text="|Bajo stock: ${totalBajoStock}|">Bajo stock: 0</span>
+			</a>
+			<a th:if="${bajoStockSeleccionado}"
+			   th:href="@{/admin/productos(categoriaId=${categoriaSeleccionadaId},subcategoriaId=${subcategoriaSeleccionadaId})}"
+			   class="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-amber-500 px-4 py-3 text-sm font-black text-white hover:bg-amber-600">
+				<span class="material-symbols-outlined">notifications_active</span> Viendo bajo stock
+			</a>
+			<a th:href="@{/admin/productos/nuevo(categoriaId=${categoriaSeleccionadaId},subcategoriaId=${subcategoriaSeleccionadaId})}" class="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-secondary px-4 py-3 text-sm font-bold text-white hover:opacity-90">
+				<span class="material-symbols-outlined">add_circle</span> Añadir Nuevo
+			</a>
+			<a th:href="@{/admin/productos/exportar}" class="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-outline bg-white px-4 py-3 text-sm font-black text-primary hover:bg-surface-soft">
+				<span class="material-symbols-outlined">download</span> Exportar Excel
+			</a>
+			<form id="product-import-form" th:action="@{/admin/productos/importar/previsualizar}" method="post" enctype="multipart/form-data">
+				<input id="product-import-file" name="archivo" type="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" class="hidden">
+				<button id="product-import-trigger" type="button" class="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm font-black text-green-800 hover:bg-green-100">
+					<span class="material-symbols-outlined">upload_file</span> Importar Excel
+				</button>
+			</form>
+		</div>
 	</div>
 
 	<section class="admin-card rounded-2xl p-6">
@@ -29,7 +86,7 @@
 		<div th:if="${#lists.isEmpty(productos)}" class="rounded-xl border border-dashed border-outline p-10 text-center">
 			<h3 class="text-xl font-black text-primary">Aun no hay productos...</h3>
 			<p class="mt-2 text-sm text-muted">Cargá el primero para verlo aparecer en catálogo, home y carrito.</p>
-			<a th:href="@{/admin/productos/nuevo}" class="mt-5 inline-flex rounded-lg bg-secondary px-5 py-3 font-bold text-white">Crear producto</a>
+			<a th:href="@{/admin/productos/nuevo(categoriaId=${categoriaSeleccionadaId},subcategoriaId=${subcategoriaSeleccionadaId})}" class="mt-5 inline-flex rounded-lg bg-secondary px-5 py-3 font-bold text-white">Crear producto</a>
 		</div>
 
 		<div th:if="${!#lists.isEmpty(productos)}" class="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
@@ -45,7 +102,8 @@
 								  th:classappend="${producto.activo != null && producto.activo} ? ' bg-green-100 text-green-800' : ' bg-slate-200 text-slate-700'"
 								  th:text="${producto.activo != null && producto.activo} ? 'Activo' : 'Inactivo'">Activo</span>
 							<span th:if="${!producto.permiteCompraWeb()}" class="rounded bg-amber-100 px-2 py-1 text-[10px] font-black uppercase text-amber-800">Solo consulta</span>
-							<span class="rounded px-2 py-1 text-[10px] font-bold" th:classappend="${producto.stockWeb <= producto.stockMinimo} ? ' bg-red-100 text-red-800' : ' bg-amber-100 text-amber-800'" th:text="|Web: ${producto.stockWeb}|">Web</span>
+							<span th:if="${producto.stockWeb <= 0}" class="rounded bg-red-100 px-2 py-1 text-[10px] font-black uppercase text-red-800">Sin stock web</span>
+							<span th:unless="${producto.stockWeb <= 0}" class="rounded px-2 py-1 text-[10px] font-bold" th:classappend="${producto.stockWeb <= producto.stockMinimo} ? ' bg-red-100 text-red-800' : ' bg-amber-100 text-amber-800'" th:text="|Web: ${producto.stockWeb}|">Web</span>
 							<span class="rounded bg-surface-soft px-2 py-1 text-[10px] font-bold text-primary" th:text="|Físico: ${producto.stockFisico}|">Físico</span>
 						</div>
 					</div>
@@ -86,6 +144,102 @@
 			</form>
 		</div>
 	</dialog>
+
+	<dialog th:if="${productoExcelImportPreview != null}" id="product-import-preview-dialog" class="rounded-2xl border border-outline bg-white p-0 shadow-2xl backdrop:bg-slate-950/50" style="width:70vw;max-width:92vw;height:80vh;">
+		<div class="flex h-full flex-col">
+			<header class="flex items-start justify-between gap-4 border-b border-outline p-5">
+				<div>
+					<h2 class="text-2xl font-black text-primary">Previsualizar importación</h2>
+					<p class="mt-1 text-sm font-semibold text-muted">
+						Revisá los cambios detectados antes de actualizar productos.
+					</p>
+					<p class="mt-2 text-xs font-bold text-slate-500">
+						Formato aceptado: ID, Categoria, Subcategoria, Nombre, Marca, Stock web, Stock fisico, Precio. Categoria y subcategoría son solo referencia.
+					</p>
+				</div>
+				<form th:action="@{/admin/productos/importar/cancelar}" method="post">
+					<button class="inline-flex h-10 w-10 items-center justify-center rounded-lg text-slate-500 hover:bg-surface-soft" aria-label="Cerrar">
+						<span class="material-symbols-outlined">close</span>
+					</button>
+				</form>
+			</header>
+
+			<div class="min-h-0 flex-1 overflow-y-auto p-5">
+				<div class="grid gap-3 text-sm font-bold sm:grid-cols-4">
+					<div class="rounded-xl bg-surface-soft p-4">
+						<p class="text-xs uppercase text-muted">Filas leídas</p>
+						<p class="mt-1 text-2xl text-primary" th:text="${productoExcelImportPreview.filasLeidas}">0</p>
+					</div>
+					<div class="rounded-xl bg-green-50 p-4">
+						<p class="text-xs uppercase text-green-700">Productos a actualizar</p>
+						<p class="mt-1 text-2xl text-green-800" th:text="${productoExcelImportPreview.actualizaciones.size()}">0</p>
+					</div>
+					<div class="rounded-xl bg-red-50 p-4">
+						<p class="text-xs uppercase text-red-700">Productos a eliminar</p>
+						<p class="mt-1 text-2xl text-red-800" th:text="${productoExcelImportPreview.eliminaciones.size()}">0</p>
+					</div>
+					<div class="rounded-xl bg-amber-50 p-4">
+						<p class="text-xs uppercase text-amber-700">Errores</p>
+						<p class="mt-1 text-2xl text-amber-800" th:text="${productoExcelImportPreview.errores.size()}">0</p>
+					</div>
+				</div>
+
+				<section th:if="${!#lists.isEmpty(productoExcelImportPreview.errores)}" class="mt-5 rounded-xl border border-red-200 bg-red-50 p-4">
+					<h3 class="font-black text-red-800">Errores del archivo</h3>
+					<ul class="mt-3 space-y-2 text-sm font-bold text-red-700">
+						<li th:each="error : ${productoExcelImportPreview.errores}" th:text="${error}">Error</li>
+					</ul>
+				</section>
+
+				<section th:if="${!#lists.isEmpty(productoExcelImportPreview.actualizaciones)}" class="mt-5">
+					<h3 class="text-lg font-black text-primary">Cambios a aplicar</h3>
+					<div class="mt-3 space-y-3">
+						<article th:each="update : ${productoExcelImportPreview.actualizaciones}" class="rounded-xl border border-green-200 bg-green-50 p-4">
+							<div class="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+								<p class="font-black text-primary" th:text="|#${update.productoId} · ${update.nombreActual}|">Producto</p>
+								<p class="text-xs font-bold text-green-700" th:text="|${update.categoria} / ${update.subcategoria}|">Categoría</p>
+							</div>
+							<div class="mt-3 grid gap-2 sm:grid-cols-2">
+								<div th:each="cambio : ${update.cambios}" class="rounded-lg bg-white p-3 text-sm">
+									<p class="font-black text-primary" th:text="${cambio.campo}">Campo</p>
+									<p class="mt-1 text-xs font-semibold text-slate-500" th:text="|Antes: ${cambio.actual}|">Antes</p>
+									<p class="mt-1 text-sm font-black text-green-700" th:text="|Nuevo: ${cambio.nuevo}|">Nuevo</p>
+								</div>
+							</div>
+						</article>
+					</div>
+				</section>
+
+				<section th:if="${!#lists.isEmpty(productoExcelImportPreview.eliminaciones)}" class="mt-5">
+					<h3 class="text-lg font-black text-red-800">Productos que se eliminarán</h3>
+					<p class="mt-1 text-sm font-semibold text-red-700">Estos productos existen en el panel pero no están en el Excel importado.</p>
+					<div class="mt-3 grid gap-3 md:grid-cols-2">
+						<article th:each="deletion : ${productoExcelImportPreview.eliminaciones}" class="rounded-xl border border-red-200 bg-red-50 p-4">
+							<p class="font-black text-red-800" th:text="|#${deletion.productoId} · ${deletion.nombre}|">Producto</p>
+							<p class="mt-1 text-xs font-bold text-red-700" th:text="|${deletion.categoria} / ${deletion.subcategoria}|">Categoría</p>
+						</article>
+					</div>
+				</section>
+
+				<div th:if="${!productoExcelImportPreview.tieneCambios() && #lists.isEmpty(productoExcelImportPreview.errores)}" class="mt-5 rounded-xl border border-outline bg-surface-soft p-8 text-center">
+					<p class="text-lg font-black text-primary">No se detectaron cambios.</p>
+					<p class="mt-2 text-sm text-muted">El Excel coincide con los datos actuales del panel.</p>
+				</div>
+			</div>
+
+			<footer class="flex flex-col gap-3 border-t border-outline p-5 sm:flex-row sm:items-center sm:justify-end">
+				<form th:action="@{/admin/productos/importar/cancelar}" method="post">
+					<button class="w-full rounded-lg border border-outline px-4 py-3 text-sm font-black text-primary hover:bg-surface-soft sm:w-auto">Cancelar</button>
+				</form>
+				<form th:action="@{/admin/productos/importar/confirmar}" method="post">
+					<button th:disabled="${!productoExcelImportPreview.puedeConfirmar()}"
+							class="w-full rounded-lg bg-primary px-5 py-3 text-sm font-black text-white hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto">
+						Confirmar importación
+					</button>
+				</form>
+			</footer>
+		</div>
+	</dialog>
 </main>
 <script>
 	const deleteDialog = document.querySelector("#delete-product-dialog");
@@ -107,6 +261,93 @@
 			deleteDialog.close();
 		}
 	});
+
+	const productImportFile = document.querySelector("#product-import-file");
+	const productImportTrigger = document.querySelector("#product-import-trigger");
+	const productImportForm = document.querySelector("#product-import-form");
+	productImportTrigger?.addEventListener("click", () => productImportFile?.click());
+	productImportFile?.addEventListener("change", () => {
+		if (productImportFile.files.length > 0) {
+			productImportForm.submit();
+		}
+	});
+
+	const productImportPreviewDialog = document.querySelector("#product-import-preview-dialog");
+	if (productImportPreviewDialog) {
+		productImportPreviewDialog.showModal();
+	}
+
+	const categoriaFilter = document.querySelector("#categoria-filter");
+	const subcategoriaFilter = document.querySelector("#subcategoria-filter");
+
+	if (categoriaFilter && subcategoriaFilter) {
+		const subcategoriasOriginales = Array.from(subcategoriaFilter.querySelectorAll("option[data-category-id]"))
+			.map((option) => ({
+				value: option.value,
+				text: option.textContent,
+				categoryId: option.dataset.categoryId,
+				categoryName: option.dataset.categoryName,
+				selected: option.selected
+			}));
+
+		function crearOption(data) {
+			const option = document.createElement("option");
+			option.value = data.value;
+			option.textContent = data.text;
+			option.dataset.categoryId = data.categoryId;
+			option.dataset.categoryName = data.categoryName;
+			return option;
+		}
+
+		function renderSubcategorias(categoryId, selectedValue = subcategoriaFilter.value) {
+			subcategoriaFilter.innerHTML = "";
+			const allOption = document.createElement("option");
+			allOption.value = "";
+			allOption.textContent = "Todas";
+			subcategoriaFilter.appendChild(allOption);
+
+			if (categoryId) {
+				subcategoriasOriginales
+					.filter((subcategoria) => subcategoria.categoryId === categoryId)
+					.forEach((subcategoria) => subcategoriaFilter.appendChild(crearOption(subcategoria)));
+			} else {
+				const grupos = new Map();
+				subcategoriasOriginales.forEach((subcategoria) => {
+					if (!grupos.has(subcategoria.categoryId)) {
+						const optgroup = document.createElement("optgroup");
+						optgroup.label = subcategoria.categoryName;
+						grupos.set(subcategoria.categoryId, optgroup);
+						subcategoriaFilter.appendChild(optgroup);
+					}
+					grupos.get(subcategoria.categoryId).appendChild(crearOption(subcategoria));
+				});
+			}
+
+			if (selectedValue && subcategoriaFilter.querySelector(`option[value="${CSS.escape(selectedValue)}"]`)) {
+				subcategoriaFilter.value = selectedValue;
+			} else {
+				subcategoriaFilter.value = "";
+			}
+		}
+
+		categoriaFilter.addEventListener("change", () => {
+			renderSubcategorias(categoriaFilter.value, "");
+		});
+
+		subcategoriaFilter.addEventListener("change", () => {
+			const selected = subcategoriaFilter.selectedOptions[0];
+			if (selected?.dataset.categoryId) {
+				categoriaFilter.value = selected.dataset.categoryId;
+				renderSubcategorias(selected.dataset.categoryId, selected.value);
+			}
+		});
+
+		const seleccionInicial = subcategoriasOriginales.find((subcategoria) => subcategoria.selected);
+		if (seleccionInicial && !categoriaFilter.value) {
+			categoriaFilter.value = seleccionInicial.categoryId;
+		}
+		renderSubcategorias(categoriaFilter.value, seleccionInicial?.value || subcategoriaFilter.value);
+	}
 </script>
 </body>
 </html>

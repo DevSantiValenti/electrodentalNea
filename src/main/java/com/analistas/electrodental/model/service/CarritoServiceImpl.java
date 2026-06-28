@@ -20,7 +20,7 @@ public class CarritoServiceImpl implements ICarritoService {
 
 	@Override
 	public CarritoDTO agregarProducto(CarritoDTO carrito, Producto producto, Integer cantidad) {
-		if (!producto.permiteCompraWeb()) {
+		if (!producto.disponibleParaCompraWeb()) {
 			return carrito;
 		}
 		List<CarritoItemDTO> items = new ArrayList<>(normalizar(carrito).items());
@@ -65,7 +65,7 @@ public class CarritoServiceImpl implements ICarritoService {
 
 	@Override
 	public CarritoDTO actualizarCantidad(CarritoDTO carrito, Producto producto, Integer cantidad) {
-		if (!producto.permiteCompraWeb()) {
+		if (!producto.disponibleParaCompraWeb()) {
 			return quitarProducto(carrito, producto.getId());
 		}
 		if (cantidad == null || cantidad < 1) {
@@ -104,7 +104,8 @@ public class CarritoServiceImpl implements ICarritoService {
 				producto.getPrecio(),
 				cantidad,
 				subtotal,
-				stockDisponible(producto));
+				stockDisponible(producto),
+				Boolean.TRUE.equals(producto.getEnvioOcaDesactivado()));
 	}
 
 	private CarritoItemDTO actualizarItemDesdeStockActual(CarritoItemDTO item, Integer cantidad) {
@@ -118,7 +119,8 @@ public class CarritoServiceImpl implements ICarritoService {
 				item.precioUnitario(),
 				cantidadFinal,
 				item.precioUnitario().multiply(BigDecimal.valueOf(cantidadFinal)),
-				item.stockDisponible());
+				item.stockDisponible(),
+				item.envioOcaDesactivado());
 	}
 
 	private int stockDisponible(Producto producto) {

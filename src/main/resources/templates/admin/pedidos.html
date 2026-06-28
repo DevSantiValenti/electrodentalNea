@@ -41,13 +41,14 @@
 							<th class="px-5 py-3">Entrega</th>
 							<th class="px-5 py-3">Fecha</th>
 							<th class="px-5 py-3">Estado</th>
+							<th class="px-5 py-3">Descuento</th>
 							<th class="px-5 py-3">Total</th>
 							<th class="px-5 py-3 text-right">Acciones</th>
 						</tr>
 					</thead>
 					<tbody class="divide-y divide-outline">
 						<tr th:if="${#lists.isEmpty(pedidos)}">
-							<td colspan="8" class="p-10 text-center text-muted">No hay pedidos para esos filtros.</td>
+							<td colspan="9" class="p-10 text-center text-muted">No hay pedidos para esos filtros.</td>
 						</tr>
 						<tr th:each="pedido : ${pedidos}" class="hover:bg-surface-soft">
 							<td class="px-5 py-4 font-black" th:text="|#${pedido.id}|">#1</td>
@@ -64,6 +65,13 @@
 								<span class="rounded-full px-3 py-1 text-xs font-black"
 									  th:classappend="${pedido.estadoPedido.name() == 'PENDIENTE_PAGO'} ? ' bg-amber-100 text-amber-800' : (${pedido.estadoPedido.name() == 'PAGADO'} ? ' bg-blue-100 text-blue-800' : (${pedido.estadoPedido.name() == 'ENTREGADO'} ? ' bg-green-100 text-green-800' : (${pedido.estadoPedido.name() == 'CANCELADO'} ? ' bg-red-100 text-red-800' : ' bg-surface-soft text-primary')))"
 									  th:text="${pedido.estadoPedido}">Estado</span>
+							</td>
+							<td class="px-5 py-4">
+								<div th:if="${pedido.codigoDescuento != null && !#strings.isEmpty(pedido.codigoDescuento)}">
+									<span class="rounded bg-green-50 px-2 py-1 text-xs font-black text-green-800" th:text="${pedido.codigoDescuento}">DENTAL10</span>
+									<p class="mt-1 text-xs font-bold text-green-700" th:text="|-${@money.format(pedido.descuentoAplicado)}|">-$ 0,00</p>
+								</div>
+								<span th:unless="${pedido.codigoDescuento != null && !#strings.isEmpty(pedido.codigoDescuento)}" class="text-xs font-bold text-muted">Sin código</span>
 							</td>
 							<td class="px-5 py-4 font-black text-primary" th:text="${@money.format(pedido.total)}">$ 0,00</td>
 							<td class="px-5 py-4 text-right">

@@ -67,8 +67,20 @@ public class Pedido {
 	@Column(nullable = false, precision = 14, scale = 2)
 	private BigDecimal costoEnvio = BigDecimal.ZERO;
 
+	@Column(precision = 14, scale = 2)
+	private BigDecimal descuentoAplicado = BigDecimal.ZERO;
+
+	@Column(precision = 14, scale = 2)
+	private BigDecimal totalAntesDescuento = BigDecimal.ZERO;
+
+	@Column(precision = 14, scale = 2)
+	private BigDecimal totalDespuesDescuento = BigDecimal.ZERO;
+
 	@Column(nullable = false, precision = 14, scale = 2)
 	private BigDecimal total = BigDecimal.ZERO;
+
+	@Column(length = 60)
+	private String codigoDescuento;
 
 	@Column(length = 40)
 	private String metodoEntrega;
@@ -119,10 +131,36 @@ public class Pedido {
 		}
 	}
 
+	public BigDecimal getDescuentoAplicado() {
+		return descuentoAplicado == null ? BigDecimal.ZERO : descuentoAplicado;
+	}
+
+	public BigDecimal getTotalAntesDescuento() {
+		if (totalAntesDescuento != null) {
+			return totalAntesDescuento;
+		}
+		return (subtotal == null ? BigDecimal.ZERO : subtotal).add(costoEnvio == null ? BigDecimal.ZERO : costoEnvio);
+	}
+
+	public BigDecimal getTotalDespuesDescuento() {
+		return totalDespuesDescuento == null ? total : totalDespuesDescuento;
+	}
+
 	public void recalcularTotales() {
 		subtotal = items.stream()
 				.map(PedidoItem::getSubtotal)
 				.reduce(BigDecimal.ZERO, BigDecimal::add);
-		total = subtotal.add(costoEnvio == null ? BigDecimal.ZERO : costoEnvio);
+		BigDecimal envio = costoEnvio == null ? BigDecimal.ZERO : costoEnvio;
+		BigDecimal descuento = descuentoAplicado == null ? BigDecimal.ZERO : descuentoAplicado;
+		if (descuento.compareTo(subtotal) > 0) {
+			descuento = subtotal;
+			descuentoAplicado = descuento;
+		}
+		totalAntesDescuento = subtotal.add(envio);
+		total = totalAntesDescuento.subtract(descuento);
+		if (total.signum() < 0) {
+			total = BigDecimal.ZERO;
+		}
+		totalDespuesDescuento = total;
 	}
 }

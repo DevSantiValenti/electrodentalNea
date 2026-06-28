@@ -71,6 +71,10 @@ public class Producto {
 
 	private Boolean compraHabilitada = true;
 
+	private Boolean envioOcaDesactivado = false;
+
+	private Boolean eliminado = false;
+
 	@Column(precision = 5, scale = 2)
 	private BigDecimal porcentajeOferta = BigDecimal.ZERO;
 
@@ -95,17 +99,11 @@ public class Producto {
 	@Column(precision = 14, scale = 2)
 	private BigDecimal volumenCm3 = BigDecimal.ZERO;
 
-	@Column(precision = 14, scale = 2)
-	private BigDecimal valorDeclarado = BigDecimal.ZERO;
-
 	@PrePersist
 	@PreUpdate
 	public void calcularVolumen() {
 		if (altoCm != null && anchoCm != null && largoCm != null) {
 			volumenCm3 = altoCm.multiply(anchoCm).multiply(largoCm);
-		}
-		if (valorDeclarado == null || BigDecimal.ZERO.compareTo(valorDeclarado) == 0) {
-			valorDeclarado = precio;
 		}
 	}
 
@@ -119,5 +117,13 @@ public class Producto {
 
 	public boolean permiteCompraWeb() {
 		return !Boolean.FALSE.equals(compraHabilitada);
+	}
+
+	public boolean tieneStockWebDisponible() {
+		return stockWeb != null && stockWeb > 0;
+	}
+
+	public boolean disponibleParaCompraWeb() {
+		return permiteCompraWeb() && tieneStockWebDisponible();
 	}
 }

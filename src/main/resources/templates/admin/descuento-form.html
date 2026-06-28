@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/fragments/layout :: head(${descuento.id == null ? 'Admin | Nuevo descuento' : 'Admin | Editar descuento'})}"></head>
+<body class="admin-shell text-slate-900">
+<aside th:replace="~{admin/fragments/layout :: sidebar('descuentos')}"></aside>
+<header th:replace="~{admin/fragments/layout :: mobilebar('descuentos')}"></header>
+
+<main class="p-4 sm:p-6 lg:ml-64 lg:p-8">
+	<div th:replace="~{admin/fragments/layout :: topbar(${descuento.id == null ? 'Nuevo Descuento' : 'Editar Descuento'}, 'Definí el código, vigencia, límites y alcance del cupón.')}"></div>
+	<div th:if="${mensaje}" class="mb-6 rounded-xl bg-amber-50 p-4 text-sm font-bold text-amber-800" th:text="${mensaje}">Mensaje</div>
+
+	<form th:action="${descuento.id == null ? '/admin/descuentos' : '/admin/descuentos/' + descuento.id}" th:object="${descuento}" method="post" class="admin-card rounded-2xl p-6">
+		<div class="grid gap-6 xl:grid-cols-[1fr_360px]">
+			<section class="space-y-6">
+				<div class="grid gap-4 md:grid-cols-2">
+					<label>
+						<span class="text-sm font-bold text-primary">Código</span>
+						<input th:field="*{codigo}" required class="mt-1 w-full rounded-lg border-outline uppercase" placeholder="DENTAL10" autocomplete="off">
+					</label>
+					<label>
+						<span class="text-sm font-bold text-primary">Porcentaje de descuento</span>
+						<input th:field="*{porcentajeDescuento}" type="number" min="0.01" max="100" step="0.01" required class="mt-1 w-full rounded-lg border-outline">
+					</label>
+					<label class="md:col-span-2">
+						<span class="text-sm font-bold text-primary">Tipo de aplicación</span>
+						<select id="tipoAplicacion" th:field="*{tipoAplicacion}" class="mt-1 w-full rounded-lg border-outline">
+							<option th:each="tipo : ${tiposAplicacion}" th:value="${tipo}" th:text="${tipo.etiqueta}">Tipo</option>
+						</select>
+					</label>
+				</div>
+
+				<section class="discount-target rounded-xl border border-outline bg-white p-4" data-target-section="PRODUCTO SELECCION_PERSONALIZADA">
+					<div class="flex items-center justify-between gap-3">
+						<div>
+							<h2 class="font-black text-primary">Productos incluidos</h2>
+							<p class="mt-1 text-xs font-semibold text-muted">El descuento se aplica solo sobre estos productos cuando correspondan al tipo elegido.</p>
+						</div>
+					</div>
+					<div class="mt-4 grid max-h-72 gap-2 overflow-y-auto pr-2 md:grid-cols-2">
+						<label th:each="producto : ${productos}" class="flex items-start gap-3 rounded-lg border border-outline bg-surface-soft p-3 text-sm font-bold text-primary">
+							<input type="checkbox" name="productoIds" th:value="${producto.id}" th:checked="${productoIdsSeleccionados.contains(producto.id)}" class="mt-1 rounded border-outline text-secondary">
+							<span>
+								<span class="block" th:text="${producto.nombre}">Producto</span>
+								<span class="mt-1 block text-xs font-semibold text-muted" th:text="${producto.marca ?: 'Sin marca'}">Marca</span>
+							</span>
+						</label>
+						<p th:if="${#lists.isEmpty(productos)}" class="text-sm font-semibold text-muted">No hay productos cargados.</p>
+					</div>
+				</section>
+
+				<section class="discount-target rounded-xl border border-outline bg-white p-4" data-target-section="CATEGORIA SELECCION_PERSONALIZADA">
+					<h2 class="font-black text-primary">Categorías incluidas</h2>
+					<div class="mt-4 grid gap-2 md:grid-cols-2">
+						<label th:each="categoria : ${categorias}" class="flex items-center gap-3 rounded-lg border border-outline bg-surface-soft p-3 text-sm font-bold text-primary">
+							<input type="checkbox" name="categoriaIds" th:value="${categoria.id}" th:checked="${categoriaIdsSeleccionadas.contains(categoria.id)}" class="discount-category-checkbox rounded border-outline text-secondary">
+							<span th:text="${categoria.nombre}">Categoría</span>
+						</label>
+						<p th:if="${#lists.isEmpty(categorias)}" class="text-sm font-semibold text-muted">No hay categorías cargadas.</p>
+					</div>
+				</section>
+
+				<section class="discount-target rounded-xl border border-outline bg-white p-4" data-target-section="SUBCATEGORIA SELECCION_PERSONALIZADA">
+					<h2 class="font-black text-primary">Subcategorías incluidas</h2>
+					<div class="mt-4 grid max-h-64 gap-2 overflow-y-auto pr-2 md:grid-cols-2">
+						<label th:each="subcategoria : ${subcategorias}"
+							   th:data-category-id="${subcategoria.categoria != null ? subcategoria.categoria.id : ''}"
+							   class="discount-subcategory-option flex items-start gap-3 rounded-lg border border-outline bg-surface-soft p-3 text-sm font-bold text-primary">
+							<input type="checkbox" name="subcategoriaIds" th:value="${subcategoria.id}" th:checked="${subcategoriaIdsSeleccionadas.contains(subcategoria.id)}" class="mt-1 rounded border-outline text-secondary">
+							<span>
+								<span class="block" th:text="${subcategoria.nombre}">Subcategoría</span>
+								<span class="mt-1 block text-xs font-semibold text-muted" th:text="${subcategoria.categoria != null ? subcategoria.categoria.nombre : 'Sin categoría'}">Categoría</span>
+							</span>
+						</label>
+						<p th:if="${#lists.isEmpty(subcategorias)}" class="text-sm font-semibold text-muted">No hay subcategorías cargadas.</p>
+						<p id="subcategoria-empty-filter" class="hidden text-sm font-semibold text-muted">Las categorías seleccionadas no tienen subcategorías cargadas.</p>
+					</div>
+				</section>
+			</section>
+
+			<aside class="space-y-4">
+				<section class="rounded-xl border border-outline bg-surface-soft p-4">
+					<h2 class="font-black text-primary">Vigencia</h2>
+					<div class="mt-4 grid gap-4">
+						<label>
+							<span class="text-sm font-bold text-primary">Fecha de inicio</span>
+							<input id="fechaInicio" name="fechaInicio" type="date" class="mt-1 w-full rounded-lg border-outline"
+								   th:value="${descuento.fechaInicio != null ? #temporals.format(descuento.fechaInicio, 'yyyy-MM-dd') : ''}">
+						</label>
+						<label>
+							<span class="text-sm font-bold text-primary">Fecha de vencimiento</span>
+							<input id="fechaVencimiento" name="fechaVencimiento" type="date" class="mt-1 w-full rounded-lg border-outline"
+								   th:value="${descuento.fechaVencimiento != null ? #temporals.format(descuento.fechaVencimiento, 'yyyy-MM-dd') : ''}">
+						</label>
+					</div>
+				</section>
+
+				<section class="rounded-xl border border-outline bg-surface-soft p-4">
+					<h2 class="font-black text-primary">Condiciones</h2>
+					<div class="mt-4 grid gap-4">
+						<label>
+							<span class="text-sm font-bold text-primary">Monto mínimo de compra</span>
+							<input th:field="*{montoMinimoCompra}" type="number" step="0.01" min="0" class="mt-1 w-full rounded-lg border-outline">
+						</label>
+						<label>
+							<span class="text-sm font-bold text-primary">Cantidad máxima de usos</span>
+							<input th:field="*{cantidadMaximaUsos}" type="number" min="1" class="mt-1 w-full rounded-lg border-outline" placeholder="Sin límite">
+						</label>
+						<label class="flex items-center gap-3 text-sm font-bold">
+							<input th:field="*{activo}" type="checkbox" class="rounded border-outline text-secondary"> Activo
+						</label>
+						<div th:if="${descuento.id != null}" class="rounded-lg bg-white p-3 text-sm font-bold text-primary">
+							Usos registrados: <span th:text="${descuento.usosActuales}">0</span>
+						</div>
+					</div>
+				</section>
+			</aside>
+		</div>
+
+		<div class="mt-6 flex flex-wrap gap-3 border-t border-outline pt-6">
+			<button class="rounded-xl bg-secondary px-5 py-3 font-black text-white hover:opacity-90">Guardar descuento</button>
+			<a th:href="@{/admin/descuentos}" class="rounded-xl border border-outline px-5 py-3 font-bold text-primary hover:bg-surface-soft">Cancelar</a>
+		</div>
+	</form>
+</main>
+<script>
+	const tipoAplicacion = document.querySelector("#tipoAplicacion");
+	const targetSections = document.querySelectorAll(".discount-target");
+	const categoryCheckboxes = document.querySelectorAll(".discount-category-checkbox");
+	const subcategoryOptions = document.querySelectorAll(".discount-subcategory-option");
+	const subcategoryEmptyFilter = document.querySelector("#subcategoria-empty-filter");
+
+	function syncTargetSections() {
+		const value = tipoAplicacion?.value || "CARRITO";
+		targetSections.forEach((section) => {
+			const visible = section.dataset.targetSection.split(" ").includes(value);
+			section.classList.toggle("hidden", !visible);
+		});
+	}
+
+	function syncSubcategoryOptions() {
+		const selectedCategories = new Set(
+			Array.from(categoryCheckboxes)
+				.filter((checkbox) => checkbox.checked)
+				.map((checkbox) => checkbox.value)
+		);
+		let visibleCount = 0;
+
+		subcategoryOptions.forEach((option) => {
+			const visible = selectedCategories.size === 0 || selectedCategories.has(option.dataset.categoryId);
+			option.classList.toggle("hidden", !visible);
+			if (!visible) {
+				const checkbox = option.querySelector("input[type='checkbox']");
+				if (checkbox) {
+					checkbox.checked = false;
+				}
+			} else {
+				visibleCount++;
+			}
+		});
+
+		if (subcategoryEmptyFilter) {
+			subcategoryEmptyFilter.classList.toggle("hidden", selectedCategories.size === 0 || visibleCount > 0);
+		}
+	}
+
+	tipoAplicacion?.addEventListener("change", syncTargetSections);
+	categoryCheckboxes.forEach((checkbox) => checkbox.addEventListener("change", syncSubcategoryOptions));
+	syncTargetSections();
+	syncSubcategoryOptions();
+</script>
+</body>
+</html>

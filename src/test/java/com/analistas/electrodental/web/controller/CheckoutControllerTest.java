@@ -19,6 +19,7 @@ import com.analistas.electrodental.model.domain.ConfiguracionTienda;
 import com.analistas.electrodental.model.repository.IPagoRepository;
 import com.analistas.electrodental.model.repository.IProductoRepository;
 import com.analistas.electrodental.model.service.IConfiguracionTiendaService;
+import com.analistas.electrodental.model.service.IDescuentoService;
 import com.analistas.electrodental.model.service.IMercadoPagoService;
 import com.analistas.electrodental.model.service.IOcaService;
 import com.analistas.electrodental.model.service.IPedidoService;
@@ -39,6 +40,8 @@ class CheckoutControllerTest {
 	IConfiguracionTiendaService configuracionTiendaService;
 	@Mock
 	IOcaService ocaService;
+	@Mock
+	IDescuentoService descuentoService;
 
 	CheckoutController controller;
 
@@ -51,7 +54,8 @@ class CheckoutControllerTest {
 				pagoRepository,
 				new MercadoPagoProperties(),
 				configuracionTiendaService,
-				ocaService);
+				ocaService,
+				descuentoService);
 		ConfiguracionTienda configuracion = new ConfiguracionTienda();
 		when(configuracionTiendaService.obtener()).thenReturn(configuracion);
 	}

@@ -28,6 +28,7 @@ public interface IPedidoRepository extends JpaRepository<Pedido, Long> {
 					where (:termino is null
 						or lower(coalesce(p.codigoCompra, '')) like :termino
 						or str(p.id) like :termino
+						or lower(coalesce(p.codigoDescuento, '')) like :termino
 						or lower(coalesce(c.nombre, '')) like :termino
 						or lower(coalesce(c.apellidoRazonSocial, '')) like :termino
 						or lower(coalesce(c.email, '')) like :termino
@@ -43,6 +44,7 @@ public interface IPedidoRepository extends JpaRepository<Pedido, Long> {
 					where (:termino is null
 						or lower(coalesce(p.codigoCompra, '')) like :termino
 						or str(p.id) like :termino
+						or lower(coalesce(p.codigoDescuento, '')) like :termino
 						or lower(coalesce(c.nombre, '')) like :termino
 						or lower(coalesce(c.apellidoRazonSocial, '')) like :termino
 						or lower(coalesce(c.email, '')) like :termino

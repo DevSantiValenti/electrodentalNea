@@ -1,7 +1,10 @@
 package com.analistas.electrodental.web.controller;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.IntStream;
@@ -30,6 +33,7 @@ import com.analistas.electrodental.model.domain.ConfiguracionTienda;
 import com.analistas.electrodental.model.domain.Envio;
 import com.analistas.electrodental.model.domain.Pedido;
 import com.analistas.electrodental.model.domain.Producto;
+import com.analistas.electrodental.model.domain.dto.ProductoExcelImportPreview;
 import com.analistas.electrodental.model.repository.IEnvioRepository;
 import com.analistas.electrodental.model.repository.IPedidoRepository;
 import com.analistas.electrodental.model.repository.IClienteRepository;
@@ -40,13 +44,23 @@ import com.analistas.electrodental.model.service.IConfiguracionTiendaService;
 import com.analistas.electrodental.model.service.IOcaService;
 import com.analistas.electrodental.model.service.IPedidoService;
 import com.analistas.electrodental.model.service.IProductoService;
+import com.analistas.electrodental.model.service.ProductoExcelService;
 import com.analistas.electrodental.model.service.ProductoImagenStorageService;
+
+import jakarta.servlet.http.HttpSession;
 
 @Controller
 public class AdminController {
 
 	private static final int ENVIOS_PAGE_SIZE = 10;
 	private static final int PEDIDOS_PAGE_SIZE = 10;
+	private static final int VENTAS_PAGE_SIZE = 10;
+	private static final String PRODUCTO_EXCEL_IMPORT_PREVIEW = "productoExcelImportPreview";
+	private static final String PRODUCTOS_EXCEL_MEDIA_TYPE = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+	private static final List<DateTimeFormatter> VENTAS_DATE_FORMATTERS = List.of(
+			DateTimeFormatter.ofPattern("dd-MM-yyyy"),
+			DateTimeFormatter.ofPattern("dd/MM/yyyy"),
+			DateTimeFormatter.ISO_LOCAL_DATE);
 
 	private final IProductoService productoService;
 	private final IAdminDashboardService adminDashboardService;
@@ -59,6 +73,7 @@ public class AdminController {
 	private final IOcaService ocaService;
 	private final IPedidoService pedidoService;
 	private final ProductoImagenStorageService productoImagenStorageService;
+	private final ProductoExcelService productoExcelService;
 
 	public AdminController(
 			IProductoService productoService,
@@ -71,7 +86,8 @@ public class AdminController {
 			IConfiguracionTiendaService configuracionTiendaService,
 			IOcaService ocaService,
 			IPedidoService pedidoService,
-			ProductoImagenStorageService productoImagenStorageService) {
+			ProductoImagenStorageService productoImagenStorageService,
+			ProductoExcelService productoExcelService) {
 		this.productoService = productoService;
 		this.adminDashboardService = adminDashboardService;
 		this.pedidoRepository = pedidoRepository;
@@ -83,6 +99,7 @@ public class AdminController {
 		this.ocaService = ocaService;
 		this.pedidoService = pedidoService;
 		this.productoImagenStorageService = productoImagenStorageService;
+		this.productoExcelService = productoExcelService;
 	}
 
 	@GetMapping("/admin/login")
@@ -101,14 +118,96 @@ public class AdminController {
 	}
 
 	@GetMapping("/admin/productos")
-	public String productos(Model model) {
-		model.addAttribute("productos", productoService.listarTodos());
+	public String productos(
+			@RequestParam(required = false) Long categoriaId,
+			@RequestParam(required = false) Long subcategoriaId,
+			@RequestParam(defaultValue = "false") boolean bajoStock,
+			Model model) {
+		if (subcategoriaId != null) {
+			var subcategoria = categoriaService.buscarSubcategoriaPorId(subcategoriaId);
+			if (subcategoria.isPresent()) {
+				categoriaId = subcategoria.get().getCategoria().getId();
+			} else {
+				subcategoriaId = null;
+			}
+		}
+		model.addAttribute("productos", productoService.filtrarAdmin(categoriaId, subcategoriaId, bajoStock));
+		model.addAttribute("categorias", categoriaService.listarActivas());
+		model.addAttribute("categoriaSeleccionadaId", categoriaId);
+		model.addAttribute("subcategoriaSeleccionadaId", subcategoriaId);
+		model.addAttribute("bajoStockSeleccionado", bajoStock);
+		model.addAttribute("totalBajoStock", productoService.contarBajoStockAdmin());
 		return "admin/productos";
 	}
 
+	@GetMapping("/admin/productos/exportar")
+	public ResponseEntity<byte[]> exportarProductosExcel() {
+		byte[] excel = productoExcelService.exportarProductos();
+		return ResponseEntity.ok()
+				.contentType(MediaType.parseMediaType(PRODUCTOS_EXCEL_MEDIA_TYPE))
+				.header(HttpHeaders.CONTENT_DISPOSITION, ContentDisposition.attachment()
+						.filename("productos-electrodental.xlsx")
+						.build()
+						.toString())
+				.body(excel);
+	}
+
+	@PostMapping("/admin/productos/importar/previsualizar")
+	public String previsualizarImportacionProductos(
+			@RequestParam("archivo") MultipartFile archivo,
+			HttpSession session,
+			RedirectAttributes redirectAttributes) {
+		try {
+			ProductoExcelImportPreview preview = productoExcelService.previsualizar(archivo);
+			session.setAttribute(PRODUCTO_EXCEL_IMPORT_PREVIEW, preview);
+			redirectAttributes.addFlashAttribute(PRODUCTO_EXCEL_IMPORT_PREVIEW, preview);
+			if (!preview.errores().isEmpty()) {
+				redirectAttributes.addFlashAttribute("mensajeError", "Revisá los errores del Excel antes de confirmar la importación.");
+			} else if (!preview.tieneCambios()) {
+				redirectAttributes.addFlashAttribute("mensaje", "El Excel no contiene cambios para aplicar.");
+			}
+		} catch (RuntimeException ex) {
+			session.removeAttribute(PRODUCTO_EXCEL_IMPORT_PREVIEW);
+			redirectAttributes.addFlashAttribute("mensajeError", "No se pudo leer el Excel: " + ex.getMessage());
+		}
+		return "redirect:/admin/productos";
+	}
+
+	@PostMapping("/admin/productos/importar/confirmar")
+	public String confirmarImportacionProductos(HttpSession session, RedirectAttributes redirectAttributes) {
+		Object previewAttribute = session.getAttribute(PRODUCTO_EXCEL_IMPORT_PREVIEW);
+		if (!(previewAttribute instanceof ProductoExcelImportPreview preview)) {
+			redirectAttributes.addFlashAttribute("mensajeError", "Subí un Excel y revisá la previsualización antes de confirmar.");
+			return "redirect:/admin/productos";
+		}
+		try {
+			ProductoExcelService.ProductoExcelImportResult result = productoExcelService.aplicar(preview);
+			session.removeAttribute(PRODUCTO_EXCEL_IMPORT_PREVIEW);
+			redirectAttributes.addFlashAttribute(
+					"mensaje",
+					"Importación aplicada: " + result.productosActualizados() + " producto(s) actualizado(s), "
+							+ result.productosEliminados() + " producto(s) eliminado(s).");
+		} catch (RuntimeException ex) {
+			redirectAttributes.addFlashAttribute(PRODUCTO_EXCEL_IMPORT_PREVIEW, preview);
+			redirectAttributes.addFlashAttribute("mensajeError", "No se pudo aplicar la importación: " + ex.getMessage());
+		}
+		return "redirect:/admin/productos";
+	}
+
+	@PostMapping("/admin/productos/importar/cancelar")
+	public String cancelarImportacionProductos(HttpSession session, RedirectAttributes redirectAttributes) {
+		session.removeAttribute(PRODUCTO_EXCEL_IMPORT_PREVIEW);
+		redirectAttributes.addFlashAttribute("mensaje", "Importación cancelada.");
+		return "redirect:/admin/productos";
+	}
+
 	@GetMapping("/admin/productos/nuevo")
-	public String nuevoProducto(Model model) {
+	public String nuevoProducto(
+			@RequestParam(required = false) Long categoriaId,
+			@RequestParam(required = false) Long subcategoriaId,
+			Model model) {
 		Producto producto = new Producto();
+		preseleccionarCategoria(producto, categoriaId, subcategoriaId);
 		model.addAttribute("producto", producto);
 		model.addAttribute("categorias", categoriaService.listarActivas());
 		cargarCamposEditablesProducto(model, producto);
@@ -180,13 +279,8 @@ public class AdminController {
 			redirectAttributes.addFlashAttribute("mensaje", "El producto ya no existe.");
 			return "redirect:/admin/productos";
 		}
-		try {
-			productoService.eliminar(id);
-			redirectAttributes.addFlashAttribute("mensaje", "Producto eliminado correctamente.");
-		} catch (DataIntegrityViolationException ex) {
-			redirectAttributes.addFlashAttribute("mensaje",
-					"No se puede eliminar porque el producto tiene pedidos o ventas asociados. Podés marcarlo como inactivo.");
-		}
+		productoService.eliminar(id);
+		redirectAttributes.addFlashAttribute("mensaje", "Producto eliminado correctamente.");
 		return "redirect:/admin/productos";
 	}
 
@@ -320,10 +414,21 @@ public class AdminController {
 	}
 
 	@GetMapping("/admin/ventas")
-	public String ventas(Model model) {
-		model.addAttribute("ventas", ventaPresencialRepository.findTop10ByOrderByFechaDesc());
-		model.addAttribute("dashboard", adminDashboardService.obtenerMetricas());
+	public String ventas(
+			@RequestParam(required = false) String q,
+			@RequestParam(defaultValue = "0") int page,
+			Model model) {
+		cargarVentas(model, q, page);
 		return "admin/ventas";
+	}
+
+	@GetMapping("/admin/ventas/buscar")
+	public String buscarVentas(
+			@RequestParam(required = false) String q,
+			@RequestParam(defaultValue = "0") int page,
+			Model model) {
+		cargarVentas(model, q, page);
+		return "admin/ventas :: tablaVentas";
 	}
 
 	@GetMapping({ "/admin/configuracion", "/admin/configuración" })
@@ -434,9 +539,24 @@ public class AdminController {
 		producto.setDestacado(producto.getDestacado() != null && producto.getDestacado());
 		producto.setOferta(producto.getOferta() != null && producto.getOferta());
 		producto.setCompraHabilitada(producto.getCompraHabilitada() != null && producto.getCompraHabilitada());
+		producto.setEnvioOcaDesactivado(producto.getEnvioOcaDesactivado() != null && producto.getEnvioOcaDesactivado());
+		producto.setEliminado(false);
 		producto.setStockWeb(producto.getStockWeb() == null ? 0 : producto.getStockWeb());
 		producto.setStockFisico(producto.getStockFisico() == null ? 0 : producto.getStockFisico());
 		producto.setStockMinimo(producto.getStockMinimo() == null ? 3 : producto.getStockMinimo());
+	}
+
+	private void preseleccionarCategoria(Producto producto, Long categoriaId, Long subcategoriaId) {
+		if (subcategoriaId != null) {
+			categoriaService.buscarSubcategoriaPorId(subcategoriaId).ifPresent(subcategoria -> {
+				producto.setSubcategoria(subcategoria);
+				producto.setCategoria(subcategoria.getCategoria());
+			});
+			return;
+		}
+		if (categoriaId != null) {
+			categoriaService.buscarCategoriaPorId(categoriaId).ifPresent(producto::setCategoria);
+		}
 	}
 
 	private List<String> prepararImagenesGaleria(List<String> imagenesProducto, List<MultipartFile> imagenesProductoArchivos) {
@@ -593,6 +713,59 @@ public class AdminController {
 		model.addAttribute("q", StringUtils.hasText(q) ? q.trim() : "");
 		model.addAttribute("fechaDesde", fechaDesde);
 		model.addAttribute("fechaHasta", fechaHasta);
+	}
+
+	private void cargarVentas(Model model, String q, int page) {
+		String busqueda = StringUtils.hasText(q) ? q.trim() : "";
+		LocalDate fecha = parsearFechaBusquedaVenta(busqueda);
+		BigDecimal monto = fecha == null ? parsearMontoBusquedaVenta(busqueda) : null;
+		String termino = fecha == null && StringUtils.hasText(busqueda) ? "%" + busqueda.toLowerCase() + "%" : null;
+		LocalDateTime desde = fecha == null ? null : fecha.atStartOfDay();
+		LocalDateTime hasta = fecha == null ? null : fecha.plusDays(1).atStartOfDay().minusNanos(1);
+		int pagina = Math.max(0, page);
+		Page<?> ventasPage = ventaPresencialRepository.buscarDetalle(termino, monto, desde, hasta, PageRequest.of(pagina, VENTAS_PAGE_SIZE));
+		if (ventasPage.getTotalPages() > 0 && pagina >= ventasPage.getTotalPages()) {
+			ventasPage = ventaPresencialRepository.buscarDetalle(termino, monto, desde, hasta, PageRequest.of(ventasPage.getTotalPages() - 1, VENTAS_PAGE_SIZE));
+		}
+		model.addAttribute("ventasPage", ventasPage);
+		model.addAttribute("ventas", ventasPage.getContent());
+		model.addAttribute("q", busqueda);
+	}
+
+	private LocalDate parsearFechaBusquedaVenta(String busqueda) {
+		if (!StringUtils.hasText(busqueda)) {
+			return null;
+		}
+		String valor = busqueda.trim();
+		for (DateTimeFormatter formatter : VENTAS_DATE_FORMATTERS) {
+			try {
+				return LocalDate.parse(valor, formatter);
+			} catch (DateTimeParseException ignored) {
+			}
+		}
+		return null;
+	}
+
+	private BigDecimal parsearMontoBusquedaVenta(String busqueda) {
+		if (!StringUtils.hasText(busqueda)) {
+			return null;
+		}
+		String valor = busqueda.trim()
+				.replace("$", "")
+				.replace(" ", "");
+		if (!valor.matches("[0-9.,]+")) {
+			return null;
+		}
+		if (valor.contains(",") && valor.contains(".")) {
+			valor = valor.replace(".", "").replace(",", ".");
+		} else if (valor.contains(",")) {
+			valor = valor.replace(",", ".");
+		}
+		try {
+			return new BigDecimal(valor);
+		} catch (NumberFormatException ex) {
+			return null;
+		}
 	}
 
 	private String normalizarValor(String valor) {

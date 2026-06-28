@@ -26,7 +26,7 @@
 					</label>
 					<label>
 						<span class="text-sm font-bold text-primary">Categoría</span>
-						<select name="categoriaId" class="mt-1 w-full rounded-lg border-outline">
+						<select id="producto-categoria-select" name="categoriaId" class="mt-1 w-full rounded-lg border-outline">
 							<option value="">Sin categoría</option>
 							<option th:each="categoria : ${categorias}"
 									th:value="${categoria.id}"
@@ -36,11 +36,13 @@
 					</label>
 					<label>
 						<span class="text-sm font-bold text-primary">Subcategoría</span>
-						<select name="subcategoriaId" class="mt-1 w-full rounded-lg border-outline">
+						<select id="producto-subcategoria-select" name="subcategoriaId" class="mt-1 w-full rounded-lg border-outline">
 							<option value="">Sin subcategoría</option>
 							<optgroup th:each="categoria : ${categorias}" th:label="${categoria.nombre}">
 								<option th:each="subcategoria : ${categoria.subcategorias}"
 										th:value="${subcategoria.id}"
+										th:data-category-id="${categoria.id}"
+										th:data-category-name="${categoria.nombre}"
 										th:selected="${producto.subcategoria != null && producto.subcategoria.id == subcategoria.id}"
 										th:text="${subcategoria.nombre}">Subcategoría</option>
 							</optgroup>
@@ -145,13 +147,13 @@
 						<label><span class="text-sm font-bold text-primary">Alto cm</span><input th:field="*{altoCm}" type="number" step="0.01" min="0" class="mt-1 w-full rounded-lg border-outline"></label>
 						<label><span class="text-sm font-bold text-primary">Ancho cm</span><input th:field="*{anchoCm}" type="number" step="0.01" min="0" class="mt-1 w-full rounded-lg border-outline"></label>
 						<label><span class="text-sm font-bold text-primary">Largo cm</span><input th:field="*{largoCm}" type="number" step="0.01" min="0" class="mt-1 w-full rounded-lg border-outline"></label>
-						<label><span class="text-sm font-bold text-primary">Valor declarado</span><input th:field="*{valorDeclarado}" type="number" step="0.01" min="0" class="mt-1 w-full rounded-lg border-outline"></label>
 					</div>
 				</div>
 				<div class="rounded-xl border border-outline bg-surface-soft p-4">
 					<h2 class="font-black text-primary">Estado</h2>
 					<label class="mt-4 flex items-center gap-3 text-sm font-bold"><input th:field="*{activo}" type="checkbox" class="rounded border-outline"> Activo</label>
 					<label class="mt-3 flex items-center gap-3 text-sm font-bold"><input th:field="*{compraHabilitada}" type="checkbox" class="rounded border-outline"> Permitir agregar al carrito</label>
+					<label class="mt-3 flex items-center gap-3 text-sm font-bold"><input th:field="*{envioOcaDesactivado}" type="checkbox" class="rounded border-outline"> Desactivar envío Oca</label>
 					<label class="mt-3 flex items-center gap-3 text-sm font-bold"><input th:field="*{destacado}" type="checkbox" class="rounded border-outline"> Destacado</label>
 					<label class="mt-3 flex items-center gap-3 text-sm font-bold"><input th:field="*{oferta}" type="checkbox" class="rounded border-outline"> Oferta</label>
 				</div>
@@ -170,8 +172,79 @@
 	const galleryFileMessage = document.querySelector("#gallery-file-message");
 	const characteristicRows = document.querySelector("#characteristic-rows");
 	const addCharacteristicButton = document.querySelector("#add-characteristic-row");
+	const productoCategoriaSelect = document.querySelector("#producto-categoria-select");
+	const productoSubcategoriaSelect = document.querySelector("#producto-subcategoria-select");
 	const selectedGalleryFiles = [];
 	let galleryPreviewUrls = [];
+
+	if (productoCategoriaSelect && productoSubcategoriaSelect) {
+		const subcategoriasOriginales = Array.from(productoSubcategoriaSelect.querySelectorAll("option[data-category-id]"))
+			.map((option) => ({
+				value: option.value,
+				text: option.textContent,
+				categoryId: option.dataset.categoryId,
+				categoryName: option.dataset.categoryName,
+				selected: option.selected
+			}));
+
+		function crearSubcategoriaOption(data) {
+			const option = document.createElement("option");
+			option.value = data.value;
+			option.textContent = data.text;
+			option.dataset.categoryId = data.categoryId;
+			option.dataset.categoryName = data.categoryName;
+			return option;
+		}
+
+		function renderProductoSubcategorias(categoryId, selectedValue = productoSubcategoriaSelect.value) {
+			productoSubcategoriaSelect.innerHTML = "";
+			const emptyOption = document.createElement("option");
+			emptyOption.value = "";
+			emptyOption.textContent = "Sin subcategoría";
+			productoSubcategoriaSelect.appendChild(emptyOption);
+
+			if (categoryId) {
+				subcategoriasOriginales
+					.filter((subcategoria) => subcategoria.categoryId === categoryId)
+					.forEach((subcategoria) => productoSubcategoriaSelect.appendChild(crearSubcategoriaOption(subcategoria)));
+			} else {
+				const grupos = new Map();
+				subcategoriasOriginales.forEach((subcategoria) => {
+					if (!grupos.has(subcategoria.categoryId)) {
+						const optgroup = document.createElement("optgroup");
+						optgroup.label = subcategoria.categoryName;
+						grupos.set(subcategoria.categoryId, optgroup);
+						productoSubcategoriaSelect.appendChild(optgroup);
+					}
+					grupos.get(subcategoria.categoryId).appendChild(crearSubcategoriaOption(subcategoria));
+				});
+			}
+
+			if (selectedValue && productoSubcategoriaSelect.querySelector(`option[value="${CSS.escape(selectedValue)}"]`)) {
+				productoSubcategoriaSelect.value = selectedValue;
+			} else {
+				productoSubcategoriaSelect.value = "";
+			}
+		}
+
+		productoCategoriaSelect.addEventListener("change", () => {
+			renderProductoSubcategorias(productoCategoriaSelect.value, "");
+		});
+
+		productoSubcategoriaSelect.addEventListener("change", () => {
+			const selected = productoSubcategoriaSelect.selectedOptions[0];
+			if (selected?.dataset.categoryId) {
+				productoCategoriaSelect.value = selected.dataset.categoryId;
+				renderProductoSubcategorias(selected.dataset.categoryId, selected.value);
+			}
+		});
+
+		const seleccionInicial = subcategoriasOriginales.find((subcategoria) => subcategoria.selected);
+		if (seleccionInicial && !productoCategoriaSelect.value) {
+			productoCategoriaSelect.value = seleccionInicial.categoryId;
+		}
+		renderProductoSubcategorias(productoCategoriaSelect.value, seleccionInicial?.value || productoSubcategoriaSelect.value);
+	}
 
 	function existingGalleryCount() {
 		return imageRows.querySelectorAll(".image-row").length;

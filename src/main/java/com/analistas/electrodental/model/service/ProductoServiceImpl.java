@@ -22,7 +22,12 @@ public class ProductoServiceImpl implements IProductoService {
 
 	@Override
 	public List<Producto> listarTodos() {
-		return productoRepository.findAllByOrderByNombreAsc();
+		return productoRepository.findAllNoEliminadosOrderByNombreAsc();
+	}
+
+	@Override
+	public List<Producto> filtrarAdmin(Long categoriaId, Long subcategoriaId, boolean soloBajoStock) {
+		return productoRepository.filtrarAdmin(categoriaId, subcategoriaId, soloBajoStock);
 	}
 
 	@Override
@@ -59,6 +64,11 @@ public class ProductoServiceImpl implements IProductoService {
 	@Override
 	public List<Producto> listarBajoStock() {
 		return productoRepository.findProductosConBajoStock();
+	}
+
+	@Override
+	public long contarBajoStockAdmin() {
+		return productoRepository.contarBajoStockAdmin();
 	}
 
 	@Override
@@ -99,7 +109,11 @@ public class ProductoServiceImpl implements IProductoService {
 	@Override
 	@Transactional
 	public void eliminar(Long id) {
-		productoRepository.deleteById(id);
-		productoRepository.flush();
+		productoRepository.findById(id).ifPresent(producto -> {
+			producto.setEliminado(true);
+			producto.setActivo(false);
+			producto.setCompraHabilitada(false);
+			productoRepository.save(producto);
+		});
 	}
 }

@@ -42,6 +42,8 @@ class PedidoServiceImplTest {
 	IStockService stockService;
 	@Mock
 	IOcaService ocaService;
+	@Mock
+	IDescuentoService descuentoService;
 
 	PedidoServiceImpl service;
 
@@ -53,7 +55,8 @@ class PedidoServiceImplTest {
 				clienteRepository,
 				pagoRepository,
 				stockService,
-				ocaService);
+				ocaService,
+				descuentoService);
 		when(pedidoRepository.save(any(Pedido.class))).thenAnswer(invocation -> invocation.getArgument(0));
 	}
 

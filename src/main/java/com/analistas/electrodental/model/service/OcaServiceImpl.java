@@ -74,12 +74,12 @@ public class OcaServiceImpl implements IOcaService {
 
 	@Override
 	public OcaCotizacionResponseDTO cotizarDomicilio(Pedido pedido) {
-		return cotizarConOperativa(pedido, properties.getOperativa(), "domicilio");
+		return cotizarConOperativa(pedido, resolverOperativa(TIPO_DOMICILIO), "domicilio");
 	}
 
 	@Override
 	public OcaCotizacionResponseDTO cotizarSucursal(Pedido pedido) {
-		return cotizarConOperativa(pedido, properties.getOperativaSucursal(), "sucursal OCA");
+		return cotizarConOperativa(pedido, resolverOperativa(TIPO_SUCURSAL), "sucursal OCA");
 	}
 
 	private OcaCotizacionResponseDTO cotizarConOperativa(Pedido pedido, String operativa, String modalidad) {
@@ -165,9 +165,10 @@ public class OcaServiceImpl implements IOcaService {
 		String tipo = TIPO_SUCURSAL.equals(tipoEntregaOca) ? TIPO_SUCURSAL : TIPO_DOMICILIO;
 		OcaCotizacionRequestDTO request = crearRequestCotizacion(
 				pedido,
-				TIPO_SUCURSAL.equals(tipo) ? properties.getOperativaSucursal() : properties.getOperativa());
+				resolverOperativa(tipo));
 		cargarDatosBase(envio, pedido, request);
 		envio.setTipoEntregaOca(tipo);
+		envio.setSeguro(false);
 		if (TIPO_SUCURSAL.equals(tipo) && sucursal != null) {
 			envio.setIdCentroImposicionDestino(sucursal.idCentroImposicion());
 			envio.setSucursalDestino(sucursal.nombre());
@@ -202,9 +203,12 @@ public class OcaServiceImpl implements IOcaService {
 					envio.getResponseCreacion());
 		}
 
-		String operativa = StringUtils.hasText(envio.getOperativa()) ? envio.getOperativa() : properties.getOperativa();
+		String operativa = StringUtils.hasText(envio.getOperativa())
+				? envio.getOperativa()
+				: resolverOperativa(envio.getTipoEntregaOca());
 		OcaCotizacionRequestDTO request = crearRequestCotizacion(pedido, operativa);
 		cargarDatosBase(envio, pedido, request);
+		envio.setSeguro(false);
 		String requestXml = construirXmlEnvio(pedido, request, envio);
 		envio.setRequestCreacion(requestXml);
 
@@ -406,7 +410,7 @@ public class OcaServiceImpl implements IOcaService {
 				properties.getCodigoPostalOrigen(),
 				direccion.getCodigoPostal(),
 				1,
-				resumen.valorDeclarado(),
+				BigDecimal.ZERO,
 				resumen.pesoTotalKg(),
 				resumen.volumenTotalM3(),
 				resumen.altoMaxCm(),
@@ -415,7 +419,6 @@ public class OcaServiceImpl implements IOcaService {
 	}
 
 	private ResumenPaquete resumirPaquete(List<PedidoItem> items) {
-		BigDecimal valorDeclarado = BigDecimal.ZERO;
 		BigDecimal pesoTotal = BigDecimal.ZERO;
 		BigDecimal volumenCm3 = BigDecimal.ZERO;
 		BigDecimal altoMax = BigDecimal.ZERO;
@@ -429,9 +432,7 @@ public class OcaServiceImpl implements IOcaService {
 			BigDecimal ancho = positivoODefault(producto.getAnchoCm(), properties.getAnchoDefaultCm());
 			BigDecimal largo = positivoODefault(producto.getLargoCm(), properties.getLargoDefaultCm());
 			BigDecimal peso = positivoODefault(producto.getPesoKg(), properties.getPesoDefaultKg());
-			BigDecimal valor = positivoODefault(producto.getValorDeclarado(), producto.getPrecio());
 
-			valorDeclarado = valorDeclarado.add(valor.multiply(cantidad));
 			pesoTotal = pesoTotal.add(peso.multiply(cantidad));
 			volumenCm3 = volumenCm3.add(alto.multiply(ancho).multiply(largo).multiply(cantidad));
 			altoMax = altoMax.max(alto);
@@ -448,7 +449,7 @@ public class OcaServiceImpl implements IOcaService {
 		}
 
 		BigDecimal volumenM3 = volumenCm3.divide(CM3_EN_M3, 6, RoundingMode.HALF_UP);
-		return new ResumenPaquete(valorDeclarado, pesoTotal, volumenM3, altoMax, anchoMax, largoMax);
+		return new ResumenPaquete(pesoTotal, volumenM3, altoMax, anchoMax, largoMax);
 	}
 
 	private void cargarDatosBase(Envio envio, Pedido pedido, OcaCotizacionRequestDTO request) {
@@ -588,6 +589,22 @@ public class OcaServiceImpl implements IOcaService {
 			return envioRepository.findByPedidoId(pedido.getId()).orElseGet(Envio::new);
 		}
 		return pedido.getEnvio() == null ? new Envio() : pedido.getEnvio();
+	}
+
+	private String resolverOperativa(String tipoEntregaOca) {
+		boolean destinoSucursal = TIPO_SUCURSAL.equals(tipoEntregaOca);
+		boolean origenSucursal = origenDesdeSucursal();
+		if (origenSucursal) {
+			return destinoSucursal
+					? properties.getOperativaOrigenSucursalSucursal()
+					: properties.getOperativaOrigenSucursalDomicilio();
+		}
+		return destinoSucursal ? properties.getOperativaSucursal() : properties.getOperativa();
+	}
+
+	private boolean origenDesdeSucursal() {
+		String idOrigen = properties.getIdCentroImposicionOrigen();
+		return StringUtils.hasText(idOrigen) && !"0".equals(idOrigen.trim());
 	}
 
 	private boolean configuracionCotizacionCompleta() {
@@ -851,7 +868,6 @@ public class OcaServiceImpl implements IOcaService {
 	}
 
 	private record ResumenPaquete(
-			BigDecimal valorDeclarado,
 			BigDecimal pesoTotalKg,
 			BigDecimal volumenTotalM3,
 			BigDecimal altoMaxCm,

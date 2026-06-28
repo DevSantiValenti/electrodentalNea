@@ -67,6 +67,7 @@
 				<a th:href="@{/carrito}" class="relative">
 					<span class="material-symbols-outlined">shopping_cart</span>
 					<span
+						data-cart-count
 						class="absolute -right-2 -top-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-secondary px-1 text-[10px] font-black text-white"
 						th:text="${carrito != null ? carrito.cantidadTotal : 0}">0</span>
 				</a>
@@ -111,15 +112,19 @@
 			<div class="hidden md:block"></div>
 		</div>
 
-		<div th:if="${mensaje}" class="mb-5 rounded-xl bg-amber-50 p-4 text-sm font-bold text-amber-800"
-			th:text="${mensaje}">Mensaje</div>
+		<div id="cart-ajax-root" data-cart-fragment>
+			<span class="hidden" data-cart-current-count th:data-cart-current-count="${carrito != null ? carrito.cantidadTotal : 0}"></span>
+			<div th:if="${mensaje}" class="mb-5 rounded-xl bg-amber-50 p-4 text-sm font-bold text-amber-800"
+				th:text="${mensaje}">Mensaje</div>
+			<div th:if="${mensajeOk}" class="mb-5 rounded-xl bg-green-50 p-4 text-sm font-bold text-green-800"
+				th:text="${mensajeOk}">Mensaje</div>
 
-		<div th:if="${carrito == null || #lists.isEmpty(carrito.items)}"
-			class="cart-shadow rounded-xl border border-outline bg-white p-10 text-center">
-			<p class="text-2xl font-black text-primary">Aun no hay productos...</p>
-		</div>
+			<div th:if="${carrito == null || #lists.isEmpty(carrito.items)}"
+				class="cart-shadow rounded-xl border border-outline bg-white p-10 text-center">
+				<p class="text-2xl font-black text-primary">Aun no hay productos...</p>
+			</div>
 
-		<div th:if="${carrito != null && !#lists.isEmpty(carrito.items)}" class="grid gap-8 lg:grid-cols-[1fr_380px]">
+			<div th:if="${carrito != null && !#lists.isEmpty(carrito.items)}" class="grid gap-8 lg:grid-cols-[1fr_380px]">
 			<section class="cart-shadow rounded-xl border border-outline bg-white p-6">
 				<div th:if="${pasoCheckout == null || pasoCheckout == 1}">
 				<h1 class="mb-6 text-2xl font-black text-primary">Tu Carrito</h1>
@@ -146,7 +151,14 @@
 								th:disabled="${item.cantidad >= item.stockDisponible}"
 								class="px-3 text-slate-600 disabled:cursor-not-allowed disabled:opacity-40">+</button>
 						</form>
-						<p class="text-right font-black text-primary" th:text="${@money.format(item.subtotal)}">$ 0,00</p>
+						<div class="text-right">
+							<p th:unless="${item.tieneDescuento()}" class="font-black text-primary" th:text="${@money.format(item.subtotal)}">$ 0,00</p>
+							<div th:if="${item.tieneDescuento()}">
+								<p class="text-xs font-bold text-slate-500 line-through" th:text="${@money.format(item.subtotal)}">$ 0,00</p>
+								<p class="mt-1 text-xs font-black text-green-700" th:text="|-${@money.format(item.descuentoAplicado)}|">-$ 0,00</p>
+								<p class="mt-1 font-black text-primary" th:text="${@money.format(item.totalConDescuento)}">$ 0,00</p>
+							</div>
+						</div>
 						<form th:action="@{/carrito/quitar/{productoId}(productoId=${item.productoId})}" method="post">
 							<button class="text-secondary hover:text-red-800" title="Quitar"><span
 									class="material-symbols-outlined text-[20px]">delete</span></button>
@@ -158,7 +170,12 @@
 				<div th:if="${pasoCheckout == 2}" class="space-y-6">
 					<div>
 						<h1 class="text-2xl font-black text-primary">Datos de entrega</h1>
-						<p class="mt-2 text-sm font-semibold text-slate-600">Elegí envío OCA, retiro en sucursal o coordinación con un vendedor.</p>
+						<p class="mt-2 text-sm font-semibold text-slate-600" th:text="${ocaDisponible == null || ocaDisponible} ? 'Elegí envío OCA, retiro en sucursal o coordinación con un vendedor.' : 'Elegí retiro en sucursal o coordinación con un vendedor.'">Elegí envío OCA, retiro en sucursal o coordinación con un vendedor.</p>
+						<!--
+						<p th:if="${ocaDisponible != null && !ocaDisponible}" class="mt-3 rounded-lg bg-amber-50 p-3 text-sm font-bold text-amber-800">
+							Este carrito contiene productos con envío OCA desactivado.
+						</p>
+						-->
 					</div>
 
 					<div class="rounded-xl border border-outline bg-slate-50 p-5">
@@ -189,7 +206,7 @@
 					</div>
 
 					<div class="grid gap-4 lg:grid-cols-3">
-						<label class="delivery-card cursor-pointer rounded-xl border border-outline bg-white p-4 shadow-sm transition hover:border-secondary">
+						<label th:if="${ocaDisponible == null || ocaDisponible}" class="delivery-card cursor-pointer rounded-xl border border-outline bg-white p-4 shadow-sm transition hover:border-secondary">
 							<input type="radio" name="deliveryOption" value="OCA" class="delivery-radio rounded-full text-secondary" th:checked="${envioSeleccionado == 'OCA'}">
 							<div class="mt-3 flex items-center gap-3">
 								<span class="material-symbols-outlined text-primary">local_shipping</span>
@@ -198,7 +215,7 @@
 							<p class="mt-2 text-xs font-semibold text-slate-600">Cotizá sucursal OCA o domicilio con código postal.</p>
 						</label>
 						<label class="delivery-card cursor-pointer rounded-xl border border-outline bg-white p-4 shadow-sm transition hover:border-secondary">
-							<input type="radio" name="deliveryOption" value="SUCURSAL" class="delivery-radio rounded-full text-secondary" th:checked="${envioSeleccionado == null || envioSeleccionado == 'SUCURSAL'}">
+							<input type="radio" name="deliveryOption" value="SUCURSAL" class="delivery-radio rounded-full text-secondary" th:checked="${envioSeleccionado == null || envioSeleccionado == 'SUCURSAL' || (ocaDisponible != null && !ocaDisponible && envioSeleccionado == 'OCA')}">
 							<div class="mt-3 flex items-center gap-3">
 								<span class="material-symbols-outlined text-primary">storefront</span>
 								<h2 class="font-black text-primary">Retirar en sucursal</h2>
@@ -215,7 +232,7 @@
 						</label>
 					</div>
 
-					<div id="panel-OCA" class="delivery-panel rounded-xl border border-outline bg-slate-50 p-5">
+					<div th:if="${ocaDisponible == null || ocaDisponible}" id="panel-OCA" class="delivery-panel rounded-xl border border-outline bg-slate-50 p-5">
 						<h2 class="mb-4 text-sm font-black uppercase text-primary">Calcular envío OCA</h2>
 						<div class="grid gap-3 sm:grid-cols-[1fr_auto]">
 							<label class="block">
@@ -227,21 +244,20 @@
 							</button>
 						</div>
 						<p class="mt-2 text-xs font-semibold text-slate-500">Con el CP buscamos sucursales disponibles y cotizamos retiro en sucursal OCA y envío a domicilio.</p>
-
 						<div class="mt-5 space-y-3" th:if="${ocaSucursales != null}">
-							<div class="rounded-xl border border-outline bg-white p-4">
+							<div class="rounded-xl border border-outline bg-white p-4" th:with="cotSucursal=${cotizacionOcaSucursal}">
 								<div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
 									<div class="flex items-start gap-3">
 										<span class="material-symbols-outlined text-primary">storefront</span>
 										<div>
 											<p class="font-black text-primary">Retirar en sucursal OCA</p>
 											<p class="text-xs font-semibold text-slate-500" th:if="${#lists.isEmpty(ocaSucursales)}">No encontramos sucursales OCA con entrega para ese CP.</p>
-											<p class="text-xs font-semibold" th:if="${cotizacionOcaSucursal != null}" th:classappend="${cotizacionOcaSucursal.cotizada} ? ' text-green-700' : ' text-amber-700'" th:text="${cotizacionOcaSucursal.mensaje}">Estado</p>
-											<p class="text-xs font-semibold text-slate-500" th:if="${cotizacionOcaSucursal != null && cotizacionOcaSucursal.cotizada && cotizacionOcaSucursal.plazoEntrega != null}" th:text="|Entrega estimada: ${cotizacionOcaSucursal.plazoEntrega} día(s)|">Entrega</p>
+											<p class="text-xs font-semibold" th:if="${cotSucursal != null}" th:classappend="${cotSucursal.cotizada} ? ' text-green-700' : ' text-amber-700'" th:text="${cotSucursal.mensaje}">Estado</p>
+											<p class="text-xs font-semibold text-slate-500" th:if="${cotSucursal != null && cotSucursal.cotizada && cotSucursal.plazoEntrega != null}" th:text="|Entrega estimada: ${cotSucursal.plazoEntrega} día(s)|">Entrega</p>
 										</div>
 									</div>
-									<strong class="text-secondary" th:if="${cotizacionOcaSucursal != null && cotizacionOcaSucursal.cotizada}" th:text="${@money.format(cotizacionOcaSucursal.costo)}">$ 0,00</strong>
-									<strong class="text-secondary" th:if="${cotizacionOcaSucursal == null || !cotizacionOcaSucursal.cotizada}">A calcular</strong>
+									<strong class="text-secondary" th:if="${cotSucursal != null && cotSucursal.cotizada}" th:text="${@money.format(cotSucursal.costo)}">$ 0,00</strong>
+									<strong class="text-secondary" th:if="${cotSucursal == null || !cotSucursal.cotizada}">A calcular</strong>
 								</div>
 								<div class="mt-4 grid gap-2" th:if="${!#lists.isEmpty(ocaSucursales)}">
 									<label th:each="sucursal : ${ocaSucursales}" class="oca-sucursal-card flex cursor-pointer items-start gap-3 rounded-lg border border-outline bg-slate-50 p-3 hover:border-secondary">
@@ -256,7 +272,7 @@
 							</div>
 						</div>
 
-						<div class="mt-4 rounded-xl border border-outline bg-white p-4">
+						<div class="mt-4 rounded-xl border border-outline bg-white p-4" th:with="cotDomicilio=${cotizacionOcaDomicilio}">
 							<label class="flex cursor-pointer items-start gap-3">
 								<input type="radio" name="ocaTipoEntregaVisual" value="DOMICILIO" class="oca-mode-radio mt-1 rounded-full text-secondary" th:checked="${ocaTipoEntrega == null || ocaTipoEntrega == 'DOMICILIO'}">
 								<span class="flex min-w-0 flex-1 flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -264,13 +280,13 @@
 										<span class="material-symbols-outlined text-primary">local_shipping</span>
 										<span>
 											<span class="block font-black text-primary">OCA a domicilio</span>
-											<span class="block text-xs font-semibold text-slate-500" th:if="${cotizacionOcaDomicilio == null}">Ingresá el CP para obtener la cotización.</span>
-											<span class="block text-xs font-semibold" th:if="${cotizacionOcaDomicilio != null}" th:classappend="${cotizacionOcaDomicilio.cotizada} ? ' text-green-700' : ' text-amber-700'" th:text="${cotizacionOcaDomicilio.mensaje}">Estado</span>
-											<span class="block text-xs font-semibold text-slate-500" th:if="${cotizacionOcaDomicilio != null && cotizacionOcaDomicilio.cotizada && cotizacionOcaDomicilio.plazoEntrega != null}" th:text="|Entrega estimada: ${cotizacionOcaDomicilio.plazoEntrega} día(s)|">Entrega</span>
+											<span class="block text-xs font-semibold text-slate-500" th:if="${cotDomicilio == null}">Ingresá el CP para obtener la cotización.</span>
+											<span class="block text-xs font-semibold" th:if="${cotDomicilio != null}" th:classappend="${cotDomicilio.cotizada} ? ' text-green-700' : ' text-amber-700'" th:text="${cotDomicilio.mensaje}">Estado</span>
+											<span class="block text-xs font-semibold text-slate-500" th:if="${cotDomicilio != null && cotDomicilio.cotizada && cotDomicilio.plazoEntrega != null}" th:text="|Entrega estimada: ${cotDomicilio.plazoEntrega} día(s)|">Entrega</span>
 										</span>
 									</span>
-									<strong class="text-secondary" th:if="${cotizacionOcaDomicilio != null && cotizacionOcaDomicilio.cotizada}" th:text="${@money.format(cotizacionOcaDomicilio.costo)}">$ 0,00</strong>
-									<strong class="text-secondary" th:if="${cotizacionOcaDomicilio == null || !cotizacionOcaDomicilio.cotizada}">A calcular</strong>
+									<strong class="text-secondary" th:if="${cotDomicilio != null && cotDomicilio.cotizada}" th:text="${@money.format(cotDomicilio.costo)}">$ 0,00</strong>
+									<strong class="text-secondary" th:if="${cotDomicilio == null || !cotDomicilio.cotizada}">A calcular</strong>
 								</span>
 							</label>
 							<div id="oca-domicilio-fields" class="mt-4 grid gap-4 sm:grid-cols-2">
@@ -345,6 +361,9 @@
 						<p class="mt-4 rounded-lg bg-white p-3 text-sm font-semibold text-slate-600" th:if="${envioSeleccionado == 'OCA'}">
 							El costo de envío cotizado se suma al total y la etiqueta OCA se generará para este pedido cuando el pago quede aprobado.
 						</p>
+						<p class="mt-2 rounded-lg bg-green-50 p-3 text-sm font-black text-green-800" th:if="${envioGratisAplicado}">
+							El envío queda gratis porque el subtotal alcanza el monto configurado.
+						</p>
 						<p class="mt-2 rounded-lg bg-white p-3 text-sm font-semibold text-slate-600" th:if="${envioSeleccionado == 'OCA' && ocaTipoEntrega == 'SUCURSAL' && ocaSucursalSeleccionada != null}">
 							Sucursal OCA seleccionada: <span th:text="${ocaSucursalSeleccionada.nombre}">Sucursal</span>.
 						</p>
@@ -368,14 +387,45 @@
 						<span class="text-slate-600">Subtotal</span>
 						<strong th:text="${@money.format(carrito.subtotal)}">$ 0,00</strong>
 					</div>
+					<div th:if="${carrito.tieneDescuento()}" class="rounded-lg bg-green-50 p-3">
+						<div class="flex justify-between gap-3">
+							<span class="font-black text-green-800" th:text="|Descuento ${carrito.descuento.codigo}|">Descuento</span>
+							<strong class="text-green-800" th:text="|-${@money.format(carrito.descuentoTotal())}|">-$ 0,00</strong>
+						</div>
+						<p class="mt-1 text-xs font-bold text-green-700" th:text="${carrito.descuento.descripcion}">Detalle</p>
+					</div>
+					<div th:if="${pasoCheckout == null || pasoCheckout == 1}" class="rounded-lg border border-outline bg-slate-50 p-3">
+						<form th:if="${!carrito.tieneDescuento()}" th:action="@{/carrito/descuento/aplicar}" method="post" class="grid gap-2">
+							<label class="text-xs font-black uppercase text-slate-500" for="codigoDescuento">Código de descuento</label>
+							<div class="grid gap-2 sm:grid-cols-[1fr_auto] lg:grid-cols-1 xl:grid-cols-[1fr_auto]">
+								<input id="codigoDescuento" name="codigo" class="h-10 rounded-lg border-outline text-sm font-bold uppercase" autocomplete="off">
+								<button class="h-10 rounded-lg bg-primary px-4 text-sm font-black text-white hover:opacity-95">Aplicar</button>
+							</div>
+						</form>
+						<form th:if="${carrito.tieneDescuento()}" th:action="@{/carrito/descuento/quitar}" method="post" class="flex items-center justify-between gap-3">
+							<div>
+								<p class="text-xs font-black uppercase text-slate-500">Código aplicado</p>
+								<p class="text-sm font-black text-primary" th:text="${carrito.descuento.codigo}"></p>
+							</div>
+							<button class="rounded-lg border border-outline bg-white px-3 py-2 text-xs font-black text-secondary hover:bg-red-50">Quitar</button>
+						</form>
+					</div>
+					<div th:if="${configuracionTienda.envioGratisHabilitado() && (ocaDisponible == null || ocaDisponible)}" class="rounded-lg bg-green-50 p-3 text-xs font-bold text-green-800">
+						<p th:if="${configuracionTienda.alcanzaEnvioGratis(carrito.subtotal)}">Envío gratis disponible para pedidos OCA.</p>
+						<p th:unless="${configuracionTienda.alcanzaEnvioGratis(carrito.subtotal)}">
+							A partir de <span th:text="${@money.format(configuracionTienda.montoEnvioGratis)}">$ 0,00</span>, el envío es gratis.
+							Te faltan <span th:text="${@money.format(configuracionTienda.faltanteEnvioGratis(carrito.subtotal))}">$ 0,00</span>.
+						</p>
+					</div>
 					<div class="flex justify-between">
 						<span class="text-slate-600">Envío</span>
 						<strong th:text="${@money.format(costoEnvioCheckout ?: 0)}">$ 0,00</strong>
 					</div>
+					<p th:if="${envioGratisAplicado}" class="text-xs font-black text-green-700">Envío bonificado por monto mínimo.</p>
 					<div class="border-t border-outline pt-4">
 						<div class="flex items-center justify-between">
 							<span class="text-lg font-black text-primary">Total</span>
-							<strong class="text-3xl font-black text-secondary" th:text="${@money.format(totalCheckout ?: carrito.subtotal)}">$ 0,00</strong>
+							<strong class="text-3xl font-black text-secondary" th:text="${@money.format(totalCheckout ?: carrito.total)}">$ 0,00</strong>
 						</div>
 					</div>
 				</div>
@@ -384,7 +434,7 @@
 					Continuar al pago <span class="material-symbols-outlined">arrow_forward</span>
 				</a>
 				<form id="checkoutDatosForm" th:if="${pasoCheckout == 2}" th:action="@{/checkout/pago}" method="post" class="mt-6 space-y-3">
-					<input id="metodoEnvioFinal" type="hidden" name="metodoEnvio" th:value="${envioSeleccionado ?: 'SUCURSAL'}">
+					<input id="metodoEnvioFinal" type="hidden" name="metodoEnvio" th:value="${ocaDisponible != null && !ocaDisponible && envioSeleccionado == 'OCA' ? 'SUCURSAL' : (envioSeleccionado ?: 'SUCURSAL')}">
 					<input id="ocaTipoEntregaFinal" type="hidden" name="ocaTipoEntrega" th:value="${ocaTipoEntrega ?: 'DOMICILIO'}">
 					<button
 						class="flex w-full items-center justify-center gap-3 rounded-xl bg-primary px-5 py-4 font-black text-white hover:opacity-95">
@@ -402,7 +452,7 @@
 					<input type="hidden" name="ciudad" th:value="${checkoutDireccion != null ? checkoutDireccion.ciudad : 'Sin definir'}">
 					<input type="hidden" name="provincia" th:value="${checkoutDireccion != null ? checkoutDireccion.provincia : 'Sin definir'}">
 					<input type="hidden" name="codigoPostal" th:value="${checkoutDireccion != null ? checkoutDireccion.codigoPostal : (codigoPostalDestino ?: '0000')}">
-					<input type="hidden" name="metodoEnvio" th:value="${envioSeleccionado ?: 'SUCURSAL'}">
+					<input type="hidden" name="metodoEnvio" th:value="${ocaDisponible != null && !ocaDisponible && envioSeleccionado == 'OCA' ? 'SUCURSAL' : (envioSeleccionado ?: 'SUCURSAL')}">
 					<input type="hidden" name="ocaTipoEntrega" th:value="${ocaTipoEntrega ?: 'DOMICILIO'}">
 					<input type="hidden" name="ocaSucursalId" th:value="${ocaSucursalId}">
 					<button
@@ -419,9 +469,73 @@
 					</div>
 				</div>
 			</aside>
+			</div>
 		</div>
 	</main>
 	<script>
+		const cartAjaxActions = [
+			"/carrito/actualizar/",
+			"/carrito/quitar/",
+			"/carrito/descuento/aplicar",
+			"/carrito/descuento/quitar"
+		];
+
+		function updateCartBadges(nextRoot) {
+			const nextCount = nextRoot.querySelector("[data-cart-current-count]")?.dataset.cartCurrentCount;
+			if (typeof nextCount === "undefined") return;
+			document.querySelectorAll("[data-cart-count]").forEach((badge) => {
+				badge.textContent = nextCount;
+			});
+		}
+
+		function shouldHandleCartAjax(form) {
+			if (!(form instanceof HTMLFormElement)) return false;
+			return cartAjaxActions.some((path) => form.action.includes(path));
+		}
+
+		async function submitCartAjax(form, submitter) {
+			const formData = new FormData(form);
+			if (submitter?.name) {
+				formData.set(submitter.name, submitter.value);
+			}
+			form.setAttribute("aria-busy", "true");
+			submitter?.setAttribute("disabled", "disabled");
+			const response = await fetch(form.action, {
+				method: form.method || "POST",
+				body: formData,
+				headers: {
+					"X-Requested-With": "XMLHttpRequest"
+				},
+				credentials: "same-origin"
+			});
+			const html = await response.text();
+			const doc = new DOMParser().parseFromString(html, "text/html");
+			const currentRoot = document.querySelector("#cart-ajax-root");
+			const nextRoot = doc.querySelector("#cart-ajax-root");
+			if (!nextRoot || !currentRoot) {
+				window.location.reload();
+				return;
+			}
+			updateCartBadges(nextRoot);
+			currentRoot.replaceWith(nextRoot);
+		}
+
+		document.addEventListener("submit", (event) => {
+			const form = event.target;
+			if (!shouldHandleCartAjax(form)) return;
+			event.preventDefault();
+			submitCartAjax(form, event.submitter).catch(() => {
+				if (event.submitter?.name) {
+					const fallbackInput = document.createElement("input");
+					fallbackInput.type = "hidden";
+					fallbackInput.name = event.submitter.name;
+					fallbackInput.value = event.submitter.value;
+					form.appendChild(fallbackInput);
+				}
+				form.submit();
+			});
+		});
+
 		const deliveryRadios = document.querySelectorAll(".delivery-radio");
 		const deliveryPanels = document.querySelectorAll(".delivery-panel");
 		const metodoEnvioFinal = document.querySelector("#metodoEnvioFinal");

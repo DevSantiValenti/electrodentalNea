@@ -101,7 +101,12 @@
 		<div class="total">
 			<div class="total-row"><span>Subtotal</span><strong th:text="${@money.format(pedido.subtotal)}">$ 0,00</strong></div>
 			<div class="total-row"><span>Envío</span><strong th:text="${@money.format(pedido.costoEnvio)}">$ 0,00</strong></div>
-			<div class="total-row grand"><span>Total</span><strong th:text="${@money.format(pedido.total)}">$ 0,00</strong></div>
+			<div class="total-row"><span>Total antes descuento</span><strong th:text="${@money.format(pedido.totalAntesDescuento)}">$ 0,00</strong></div>
+			<div class="total-row" th:if="${pedido.descuentoAplicado != null && pedido.descuentoAplicado.signum() > 0}">
+				<span th:text="|Descuento ${pedido.codigoDescuento}|">Descuento</span>
+				<strong th:text="|-${@money.format(pedido.descuentoAplicado)}|">-$ 0,00</strong>
+			</div>
+			<div class="total-row grand"><span>Total después descuento</span><strong th:text="${@money.format(pedido.totalDespuesDescuento)}">$ 0,00</strong></div>
 		</div>
 	</section>
 </main>

@@ -6,7 +6,9 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.IntStream;
 
 import org.springframework.dao.DataIntegrityViolationException;
@@ -224,14 +226,36 @@ public class AdminController {
 			@RequestParam(name = "imagenesProductoArchivos", required = false) List<MultipartFile> imagenesProductoArchivos,
 			@RequestParam(required = false) List<String> caracteristicaNombres,
 			@RequestParam(required = false) List<String> caracteristicaDetalles,
+			Model model,
 			RedirectAttributes redirectAttributes) {
+		Map<String, String> errores = validarProducto(producto);
+		if (!errores.isEmpty()) {
+			return mostrarFormularioProductoConError(
+					model,
+					producto,
+					categoriaId,
+					subcategoriaId,
+					imagenesProducto,
+					caracteristicaNombres,
+					caracteristicaDetalles,
+					errores,
+					"Revisá los campos obligatorios marcados.");
+		}
 		try {
 			prepararProducto(producto, categoriaId, subcategoriaId, imagenesProducto, imagenPrincipalArchivo, imagenesProductoArchivos, caracteristicaNombres, caracteristicaDetalles);
 			productoService.guardar(producto);
 			redirectAttributes.addFlashAttribute("mensaje", "Producto guardado correctamente");
 		} catch (RuntimeException ex) {
-			redirectAttributes.addFlashAttribute("mensaje", "No se pudo guardar el producto: " + ex.getMessage());
-			return "redirect:/admin/productos/nuevo";
+			return mostrarFormularioProductoConError(
+					model,
+					producto,
+					categoriaId,
+					subcategoriaId,
+					parsearLineas(producto.getImagenesAdicionales()),
+					caracteristicaNombres,
+					caracteristicaDetalles,
+					camposErrorPorExcepcionProducto(ex),
+					mensajeErrorProducto(ex, "No se pudo guardar el producto."));
 		}
 		return "redirect:/admin/productos";
 	}
@@ -260,15 +284,37 @@ public class AdminController {
 			@RequestParam(name = "imagenesProductoArchivos", required = false) List<MultipartFile> imagenesProductoArchivos,
 			@RequestParam(required = false) List<String> caracteristicaNombres,
 			@RequestParam(required = false) List<String> caracteristicaDetalles,
+			Model model,
 			RedirectAttributes redirectAttributes) {
 		producto.setId(id);
+		Map<String, String> errores = validarProducto(producto);
+		if (!errores.isEmpty()) {
+			return mostrarFormularioProductoConError(
+					model,
+					producto,
+					categoriaId,
+					subcategoriaId,
+					imagenesProducto,
+					caracteristicaNombres,
+					caracteristicaDetalles,
+					errores,
+					"Revisá los campos obligatorios marcados.");
+		}
 		try {
 			prepararProducto(producto, categoriaId, subcategoriaId, imagenesProducto, imagenPrincipalArchivo, imagenesProductoArchivos, caracteristicaNombres, caracteristicaDetalles);
 			productoService.guardar(producto);
 			redirectAttributes.addFlashAttribute("mensaje", "Producto actualizado correctamente");
 		} catch (RuntimeException ex) {
-			redirectAttributes.addFlashAttribute("mensaje", "No se pudo actualizar el producto: " + ex.getMessage());
-			return "redirect:/admin/productos/" + id + "/editar";
+			return mostrarFormularioProductoConError(
+					model,
+					producto,
+					categoriaId,
+					subcategoriaId,
+					parsearLineas(producto.getImagenesAdicionales()),
+					caracteristicaNombres,
+					caracteristicaDetalles,
+					camposErrorPorExcepcionProducto(ex),
+					mensajeErrorProducto(ex, "No se pudo actualizar el producto."));
 		}
 		return "redirect:/admin/productos";
 	}
@@ -503,6 +549,81 @@ public class AdminController {
 		return "redirect:/admin/clientes";
 	}
 
+	private String mostrarFormularioProductoConError(
+			Model model,
+			Producto producto,
+			Long categoriaId,
+			Long subcategoriaId,
+			List<String> imagenesProducto,
+			List<String> caracteristicaNombres,
+			List<String> caracteristicaDetalles,
+			Map<String, String> errores,
+			String mensajeError) {
+		preseleccionarCategoria(producto, categoriaId, subcategoriaId);
+		model.addAttribute("producto", producto);
+		model.addAttribute("categorias", categoriaService.listarActivas());
+		model.addAttribute("mensajeError", mensajeError);
+		model.addAttribute("erroresProducto", errores);
+		model.addAttribute("imagenesProducto", normalizarImagenesFormulario(imagenesProducto));
+		model.addAttribute("caracteristicasProducto", caracteristicasFormulario(caracteristicaNombres, caracteristicaDetalles));
+		return "admin/producto-form";
+	}
+
+	private Map<String, String> validarProducto(Producto producto) {
+		Map<String, String> errores = new LinkedHashMap<>();
+		if (!StringUtils.hasText(producto.getNombre())) {
+			errores.put("nombre", "El nombre es obligatorio.");
+		}
+		if (producto.getPrecio() == null) {
+			errores.put("precio", "El precio es obligatorio.");
+		} else if (producto.getPrecio().compareTo(BigDecimal.ZERO) < 0) {
+			errores.put("precio", "El precio no puede ser negativo.");
+		}
+		if (producto.getStockWeb() != null && producto.getStockWeb() < 0) {
+			errores.put("stockWeb", "El stock web no puede ser negativo.");
+		}
+		if (producto.getStockFisico() != null && producto.getStockFisico() < 0) {
+			errores.put("stockFisico", "El stock físico no puede ser negativo.");
+		}
+		if (producto.getStockMinimo() != null && producto.getStockMinimo() < 0) {
+			errores.put("stockMinimo", "El stock mínimo no puede ser negativo.");
+		}
+		return errores;
+	}
+
+	private Map<String, String> camposErrorPorExcepcionProducto(RuntimeException ex) {
+		Map<String, String> errores = new LinkedHashMap<>();
+		String mensaje = mensajeCadena(ex).toLowerCase();
+		if (mensaje.contains("duplicate") || mensaje.contains("uk2toknbgu7676738ypm38e2y3b") || mensaje.contains("slug")) {
+			errores.put("slug", "El Slug / SKU ya existe. Usá uno distinto.");
+		}
+		return errores;
+	}
+
+	private String mensajeErrorProducto(RuntimeException ex, String prefijo) {
+		String mensaje = mensajeCadena(ex);
+		String mensajeLower = mensaje.toLowerCase();
+		if (mensajeLower.contains("duplicate") || mensajeLower.contains("uk2toknbgu7676738ypm38e2y3b")) {
+			return prefijo + ": el Slug / SKU ya existe. Cambialo por uno único.";
+		}
+		if (mensajeLower.contains("cannot be null") || mensajeLower.contains("not-null")) {
+			return prefijo + ": faltan datos obligatorios.";
+		}
+		return prefijo + ": " + (StringUtils.hasText(mensaje) ? mensaje : "revisá los datos cargados.");
+	}
+
+	private String mensajeCadena(Throwable throwable) {
+		List<String> mensajes = new ArrayList<>();
+		Throwable actual = throwable;
+		while (actual != null) {
+			if (StringUtils.hasText(actual.getMessage())) {
+				mensajes.add(actual.getMessage());
+			}
+			actual = actual.getCause();
+		}
+		return String.join(" | ", mensajes);
+	}
+
 	private void prepararProducto(
 			Producto producto,
 			Long categoriaId,
@@ -593,6 +714,30 @@ public class AdminController {
 	private void cargarCamposEditablesProducto(Model model, Producto producto) {
 		model.addAttribute("imagenesProducto", parsearLineas(producto.getImagenesAdicionales()));
 		model.addAttribute("caracteristicasProducto", parsearCaracteristicas(producto.getCaracteristicas()));
+	}
+
+	private List<String> normalizarImagenesFormulario(List<String> imagenesProducto) {
+		if (imagenesProducto == null) {
+			return List.of("");
+		}
+		List<String> imagenes = imagenesProducto.stream()
+				.map(this::normalizarValorSimple)
+				.filter(valor -> !valor.isBlank())
+				.limit(10)
+				.toList();
+		return imagenes.isEmpty() ? List.of("") : imagenes;
+	}
+
+	private List<CaracteristicaFormView> caracteristicasFormulario(List<String> nombres, List<String> detalles) {
+		if (nombres == null || nombres.isEmpty()) {
+			return List.of(new CaracteristicaFormView("", ""));
+		}
+		List<CaracteristicaFormView> caracteristicas = IntStream.range(0, nombres.size())
+				.mapToObj(indice -> new CaracteristicaFormView(
+						nombres.get(indice) == null ? "" : nombres.get(indice),
+						detalles != null && detalles.size() > indice && detalles.get(indice) != null ? detalles.get(indice) : ""))
+				.toList();
+		return caracteristicas.isEmpty() ? List.of(new CaracteristicaFormView("", "")) : caracteristicas;
 	}
 
 	private List<String> parsearLineas(String valor) {

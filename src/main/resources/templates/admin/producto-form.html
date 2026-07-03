@@ -8,17 +8,23 @@
 <main class="p-4 sm:p-6 lg:ml-64 lg:p-8">
 	<div th:replace="~{admin/fragments/layout :: topbar(${producto.id == null ? 'Nuevo Producto' : 'Editar Producto'}, 'Vista inicial del CRUD para cargar productos del catálogo.')}"></div>
 
+	<div th:if="${mensajeError}" class="mb-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-bold text-red-800" th:text="${mensajeError}">
+		No se pudo guardar el producto.
+	</div>
+
 	<form th:action="${producto.id == null ? '/admin/productos' : '/admin/productos/' + producto.id}" th:object="${producto}" method="post" enctype="multipart/form-data" class="admin-card rounded-2xl p-6">
 		<div class="grid gap-6 lg:grid-cols-3">
 			<section class="space-y-4 lg:col-span-2">
 				<div class="grid gap-4 md:grid-cols-2">
 					<label class="md:col-span-2">
-						<span class="text-sm font-bold text-primary">Nombre</span>
-						<input th:field="*{nombre}" required class="mt-1 w-full rounded-lg border-outline" placeholder="Turbina NSK Pana-Max Plus">
+						<span class="text-sm font-bold" th:classappend="${erroresProducto != null && erroresProducto.containsKey('nombre')} ? ' text-red-700' : ' text-primary'">Nombre</span>
+						<input th:field="*{nombre}" required class="mt-1 w-full rounded-lg border-outline" th:classappend="${erroresProducto != null && erroresProducto.containsKey('nombre')} ? ' border-red-500 ring-2 ring-red-100' : ''" th:attr="aria-invalid=${erroresProducto != null && erroresProducto.containsKey('nombre')}" placeholder="Turbina NSK Pana-Max Plus">
+						<p th:if="${erroresProducto != null && erroresProducto.containsKey('nombre')}" class="mt-1 text-xs font-black text-red-700" th:text="${erroresProducto['nombre']}">Error</p>
 					</label>
 					<label>
-						<span class="text-sm font-bold text-primary">Slug / SKU</span>
-						<input th:field="*{slug}" class="mt-1 w-full rounded-lg border-outline" placeholder="turbina-nsk-pana-max-plus">
+						<span class="text-sm font-bold" th:classappend="${erroresProducto != null && erroresProducto.containsKey('slug')} ? ' text-red-700' : ' text-primary'">Slug / SKU</span>
+						<input th:field="*{slug}" class="mt-1 w-full rounded-lg border-outline" th:classappend="${erroresProducto != null && erroresProducto.containsKey('slug')} ? ' border-red-500 ring-2 ring-red-100' : ''" th:attr="aria-invalid=${erroresProducto != null && erroresProducto.containsKey('slug')}" placeholder="turbina-nsk-pana-max-plus">
+						<p th:if="${erroresProducto != null && erroresProducto.containsKey('slug')}" class="mt-1 text-xs font-black text-red-700" th:text="${erroresProducto['slug']}">Error</p>
 					</label>
 					<label>
 						<span class="text-sm font-bold text-primary">Marca</span>
@@ -53,8 +59,9 @@
 						<input th:field="*{modelo}" class="mt-1 w-full rounded-lg border-outline" placeholder="Pana-Max Plus">
 					</label>
 					<label>
-						<span class="text-sm font-bold text-primary">Precio</span>
-						<input th:field="*{precio}" type="number" step="0.01" min="0" required class="mt-1 w-full rounded-lg border-outline">
+						<span class="text-sm font-bold" th:classappend="${erroresProducto != null && erroresProducto.containsKey('precio')} ? ' text-red-700' : ' text-primary'">Precio</span>
+						<input th:field="*{precio}" type="number" step="0.01" min="0" required class="mt-1 w-full rounded-lg border-outline" th:classappend="${erroresProducto != null && erroresProducto.containsKey('precio')} ? ' border-red-500 ring-2 ring-red-100' : ''" th:attr="aria-invalid=${erroresProducto != null && erroresProducto.containsKey('precio')}">
+						<p th:if="${erroresProducto != null && erroresProducto.containsKey('precio')}" class="mt-1 text-xs font-black text-red-700" th:text="${erroresProducto['precio']}">Error</p>
 					</label>
 					<div class="md:col-span-2">
 						<span class="text-sm font-bold text-primary">Foto principal</span>
@@ -127,16 +134,19 @@
 					<h2 class="font-black text-primary">Stock</h2>
 					<div class="mt-4 grid gap-4">
 						<label>
-							<span class="text-sm font-bold text-primary">Stock web</span>
-							<input th:field="*{stockWeb}" type="number" min="0" class="mt-1 w-full rounded-lg border-outline">
+							<span class="text-sm font-bold" th:classappend="${erroresProducto != null && erroresProducto.containsKey('stockWeb')} ? ' text-red-700' : ' text-primary'">Stock web</span>
+							<input th:field="*{stockWeb}" type="number" min="0" class="mt-1 w-full rounded-lg border-outline" th:classappend="${erroresProducto != null && erroresProducto.containsKey('stockWeb')} ? ' border-red-500 ring-2 ring-red-100' : ''">
+							<p th:if="${erroresProducto != null && erroresProducto.containsKey('stockWeb')}" class="mt-1 text-xs font-black text-red-700" th:text="${erroresProducto['stockWeb']}">Error</p>
 						</label>
 						<label>
-							<span class="text-sm font-bold text-primary">Stock físico</span>
-							<input th:field="*{stockFisico}" type="number" min="0" class="mt-1 w-full rounded-lg border-outline">
+							<span class="text-sm font-bold" th:classappend="${erroresProducto != null && erroresProducto.containsKey('stockFisico')} ? ' text-red-700' : ' text-primary'">Stock físico</span>
+							<input th:field="*{stockFisico}" type="number" min="0" class="mt-1 w-full rounded-lg border-outline" th:classappend="${erroresProducto != null && erroresProducto.containsKey('stockFisico')} ? ' border-red-500 ring-2 ring-red-100' : ''">
+							<p th:if="${erroresProducto != null && erroresProducto.containsKey('stockFisico')}" class="mt-1 text-xs font-black text-red-700" th:text="${erroresProducto['stockFisico']}">Error</p>
 						</label>
 						<label>
-							<span class="text-sm font-bold text-primary">Stock mínimo</span>
-							<input th:field="*{stockMinimo}" type="number" min="0" class="mt-1 w-full rounded-lg border-outline">
+							<span class="text-sm font-bold" th:classappend="${erroresProducto != null && erroresProducto.containsKey('stockMinimo')} ? ' text-red-700' : ' text-primary'">Stock mínimo</span>
+							<input th:field="*{stockMinimo}" type="number" min="0" class="mt-1 w-full rounded-lg border-outline" th:classappend="${erroresProducto != null && erroresProducto.containsKey('stockMinimo')} ? ' border-red-500 ring-2 ring-red-100' : ''">
+							<p th:if="${erroresProducto != null && erroresProducto.containsKey('stockMinimo')}" class="mt-1 text-xs font-black text-red-700" th:text="${erroresProducto['stockMinimo']}">Error</p>
 						</label>
 					</div>
 				</div>

@@ -59,6 +59,9 @@ public class ConfiguracionTienda {
 	@Column(precision = 14, scale = 2)
 	private BigDecimal montoEnvioGratis = BigDecimal.ZERO;
 
+	@Column(nullable = false)
+	private Boolean paginaOculta = false;
+
 	@Column(length = 80)
 	private String adminUsuario = "admin";
 
@@ -102,6 +105,13 @@ public class ConfiguracionTienda {
 		if (montoEnvioGratis == null || montoEnvioGratis.compareTo(BigDecimal.ZERO) < 0) {
 			montoEnvioGratis = BigDecimal.ZERO;
 		}
+		if (paginaOculta == null) {
+			paginaOculta = false;
+		}
+	}
+
+	public boolean paginaOcultaActiva() {
+		return Boolean.TRUE.equals(paginaOculta);
 	}
 
 	public String getWhatsappLink() {

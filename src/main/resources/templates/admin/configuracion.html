@@ -85,6 +85,20 @@
 				</div>
 			</section>
 			<section class="space-y-4 lg:col-span-2">
+				<h2 class="text-xl font-black text-primary">Estado del sitio</h2>
+				<label class="flex flex-col gap-4 rounded-xl border border-outline bg-surface-soft p-4 sm:flex-row sm:items-center sm:justify-between">
+					<span>
+						<span class="block text-sm font-black text-primary">Ocultar página</span>
+						<span class="mt-1 block text-sm font-semibold text-slate-600">Al activarlo, la tienda pública muestra una pantalla de mantenimiento y bloquea vistas, URLs y métodos HTTP públicos.</span>
+					</span>
+					<span class="relative inline-flex h-8 w-14 shrink-0 items-center">
+						<input th:field="*{paginaOculta}" type="checkbox" class="peer sr-only" aria-label="Ocultar página">
+						<span class="h-8 w-14 rounded-full bg-slate-300 transition peer-checked:bg-secondary"></span>
+						<span class="absolute left-1 h-6 w-6 rounded-full bg-white shadow transition peer-checked:translate-x-6"></span>
+					</span>
+				</label>
+			</section>
+			<section class="space-y-4 lg:col-span-2">
 				<h2 class="text-xl font-black text-primary">Acceso administrador</h2>
 				<div class="grid gap-4 md:grid-cols-2">
 					<label class="block">

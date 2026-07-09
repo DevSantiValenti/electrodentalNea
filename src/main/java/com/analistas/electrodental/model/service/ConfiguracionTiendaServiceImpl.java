@@ -49,7 +49,26 @@ public class ConfiguracionTiendaServiceImpl implements IConfiguracionTiendaServi
 		if (StringUtils.hasText(adminPassword)) {
 			configuracion.setAdminPasswordHash(passwordEncoder.encode(adminPassword.trim()));
 		}
+		conservarDatosBancariosSiNoFueronEnviados(configuracion, actual);
 		configuracion.completarDefaults();
 		return configuracionRepository.save(configuracion);
+	}
+
+	private void conservarDatosBancariosSiNoFueronEnviados(ConfiguracionTienda configuracion, ConfiguracionTienda actual) {
+		if (configuracion.getTransferenciaBanco() == null) {
+			configuracion.setTransferenciaBanco(actual.getTransferenciaBanco());
+		}
+		if (configuracion.getTransferenciaTitular() == null) {
+			configuracion.setTransferenciaTitular(actual.getTransferenciaTitular());
+		}
+		if (configuracion.getTransferenciaCbu() == null) {
+			configuracion.setTransferenciaCbu(actual.getTransferenciaCbu());
+		}
+		if (configuracion.getTransferenciaAlias() == null) {
+			configuracion.setTransferenciaAlias(actual.getTransferenciaAlias());
+		}
+		if (configuracion.getTransferenciaCuit() == null) {
+			configuracion.setTransferenciaCuit(actual.getTransferenciaCuit());
+		}
 	}
 }

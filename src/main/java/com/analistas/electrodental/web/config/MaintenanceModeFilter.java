@@ -24,6 +24,9 @@ public class MaintenanceModeFilter extends OncePerRequestFilter {
 			"/panel",
 			"/api/clientes/buscar");
 
+	private static final List<String> ADMIN_RESOURCE_PATHS = List.of(
+			"/uploads");
+
 	private static final String MAINTENANCE_LOGO_PATH = "/img/electrodentallarge.png";
 
 	private final IConfiguracionTiendaService configuracionTiendaService;
@@ -38,7 +41,10 @@ public class MaintenanceModeFilter extends OncePerRequestFilter {
 			HttpServletResponse response,
 			FilterChain filterChain) throws ServletException, IOException {
 		String path = normalizarPath(request);
-		if (!esRutaAdmin(path) && !esLogoMantenimiento(path) && configuracionTiendaService.obtener().paginaOcultaActiva()) {
+		if (!esRutaAdmin(path)
+				&& !esRecursoDeAdmin(request, path)
+				&& !esLogoMantenimiento(path)
+				&& configuracionTiendaService.obtener().paginaOcultaActiva()) {
 			mostrarMantenimiento(response);
 			return;
 		}
@@ -57,6 +63,16 @@ public class MaintenanceModeFilter extends OncePerRequestFilter {
 	private boolean esRutaAdmin(String path) {
 		return ADMIN_PATHS.stream()
 				.anyMatch(adminPath -> path.equals(adminPath) || path.startsWith(adminPath + "/"));
+	}
+
+	private boolean esRecursoDeAdmin(HttpServletRequest request, String path) {
+		boolean recursoAdmin = ADMIN_RESOURCE_PATHS.stream()
+				.anyMatch(resourcePath -> path.equals(resourcePath) || path.startsWith(resourcePath + "/"));
+		if (!recursoAdmin) {
+			return false;
+		}
+		String referer = request.getHeader(HttpHeaders.REFERER);
+		return referer != null && ADMIN_PATHS.stream().anyMatch(referer::contains);
 	}
 
 	private boolean esLogoMantenimiento(String path) {

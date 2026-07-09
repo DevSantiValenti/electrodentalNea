@@ -10,6 +10,12 @@
 
 	<div th:if="${mensaje}" class="mb-5 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm font-bold text-green-800" th:text="${mensaje}">Guardado</div>
 
+	<div class="mb-5 flex flex-wrap gap-3">
+		<a th:href="@{/admin/configuracion/datos-bancarios}" class="inline-flex items-center gap-2 rounded-xl border border-outline bg-white px-4 py-3 text-sm font-black text-primary hover:bg-surface-soft">
+			<span class="material-symbols-outlined text-[20px]">account_balance</span> Datos bancarios
+		</a>
+	</div>
+
 	<form th:action="@{/admin/configuracion}" th:object="${configuracion}" method="post" class="admin-card rounded-2xl p-6">
 		<div class="grid gap-6 lg:grid-cols-2">
 			<section class="space-y-4">

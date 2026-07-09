@@ -16,6 +16,27 @@
 			<span class="rounded-full bg-secondary-container px-3 py-2 text-xs font-black text-on-secondary-container" th:text="${pedido.codigoCompra ?: 'Sin código'}">Código</span>
 		</div>
 	</div>
+	<div th:if="${pedido.pago != null && pedido.pago.proveedor.name() == 'TRANSFERENCIA_BANCARIA' && pedido.pago.estadoPago.name() == 'PENDIENTE' && pedido.estadoPedido.name() == 'PENDIENTE_TRANSFERENCIA'}"
+		 class="mb-6 rounded-2xl border border-amber-200 bg-amber-50 p-5">
+		<div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+			<div>
+				<p class="text-sm font-black uppercase text-amber-800">Transferencia pendiente de confirmación</p>
+				<p class="mt-1 text-sm font-semibold text-amber-900">Confirmá el pago cuando recibas el comprobante válido. Si es inválido, se cancela el pedido y se libera la reserva.</p>
+			</div>
+			<div class="flex flex-wrap gap-3">
+				<form th:action="@{/admin/pedidos/{id}/transferencia/confirmar(id=${pedido.id})}" method="post">
+					<button class="inline-flex items-center gap-2 rounded-xl bg-green-700 px-4 py-3 text-sm font-black text-white hover:bg-green-800">
+						<span class="material-symbols-outlined text-[20px]">check_circle</span> Confirmar pedido
+					</button>
+				</form>
+				<form th:action="@{/admin/pedidos/{id}/transferencia/comprobante-invalido(id=${pedido.id})}" method="post">
+					<button class="inline-flex items-center gap-2 rounded-xl border border-red-200 bg-white px-4 py-3 text-sm font-black text-red-700 hover:bg-red-50">
+						<span class="material-symbols-outlined text-[20px]">report</span> Comprobante inválido
+					</button>
+				</form>
+			</div>
+		</div>
+	</div>
 	<div th:if="${mensaje}" class="mb-6 rounded-xl bg-amber-50 p-4 text-sm font-bold text-amber-800" th:text="${mensaje}">Mensaje</div>
 
 	<section class="grid gap-6 xl:grid-cols-[1fr_360px]">
@@ -76,6 +97,10 @@
 					<div class="flex justify-between gap-4">
 						<dt class="text-muted">Estado pago</dt>
 						<dd class="text-right font-black text-primary" th:text="${pedido.pago != null ? pedido.pago.estadoPago : 'SIN_PAGO'}">Pago</dd>
+					</div>
+					<div class="flex justify-between gap-4">
+						<dt class="text-muted">Método de pago</dt>
+						<dd class="text-right font-black text-primary" th:text="${pedido.pago != null ? pedido.pago.proveedor : 'SIN_PAGO'}">Método</dd>
 					</div>
 					<div class="flex justify-between gap-4">
 						<dt class="text-muted">Fecha</dt>

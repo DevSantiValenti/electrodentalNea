@@ -72,7 +72,7 @@ public class OcaEnvioController {
 		PedidoItem item = new PedidoItem();
 		item.setProducto(producto);
 		item.setCantidad(Math.max(1, cantidad == null ? 1 : cantidad));
-		item.setPrecioUnitarioSnapshot(producto.getPrecio());
+		item.setPrecioUnitarioSnapshot(producto.precioOferta());
 		item.setNombreSnapshot(producto.getNombre());
 		item.calcularSubtotal();
 		pedido.agregarItem(item);

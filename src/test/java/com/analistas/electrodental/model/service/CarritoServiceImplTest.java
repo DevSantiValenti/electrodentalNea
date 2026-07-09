@@ -57,6 +57,20 @@ class CarritoServiceImplTest {
 		assertThat(carrito.items().get(0).envioOcaDesactivado()).isTrue();
 	}
 
+	@Test
+	void usaPrecioDeOfertaParaElItemDelCarrito() {
+		Producto producto = producto();
+		producto.setOferta(true);
+		producto.setPorcentajeOferta(new BigDecimal("20"));
+
+		CarritoDTO carrito = service.agregarProducto(service.nuevoCarrito(), producto, 2);
+
+		assertThat(carrito.items()).hasSize(1);
+		assertThat(carrito.items().get(0).tieneOferta()).isTrue();
+		assertThat(carrito.items().get(0).precioUnitario()).isEqualByComparingTo("800.00");
+		assertThat(carrito.subtotal()).isEqualByComparingTo("1600.00");
+	}
+
 	private Producto producto() {
 		Producto producto = new Producto();
 		producto.setId(1L);

@@ -138,7 +138,10 @@
 							<a th:href="@{/productos/{slug}(slug=${item.slug})}"
 								class="font-black text-primary hover:text-secondary"
 								th:text="${item.nombre}">Producto</a>
-							<p class="mt-1 text-xs font-bold text-slate-500" th:text="|Ref: ${item.slug}|">Ref</p>
+							<div class="mt-2 flex flex-wrap items-center gap-2">
+								<span th:if="${item.tieneOferta()}" class="rounded-full bg-secondary px-2.5 py-1 text-[10px] font-black uppercase text-white">Oferta</span>
+								<p class="text-xs font-bold text-slate-500" th:text="|Ref: ${item.slug}|">Ref</p>
+							</div>
 						</div>
 						<form th:action="@{/carrito/actualizar/{productoId}(productoId=${item.productoId})}"
 							method="post" class="inline-flex h-9 items-center rounded-lg border border-outline">
@@ -338,7 +341,7 @@
 				<div th:if="${pasoCheckout == 3}" class="space-y-6">
 					<div>
 						<h1 class="text-2xl font-black text-primary">Pago</h1>
-						<p class="mt-2 text-sm font-semibold text-slate-600">Vas a pagar en el entorno seguro de Mercado Pago Checkout Pro.</p>
+						<p class="mt-2 text-sm font-semibold text-slate-600">Elegí cómo querés pagar tu pedido.</p>
 					</div>
 					<div class="rounded-xl border border-outline bg-slate-50 p-5">
 						<div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -377,6 +380,25 @@
 							</div>
 						</div>
 					</div>
+					<div class="rounded-xl border border-outline bg-white p-5">
+						<div class="flex items-start gap-4">
+							<span class="material-symbols-outlined text-3xl text-secondary">account_balance</span>
+							<div class="min-w-0 flex-1">
+								<h2 class="font-black text-primary">Transferencia Bancaria</h2>
+								<p class="mt-1 text-sm font-semibold text-slate-600">El pedido queda reservado y pendiente hasta que confirmemos el comprobante.</p>
+								<div th:if="${configuracionTienda.datosBancariosConfigurados()}" class="mt-4 grid gap-2 rounded-lg bg-slate-50 p-4 text-sm">
+									<p th:if="${!#strings.isEmpty(configuracionTienda.transferenciaBanco)}"><strong>Banco:</strong> <span th:text="${configuracionTienda.transferenciaBanco}">Banco</span></p>
+									<p><strong>Titular:</strong> <span th:text="${configuracionTienda.transferenciaTitular}">Titular</span></p>
+									<p th:if="${!#strings.isEmpty(configuracionTienda.transferenciaAlias)}"><strong>Alias:</strong> <span th:text="${configuracionTienda.transferenciaAlias}">Alias</span></p>
+									<p th:if="${!#strings.isEmpty(configuracionTienda.transferenciaCbu)}"><strong>CBU/CVU:</strong> <span th:text="${configuracionTienda.transferenciaCbu}">CBU</span></p>
+									<p th:if="${!#strings.isEmpty(configuracionTienda.transferenciaCuit)}"><strong>CUIT/CUIL:</strong> <span th:text="${configuracionTienda.transferenciaCuit}">CUIT</span></p>
+								</div>
+								<p th:unless="${configuracionTienda.datosBancariosConfigurados()}" class="mt-3 rounded-lg bg-amber-50 p-3 text-sm font-black text-amber-800">
+									Transferencia bancaria todavía no está disponible.
+								</p>
+							</div>
+						</div>
+					</div>
 				</div>
 			</section>
 
@@ -393,6 +415,7 @@
 							<strong class="text-green-800" th:text="|-${@money.format(carrito.descuentoTotal())}|">-$ 0,00</strong>
 						</div>
 						<p class="mt-1 text-xs font-bold text-green-700" th:text="${carrito.descuento.descripcion}">Detalle</p>
+						<p class="mt-2 text-xs font-bold text-amber-700">Los productos en oferta están exentos del descuento.</p>
 					</div>
 					<div th:if="${pasoCheckout == null || pasoCheckout == 1}" class="rounded-lg border border-outline bg-slate-50 p-3">
 						<form th:if="${!carrito.tieneDescuento()}" th:action="@{/carrito/descuento/aplicar}" method="post" class="grid gap-2">
@@ -401,6 +424,7 @@
 								<input id="codigoDescuento" name="codigo" class="h-10 rounded-lg border-outline text-sm font-bold uppercase" autocomplete="off">
 								<button class="h-10 rounded-lg bg-primary px-4 text-sm font-black text-white hover:opacity-95">Aplicar</button>
 							</div>
+							<p class="text-xs font-bold text-amber-700">Los productos en oferta están exentos del descuento.</p>
 						</form>
 						<form th:if="${carrito.tieneDescuento()}" th:action="@{/carrito/descuento/quitar}" method="post" class="flex items-center justify-between gap-3">
 							<div>
@@ -456,8 +480,17 @@
 					<input type="hidden" name="ocaTipoEntrega" th:value="${ocaTipoEntrega ?: 'DOMICILIO'}">
 					<input type="hidden" name="ocaSucursalId" th:value="${ocaSucursalId}">
 					<button
+						name="metodoPago"
+						value="MERCADO_PAGO"
 						class="flex w-full items-center justify-center gap-3 rounded-xl bg-secondary px-5 py-4 font-black text-white hover:opacity-95">
 						Pagar con Mercado Pago <span class="material-symbols-outlined">arrow_forward</span>
+					</button>
+					<button
+						name="metodoPago"
+						value="TRANSFERENCIA_BANCARIA"
+						th:disabled="${!configuracionTienda.datosBancariosConfigurados()}"
+						class="flex w-full items-center justify-center gap-3 rounded-xl border border-outline bg-white px-5 py-4 font-black text-primary hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-45">
+						Pagar por transferencia <span class="material-symbols-outlined">account_balance</span>
 					</button>
 				</form>
 				<div class="mt-8 flex gap-4 rounded-lg bg-slate-100 p-4">

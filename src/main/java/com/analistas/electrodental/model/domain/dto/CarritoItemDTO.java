@@ -12,6 +12,7 @@ public record CarritoItemDTO(
 		BigDecimal subtotal,
 		Integer stockDisponible,
 		Boolean envioOcaDesactivado,
+		Boolean oferta,
 		BigDecimal descuentoAplicado,
 		BigDecimal totalConDescuento) {
 
@@ -35,8 +36,37 @@ public record CarritoItemDTO(
 				subtotal,
 				stockDisponible,
 				envioOcaDesactivado,
+				false);
+	}
+
+	public CarritoItemDTO(
+			Long productoId,
+			String slug,
+			String nombre,
+			String imagenPrincipal,
+			BigDecimal precioUnitario,
+			Integer cantidad,
+			BigDecimal subtotal,
+			Integer stockDisponible,
+			Boolean envioOcaDesactivado,
+			Boolean oferta) {
+		this(
+				productoId,
+				slug,
+				nombre,
+				imagenPrincipal,
+				precioUnitario,
+				cantidad,
+				subtotal,
+				stockDisponible,
+				envioOcaDesactivado,
+				oferta,
 				BigDecimal.ZERO,
 				subtotal);
+	}
+
+	public boolean tieneOferta() {
+		return Boolean.TRUE.equals(oferta);
 	}
 
 	public BigDecimal descuentoAplicado() {
@@ -67,6 +97,7 @@ public record CarritoItemDTO(
 				subtotal,
 				stockDisponible,
 				envioOcaDesactivado,
+				oferta,
 				descuentoSeguro,
 				total);
 	}

@@ -15,6 +15,7 @@ import com.analistas.electrodental.model.domain.Pago;
 import com.analistas.electrodental.model.domain.Pedido;
 import com.analistas.electrodental.model.domain.PedidoItem;
 import com.analistas.electrodental.model.domain.Producto;
+import com.analistas.electrodental.model.domain.ProveedorPago;
 import com.analistas.electrodental.model.domain.dto.CarritoDTO;
 import com.analistas.electrodental.model.domain.dto.DescuentoAplicadoDTO;
 import com.analistas.electrodental.model.domain.dto.MercadoPagoPaymentDataDTO;
@@ -60,10 +61,22 @@ public class PedidoServiceImpl implements IPedidoService {
 	@Override
 	@Transactional
 	public Pedido crearPedidoWeb(Cliente cliente, DireccionEnvio direccionEnvio, CarritoDTO carrito, String metodoEntrega, BigDecimal costoEnvio) {
+		return crearPedidoWeb(cliente, direccionEnvio, carrito, metodoEntrega, costoEnvio, ProveedorPago.MERCADO_PAGO);
+	}
+
+	@Override
+	@Transactional
+	public Pedido crearPedidoWebTransferencia(Cliente cliente, DireccionEnvio direccionEnvio, CarritoDTO carrito, String metodoEntrega, BigDecimal costoEnvio) {
+		return crearPedidoWeb(cliente, direccionEnvio, carrito, metodoEntrega, costoEnvio, ProveedorPago.TRANSFERENCIA_BANCARIA);
+	}
+
+	private Pedido crearPedidoWeb(Cliente cliente, DireccionEnvio direccionEnvio, CarritoDTO carrito, String metodoEntrega, BigDecimal costoEnvio, ProveedorPago proveedorPago) {
 		if (carrito == null || carrito.items().isEmpty()) {
 			throw new IllegalArgumentException("El carrito no puede estar vacio");
 		}
 		CarritoDTO carritoValidado = validarDescuento(carrito);
+		ProveedorPago proveedor = proveedorPago == null ? ProveedorPago.MERCADO_PAGO : proveedorPago;
+		boolean transferencia = proveedor == ProveedorPago.TRANSFERENCIA_BANCARIA;
 
 		String dniCuit = normalizarDniCuit(cliente.getDniCuit());
 		if (dniCuit.isBlank()) {
@@ -79,14 +92,15 @@ public class PedidoServiceImpl implements IPedidoService {
 		pedido.setCliente(clientePersistido);
 		pedido.setDireccionEnvio(direccionEnvio);
 		pedido.setCanal(CanalVenta.WEB);
-		pedido.setEstadoPedido(EstadoPedido.PENDIENTE_PAGO);
+		pedido.setEstadoPedido(transferencia ? EstadoPedido.PENDIENTE_TRANSFERENCIA : EstadoPedido.PENDIENTE_PAGO);
 		pedido.setMetodoEntrega(metodoEntrega == null || metodoEntrega.isBlank() ? "SUCURSAL" : metodoEntrega);
 		pedido.setCodigoCompra(generarCodigoCompra(pedido.getMetodoEntrega()));
 		pedido.setCostoEnvio(costoEnvio == null ? BigDecimal.ZERO : costoEnvio);
 
 		Pago pago = new Pago();
+		pago.setProveedor(proveedor);
 		pago.setEstadoPago(EstadoPago.PENDIENTE);
-		pago.setExternalReference("PEDIDO-" + System.currentTimeMillis());
+		pago.setExternalReference((transferencia ? "TRF-" : "PEDIDO-") + System.currentTimeMillis());
 		pedido.setPago(pago);
 
 		carritoValidado.items().forEach(itemCarrito -> {
@@ -100,7 +114,7 @@ public class PedidoServiceImpl implements IPedidoService {
 			PedidoItem item = new PedidoItem();
 			item.setProducto(producto);
 			item.setNombreSnapshot(producto.getNombre());
-			item.setPrecioUnitarioSnapshot(producto.getPrecio());
+			item.setPrecioUnitarioSnapshot(producto.precioOferta());
 			item.setCantidad(itemCarrito.cantidad());
 			item.calcularSubtotal();
 			pedido.agregarItem(item);
@@ -108,6 +122,7 @@ public class PedidoServiceImpl implements IPedidoService {
 		});
 
 		aplicarDescuento(pedido, carritoValidado.descuento());
+		pago.setTransactionAmount(pedido.getTotal());
 		Pedido guardado = pedidoRepository.save(pedido);
 		if (carritoValidado.tieneDescuento()) {
 			descuentoService.registrarUso(carritoValidado.descuento().codigo());
@@ -227,6 +242,45 @@ public class PedidoServiceImpl implements IPedidoService {
 		return pedidoRepository.save(pedido);
 	}
 
+	@Override
+	@Transactional
+	public Pedido confirmarTransferencia(Long pedidoId) {
+		Pedido pedido = pedidoRepository.findDetalleById(pedidoId)
+				.orElseThrow(() -> new IllegalArgumentException("Pedido no encontrado: " + pedidoId));
+		validarTransferenciaPendiente(pedido);
+		Pago pago = pedido.getPago();
+		pago.setEstadoPago(EstadoPago.APROBADO);
+		pago.setFechaAprobacion(LocalDateTime.now());
+		pago.setTransactionAmount(pedido.getTotal());
+		pedido.setEstadoPedido(EstadoPedido.PAGADO);
+		pedido.setFechaPago(LocalDateTime.now());
+		crearEnvioOcaSiCorresponde(pedido);
+		return pedidoRepository.save(pedido);
+	}
+
+	@Override
+	@Transactional
+	public Pedido rechazarTransferencia(Long pedidoId) {
+		Pedido pedido = pedidoRepository.findDetalleById(pedidoId)
+				.orElseThrow(() -> new IllegalArgumentException("Pedido no encontrado: " + pedidoId));
+		validarTransferenciaPendiente(pedido);
+		liberarReservaWeb(pedido);
+		Pago pago = pedido.getPago();
+		pago.setEstadoPago(EstadoPago.RECHAZADO);
+		pedido.setEstadoPedido(EstadoPedido.CANCELADO);
+		pedido.setFechaCancelacion(LocalDateTime.now());
+		return pedidoRepository.save(pedido);
+	}
+
+	private void validarTransferenciaPendiente(Pedido pedido) {
+		if (pedido.getPago() == null
+				|| pedido.getPago().getProveedor() != ProveedorPago.TRANSFERENCIA_BANCARIA
+				|| pedido.getPago().getEstadoPago() != EstadoPago.PENDIENTE
+				|| pedido.getEstadoPedido() != EstadoPedido.PENDIENTE_TRANSFERENCIA) {
+			throw new IllegalStateException("El pedido no está pendiente de confirmación por transferencia.");
+		}
+	}
+
 	private void crearEnvioOcaSiCorresponde(Pedido pedido) {
 		if (!"OCA".equals(pedido.getMetodoEntrega())) {
 			return;
@@ -253,7 +307,8 @@ public class PedidoServiceImpl implements IPedidoService {
 				.orElseThrow(() -> new IllegalArgumentException("Pedido no encontrado: " + pedidoId));
 		boolean reservaActiva = pedido.getPago() != null
 				&& pedido.getPago().getEstadoPago() == EstadoPago.PENDIENTE
-				&& pedido.getEstadoPedido() == EstadoPedido.PENDIENTE_PAGO;
+				&& (pedido.getEstadoPedido() == EstadoPedido.PENDIENTE_PAGO
+						|| pedido.getEstadoPedido() == EstadoPedido.PENDIENTE_TRANSFERENCIA);
 		pedido.setEstadoPedido(EstadoPedido.CANCELADO);
 		pedido.setFechaCancelacion(LocalDateTime.now());
 		if (pedido.getPago() != null) {

@@ -8,7 +8,16 @@ public record ProductoExcelImportPreview(
 		int filasLeidas,
 		List<Update> actualizaciones,
 		List<Deletion> eliminaciones,
-		List<String> errores) implements Serializable {
+		List<String> errores,
+		boolean importacionParcial) implements Serializable {
+
+	public ProductoExcelImportPreview(
+			int filasLeidas,
+			List<Update> actualizaciones,
+			List<Deletion> eliminaciones,
+			List<String> errores) {
+		this(filasLeidas, actualizaciones, eliminaciones, errores, false);
+	}
 
 	public boolean tieneCambios() {
 		return !actualizaciones.isEmpty() || !eliminaciones.isEmpty();

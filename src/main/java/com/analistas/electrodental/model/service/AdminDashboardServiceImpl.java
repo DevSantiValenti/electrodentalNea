@@ -39,7 +39,8 @@ public class AdminDashboardServiceImpl implements IAdminDashboardService {
 		YearMonth mesActual = YearMonth.now();
 
 		long pedidosHoy = pedidoRepository.countByFechaCreacionBetween(inicioHoy, finHoy);
-		long pendientes = pedidoRepository.countByEstadoPedido(EstadoPedido.PENDIENTE_PAGO);
+		long pendientes = pedidoRepository.countByEstadoPedido(EstadoPedido.PENDIENTE_PAGO)
+				+ pedidoRepository.countByEstadoPedido(EstadoPedido.PENDIENTE_TRANSFERENCIA);
 		long ventasPresencialesHoy = ventaPresencialRepository.countByFechaBetween(inicioHoy, finHoy);
 		int bajoStock = productoRepository.findProductosConBajoStock().size();
 

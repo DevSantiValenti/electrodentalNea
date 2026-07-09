@@ -1,6 +1,7 @@
 package com.analistas.electrodental.web.controller;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -124,6 +125,7 @@ public class AdminController {
 			@RequestParam(required = false) Long categoriaId,
 			@RequestParam(required = false) Long subcategoriaId,
 			@RequestParam(defaultValue = "false") boolean bajoStock,
+			@RequestParam(defaultValue = "false") boolean ofertas,
 			Model model) {
 		if (subcategoriaId != null) {
 			var subcategoria = categoriaService.buscarSubcategoriaPorId(subcategoriaId);
@@ -133,22 +135,35 @@ public class AdminController {
 				subcategoriaId = null;
 			}
 		}
-		model.addAttribute("productos", productoService.filtrarAdmin(categoriaId, subcategoriaId, bajoStock));
+		model.addAttribute("productos", productoService.filtrarAdmin(categoriaId, subcategoriaId, bajoStock, ofertas));
 		model.addAttribute("categorias", categoriaService.listarActivas());
 		model.addAttribute("categoriaSeleccionadaId", categoriaId);
 		model.addAttribute("subcategoriaSeleccionadaId", subcategoriaId);
 		model.addAttribute("bajoStockSeleccionado", bajoStock);
+		model.addAttribute("ofertasSeleccionado", ofertas);
 		model.addAttribute("totalBajoStock", productoService.contarBajoStockAdmin());
+		model.addAttribute("totalOfertas", productoService.contarOfertasAdmin());
 		return "admin/productos";
 	}
 
 	@GetMapping("/admin/productos/exportar")
-	public ResponseEntity<byte[]> exportarProductosExcel() {
-		byte[] excel = productoExcelService.exportarProductos();
+	public ResponseEntity<byte[]> exportarProductosExcel(
+			@RequestParam(required = false) Long categoriaId,
+			@RequestParam(required = false) Long subcategoriaId,
+			@RequestParam(defaultValue = "false") boolean bajoStock,
+			@RequestParam(defaultValue = "false") boolean ofertas) {
+		byte[] excel = productoExcelService.exportarProductos(categoriaId, subcategoriaId, bajoStock, ofertas);
+		String filename = bajoStock && ofertas
+				? "productos-bajo-stock-ofertas-electrodental.xlsx"
+				: bajoStock
+				? "productos-bajo-stock-electrodental.xlsx"
+				: ofertas
+				? "productos-ofertas-electrodental.xlsx"
+				: "productos-electrodental.xlsx";
 		return ResponseEntity.ok()
 				.contentType(MediaType.parseMediaType(PRODUCTOS_EXCEL_MEDIA_TYPE))
 				.header(HttpHeaders.CONTENT_DISPOSITION, ContentDisposition.attachment()
-						.filename("productos-electrodental.xlsx")
+						.filename(filename)
 						.build()
 						.toString())
 				.body(excel);
@@ -157,10 +172,14 @@ public class AdminController {
 	@PostMapping("/admin/productos/importar/previsualizar")
 	public String previsualizarImportacionProductos(
 			@RequestParam("archivo") MultipartFile archivo,
+			@RequestParam(required = false) Long categoriaId,
+			@RequestParam(required = false) Long subcategoriaId,
+			@RequestParam(defaultValue = "false") boolean bajoStock,
+			@RequestParam(defaultValue = "false") boolean ofertas,
 			HttpSession session,
 			RedirectAttributes redirectAttributes) {
 		try {
-			ProductoExcelImportPreview preview = productoExcelService.previsualizar(archivo);
+			ProductoExcelImportPreview preview = productoExcelService.previsualizar(archivo, bajoStock || ofertas);
 			session.setAttribute(PRODUCTO_EXCEL_IMPORT_PREVIEW, preview);
 			redirectAttributes.addFlashAttribute(PRODUCTO_EXCEL_IMPORT_PREVIEW, preview);
 			if (!preview.errores().isEmpty()) {
@@ -172,14 +191,22 @@ public class AdminController {
 			session.removeAttribute(PRODUCTO_EXCEL_IMPORT_PREVIEW);
 			redirectAttributes.addFlashAttribute("mensajeError", "No se pudo leer el Excel: " + ex.getMessage());
 		}
+		agregarFiltrosProductosRedirect(redirectAttributes, categoriaId, subcategoriaId, bajoStock, ofertas);
 		return "redirect:/admin/productos";
 	}
 
 	@PostMapping("/admin/productos/importar/confirmar")
-	public String confirmarImportacionProductos(HttpSession session, RedirectAttributes redirectAttributes) {
+	public String confirmarImportacionProductos(
+			@RequestParam(required = false) Long categoriaId,
+			@RequestParam(required = false) Long subcategoriaId,
+			@RequestParam(defaultValue = "false") boolean bajoStock,
+			@RequestParam(defaultValue = "false") boolean ofertas,
+			HttpSession session,
+			RedirectAttributes redirectAttributes) {
 		Object previewAttribute = session.getAttribute(PRODUCTO_EXCEL_IMPORT_PREVIEW);
 		if (!(previewAttribute instanceof ProductoExcelImportPreview preview)) {
 			redirectAttributes.addFlashAttribute("mensajeError", "Subí un Excel y revisá la previsualización antes de confirmar.");
+			agregarFiltrosProductosRedirect(redirectAttributes, categoriaId, subcategoriaId, bajoStock, ofertas);
 			return "redirect:/admin/productos";
 		}
 		try {
@@ -193,13 +220,21 @@ public class AdminController {
 			redirectAttributes.addFlashAttribute(PRODUCTO_EXCEL_IMPORT_PREVIEW, preview);
 			redirectAttributes.addFlashAttribute("mensajeError", "No se pudo aplicar la importación: " + ex.getMessage());
 		}
+		agregarFiltrosProductosRedirect(redirectAttributes, categoriaId, subcategoriaId, bajoStock, ofertas);
 		return "redirect:/admin/productos";
 	}
 
 	@PostMapping("/admin/productos/importar/cancelar")
-	public String cancelarImportacionProductos(HttpSession session, RedirectAttributes redirectAttributes) {
+	public String cancelarImportacionProductos(
+			@RequestParam(required = false) Long categoriaId,
+			@RequestParam(required = false) Long subcategoriaId,
+			@RequestParam(defaultValue = "false") boolean bajoStock,
+			@RequestParam(defaultValue = "false") boolean ofertas,
+			HttpSession session,
+			RedirectAttributes redirectAttributes) {
 		session.removeAttribute(PRODUCTO_EXCEL_IMPORT_PREVIEW);
 		redirectAttributes.addFlashAttribute("mensaje", "Importación cancelada.");
+		agregarFiltrosProductosRedirect(redirectAttributes, categoriaId, subcategoriaId, bajoStock, ofertas);
 		return "redirect:/admin/productos";
 	}
 
@@ -209,6 +244,7 @@ public class AdminController {
 			@RequestParam(required = false) Long subcategoriaId,
 			Model model) {
 		Producto producto = new Producto();
+		producto.setOfertaInput("");
 		preseleccionarCategoria(producto, categoriaId, subcategoriaId);
 		model.addAttribute("producto", producto);
 		model.addAttribute("categorias", categoriaService.listarActivas());
@@ -267,6 +303,7 @@ public class AdminController {
 		if (producto.getCompraHabilitada() == null) {
 			producto.setCompraHabilitada(true);
 		}
+		producto.setOfertaInput(formatearOfertaInput(producto));
 		model.addAttribute("producto", producto);
 		model.addAttribute("categorias", categoriaService.listarActivas());
 		cargarCamposEditablesProducto(model, producto);
@@ -459,6 +496,28 @@ public class AdminController {
 		return "redirect:/admin/pedidos/" + id;
 	}
 
+	@PostMapping("/admin/pedidos/{id}/transferencia/confirmar")
+	public String confirmarTransferencia(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+		try {
+			pedidoService.confirmarTransferencia(id);
+			redirectAttributes.addFlashAttribute("mensaje", "Transferencia confirmada. El pedido quedó pagado.");
+		} catch (RuntimeException ex) {
+			redirectAttributes.addFlashAttribute("mensaje", "No se pudo confirmar la transferencia: " + ex.getMessage());
+		}
+		return "redirect:/admin/pedidos/" + id;
+	}
+
+	@PostMapping("/admin/pedidos/{id}/transferencia/comprobante-invalido")
+	public String comprobanteTransferenciaInvalido(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+		try {
+			pedidoService.rechazarTransferencia(id);
+			redirectAttributes.addFlashAttribute("mensaje", "Comprobante marcado como inválido. Pedido cancelado y reserva liberada.");
+		} catch (RuntimeException ex) {
+			redirectAttributes.addFlashAttribute("mensaje", "No se pudo rechazar la transferencia: " + ex.getMessage());
+		}
+		return "redirect:/admin/pedidos/" + id;
+	}
+
 	@GetMapping("/admin/ventas")
 	public String ventas(
 			@RequestParam(required = false) String q,
@@ -493,6 +552,27 @@ public class AdminController {
 		configuracionTiendaService.guardar(configuracion, adminPassword);
 		redirectAttributes.addFlashAttribute("mensaje", "Configuración actualizada correctamente");
 		return "redirect:/admin/configuracion";
+	}
+
+	@GetMapping({ "/admin/configuracion/datos-bancarios", "/admin/configuración/datos-bancarios" })
+	public String datosBancarios(Model model) {
+		model.addAttribute("configuracion", configuracionTiendaService.obtener());
+		return "admin/configuracion-datos-bancarios";
+	}
+
+	@PostMapping({ "/admin/configuracion/datos-bancarios", "/admin/configuración/datos-bancarios" })
+	public String guardarDatosBancarios(
+			ConfiguracionTienda datosBancarios,
+			RedirectAttributes redirectAttributes) {
+		ConfiguracionTienda configuracion = configuracionTiendaService.obtener();
+		configuracion.setTransferenciaBanco(datosBancarios.getTransferenciaBanco());
+		configuracion.setTransferenciaTitular(datosBancarios.getTransferenciaTitular());
+		configuracion.setTransferenciaCbu(datosBancarios.getTransferenciaCbu());
+		configuracion.setTransferenciaAlias(datosBancarios.getTransferenciaAlias());
+		configuracion.setTransferenciaCuit(datosBancarios.getTransferenciaCuit());
+		configuracionTiendaService.guardar(configuracion);
+		redirectAttributes.addFlashAttribute("mensaje", "Datos bancarios actualizados correctamente");
+		return "redirect:/admin/configuracion/datos-bancarios";
 	}
 
 	@GetMapping("/admin/clientes")
@@ -588,7 +668,85 @@ public class AdminController {
 		if (producto.getStockMinimo() != null && producto.getStockMinimo() < 0) {
 			errores.put("stockMinimo", "El stock mínimo no puede ser negativo.");
 		}
+		validarOfertaProducto(producto, errores);
 		return errores;
+	}
+
+	private void validarOfertaProducto(Producto producto, Map<String, String> errores) {
+		if (!Boolean.TRUE.equals(producto.getOferta()) || !StringUtils.hasText(producto.getOfertaInput())) {
+			return;
+		}
+		try {
+			parsearPorcentajeOferta(producto);
+		} catch (IllegalArgumentException ex) {
+			errores.put("ofertaInput", ex.getMessage());
+		}
+	}
+
+	private BigDecimal parsearPorcentajeOferta(Producto producto) {
+		if (!Boolean.TRUE.equals(producto.getOferta())) {
+			return BigDecimal.ZERO;
+		}
+		String valor = normalizarValorSimple(producto.getOfertaInput());
+		if (!StringUtils.hasText(valor)) {
+			return BigDecimal.ZERO;
+		}
+		boolean esPorcentaje = valor.contains("%");
+		String valorNumerico = valor.replace("%", "").trim();
+		if (!StringUtils.hasText(valorNumerico)) {
+			throw new IllegalArgumentException("Ingresá un precio final o un porcentaje de oferta.");
+		}
+		BigDecimal numero = parsearDecimalOferta(valorNumerico);
+		if (numero.signum() < 0) {
+			throw new IllegalArgumentException("La oferta no puede ser negativa.");
+		}
+		if (numero.compareTo(BigDecimal.ZERO) == 0) {
+			return BigDecimal.ZERO;
+		}
+		if (esPorcentaje) {
+			if (numero.compareTo(BigDecimal.ONE) < 0 || numero.compareTo(BigDecimal.valueOf(99)) > 0) {
+				throw new IllegalArgumentException("El porcentaje de oferta debe estar entre 1 y 99.");
+			}
+			return numero.setScale(2, RoundingMode.HALF_UP);
+		}
+		BigDecimal precio = producto.getPrecio() == null ? BigDecimal.ZERO : producto.getPrecio();
+		if (precio.compareTo(BigDecimal.ZERO) <= 0) {
+			throw new IllegalArgumentException("Cargá un precio base mayor a cero antes de definir la oferta.");
+		}
+		if (numero.compareTo(precio) > 0) {
+			throw new IllegalArgumentException("El precio de oferta no puede superar el precio base.");
+		}
+		if (numero.compareTo(precio) == 0) {
+			return BigDecimal.ZERO;
+		}
+		return precio.subtract(numero)
+				.multiply(BigDecimal.valueOf(100))
+				.divide(precio, 2, RoundingMode.HALF_UP);
+	}
+
+	private BigDecimal parsearDecimalOferta(String valor) {
+		String normalizado = valor
+				.replace("$", "")
+				.replace("\u00A0", "")
+				.replace(" ", "")
+				.trim();
+		if (normalizado.contains(",") && normalizado.contains(".")) {
+			normalizado = normalizado.replace(".", "").replace(",", ".");
+		} else {
+			normalizado = normalizado.replace(",", ".");
+		}
+		try {
+			return new BigDecimal(normalizado);
+		} catch (NumberFormatException ex) {
+			throw new IllegalArgumentException("Ingresá un número válido para la oferta.");
+		}
+	}
+
+	private String formatearOfertaInput(Producto producto) {
+		if (producto.getPorcentajeOferta() == null || producto.getPorcentajeOferta().compareTo(BigDecimal.ZERO) <= 0) {
+			return "";
+		}
+		return producto.getPorcentajeOferta().stripTrailingZeros().toPlainString() + "%";
 	}
 
 	private Map<String, String> camposErrorPorExcepcionProducto(RuntimeException ex) {
@@ -598,6 +756,26 @@ public class AdminController {
 			errores.put("slug", "El Slug / SKU ya existe. Usá uno distinto.");
 		}
 		return errores;
+	}
+
+	private void agregarFiltrosProductosRedirect(
+			RedirectAttributes redirectAttributes,
+			Long categoriaId,
+			Long subcategoriaId,
+			boolean bajoStock,
+			boolean ofertas) {
+		if (categoriaId != null) {
+			redirectAttributes.addAttribute("categoriaId", categoriaId);
+		}
+		if (subcategoriaId != null) {
+			redirectAttributes.addAttribute("subcategoriaId", subcategoriaId);
+		}
+		if (bajoStock) {
+			redirectAttributes.addAttribute("bajoStock", true);
+		}
+		if (ofertas) {
+			redirectAttributes.addAttribute("ofertas", true);
+		}
 	}
 
 	private String mensajeErrorProducto(RuntimeException ex, String prefijo) {
@@ -636,6 +814,7 @@ public class AdminController {
 		if (producto.getSlug() == null || producto.getSlug().isBlank()) {
 			producto.setSlug(generarSlug(producto.getNombre()));
 		}
+		BigDecimal porcentajeOferta = parsearPorcentajeOferta(producto);
 		List<String> imagenesGaleria = prepararImagenesGaleria(imagenesProducto, imagenesProductoArchivos);
 		String imagenPrincipal = normalizarValorSimple(producto.getImagenPrincipal());
 		if (imagenPrincipalArchivo != null && !imagenPrincipalArchivo.isEmpty()) {
@@ -659,6 +838,7 @@ public class AdminController {
 		producto.setActivo(producto.getActivo() != null && producto.getActivo());
 		producto.setDestacado(producto.getDestacado() != null && producto.getDestacado());
 		producto.setOferta(producto.getOferta() != null && producto.getOferta());
+		producto.setPorcentajeOferta(producto.getOferta() ? porcentajeOferta : BigDecimal.ZERO);
 		producto.setCompraHabilitada(producto.getCompraHabilitada() != null && producto.getCompraHabilitada());
 		producto.setEnvioOcaDesactivado(producto.getEnvioOcaDesactivado() != null && producto.getEnvioOcaDesactivado());
 		producto.setEliminado(false);

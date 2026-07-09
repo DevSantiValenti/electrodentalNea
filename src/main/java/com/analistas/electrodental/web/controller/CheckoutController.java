@@ -234,6 +234,7 @@ public class CheckoutController {
 			@RequestParam(required = false) String metodoEnvio,
 			@RequestParam(required = false) String ocaTipoEntrega,
 			@RequestParam(required = false) String ocaSucursalId,
+			@RequestParam(defaultValue = "MERCADO_PAGO") String metodoPago,
 			HttpSession session,
 			RedirectAttributes redirectAttributes) {
 		CarritoDTO carrito = obtenerCarritoActualizado(session);
@@ -262,9 +263,16 @@ public class CheckoutController {
 		}
 		BigDecimal costoEnvio = resolverCostoEnvio(metodoEntrega, session, carrito);
 		session.setAttribute("envioSeleccionado", metodoEntrega);
+		boolean pagoTransferencia = esPagoTransferencia(metodoPago);
+		if (pagoTransferencia && !configuracionTiendaService.obtener().datosBancariosConfigurados()) {
+			redirectAttributes.addFlashAttribute("mensaje", "La transferencia bancaria todavía no tiene datos bancarios configurados.");
+			return "redirect:/checkout/pago";
+		}
 		Pedido pedido;
 		try {
-			pedido = pedidoService.crearPedidoWeb(cliente, direccionEnvio, carrito, metodoEntrega, costoEnvio);
+			pedido = pagoTransferencia
+					? pedidoService.crearPedidoWebTransferencia(cliente, direccionEnvio, carrito, metodoEntrega, costoEnvio)
+					: pedidoService.crearPedidoWeb(cliente, direccionEnvio, carrito, metodoEntrega, costoEnvio);
 		} catch (IllegalStateException | IllegalArgumentException ex) {
 			redirectAttributes.addFlashAttribute("mensaje", ex.getMessage());
 			return "redirect:/carrito";
@@ -277,6 +285,16 @@ public class CheckoutController {
 					obtenerSucursalSeleccionada(session));
 			pedido.setCostoEnvio(costoEnvio);
 			pedido.recalcularTotales();
+		}
+		if (pagoTransferencia) {
+			redirectAttributes.addFlashAttribute("titulo", "Pedido pendiente de transferencia");
+			redirectAttributes.addFlashAttribute("mensaje", "Transferí el importe exacto y envianos el comprobante por WhatsApp para confirmar tu pedido.");
+			redirectAttributes.addFlashAttribute("codigoCompra", pedido.getCodigoCompra());
+			redirectAttributes.addFlashAttribute("totalTransferencia", pedido.getTotal());
+			redirectAttributes.addFlashAttribute("mostrarDatosBancarios", true);
+			redirectAttributes.addFlashAttribute("whatsappContactoLink", construirWhatsappComprobanteLink(pedido));
+			limpiarCheckout(session);
+			return "redirect:/checkout/transferencia/resultado";
 		}
 		MercadoPagoPreferenceResponseDTO preference;
 		try {
@@ -293,6 +311,15 @@ public class CheckoutController {
 		redirectAttributes.addFlashAttribute("pedido", pedido);
 		redirectAttributes.addFlashAttribute("mensaje", "Pedido creado. Falta configurar Mercado Pago para redirigir al pago.");
 		return "redirect:/finalizar-compra";
+	}
+
+	@GetMapping("/checkout/transferencia/resultado")
+	public String resultadoTransferencia(Model model) {
+		if (!model.containsAttribute("codigoCompra")) {
+			return "redirect:/catalogo";
+		}
+		model.addAttribute("carrito", new CarritoDTO());
+		return "checkout-resultado";
 	}
 
 	@GetMapping({ "/checkout/mercadopago/success", "/checkout/mercadopago/failure", "/checkout/mercadopago/pending" })
@@ -336,7 +363,7 @@ public class CheckoutController {
 			PedidoItem item = new PedidoItem();
 			item.setProducto(producto);
 			item.setCantidad(itemCarrito.cantidad());
-			item.setPrecioUnitarioSnapshot(producto.getPrecio());
+			item.setPrecioUnitarioSnapshot(producto.precioOferta());
 			item.setNombreSnapshot(producto.getNombre());
 			item.calcularSubtotal();
 			pedido.agregarItem(item);
@@ -514,6 +541,20 @@ public class CheckoutController {
 		return configuracionTiendaService.obtener().getWhatsappLink()
 				+ "?text="
 				+ URLEncoder.encode(mensaje, StandardCharsets.UTF_8);
+	}
+
+	private String construirWhatsappComprobanteLink(Pedido pedido) {
+		String mensaje = "Hola, hice una compra en Electrodental NEA.\n"
+				+ "Pedido: " + (pedido.getCodigoCompra() == null ? "#" + pedido.getId() : pedido.getCodigoCompra()) + "\n"
+				+ "Total: $" + pedido.getTotal().setScale(2, RoundingMode.HALF_UP).toPlainString() + "\n"
+				+ "Adjunto comprobante de transferencia.";
+		return configuracionTiendaService.obtener().getWhatsappLink()
+				+ "?text="
+				+ URLEncoder.encode(mensaje, StandardCharsets.UTF_8);
+	}
+
+	private boolean esPagoTransferencia(String metodoPago) {
+		return "TRANSFERENCIA_BANCARIA".equals(metodoPago);
 	}
 
 	private void limpiarCheckout(HttpSession session) {

@@ -21,6 +21,7 @@ import com.analistas.electrodental.model.domain.Pago;
 import com.analistas.electrodental.model.domain.Pedido;
 import com.analistas.electrodental.model.domain.PedidoItem;
 import com.analistas.electrodental.model.domain.Producto;
+import com.analistas.electrodental.model.domain.ProveedorPago;
 import com.analistas.electrodental.model.domain.dto.MercadoPagoPaymentDataDTO;
 import com.analistas.electrodental.model.repository.IClienteRepository;
 import com.analistas.electrodental.model.repository.IPagoRepository;
@@ -117,6 +118,32 @@ class PedidoServiceImplTest {
 		verify(ocaService).crearEnvio(pedido);
 	}
 
+	@Test
+	void confirmarTransferenciaMarcaPagadoYCreaEnvioOca() {
+		Pedido pedido = pedidoTransferencia("OCA");
+		when(pedidoRepository.findDetalleById(10L)).thenReturn(Optional.of(pedido));
+
+		service.confirmarTransferencia(10L);
+
+		assertThat(pedido.getPago().getEstadoPago()).isEqualTo(EstadoPago.APROBADO);
+		assertThat(pedido.getEstadoPedido()).isEqualTo(EstadoPedido.PAGADO);
+		assertThat(pedido.getFechaPago()).isNotNull();
+		verify(ocaService).crearEnvio(pedido);
+	}
+
+	@Test
+	void comprobanteTransferenciaInvalidoCancelaYLiberaReserva() {
+		Pedido pedido = pedidoTransferencia("SUCURSAL");
+		when(pedidoRepository.findDetalleById(10L)).thenReturn(Optional.of(pedido));
+
+		service.rechazarTransferencia(10L);
+
+		assertThat(pedido.getPago().getEstadoPago()).isEqualTo(EstadoPago.RECHAZADO);
+		assertThat(pedido.getEstadoPedido()).isEqualTo(EstadoPedido.CANCELADO);
+		verify(stockService).liberarReservaWeb(pedido.getItems().get(0).getProducto(), 2, "TRF-1");
+		verify(ocaService, never()).crearEnvio(any());
+	}
+
 	private Pedido pedido(String metodoEntrega) {
 		Producto producto = new Producto();
 		producto.setNombre("Producto test");
@@ -139,6 +166,14 @@ class PedidoServiceImplTest {
 		item.setNombreSnapshot("Producto test");
 		item.calcularSubtotal();
 		pedido.agregarItem(item);
+		return pedido;
+	}
+
+	private Pedido pedidoTransferencia(String metodoEntrega) {
+		Pedido pedido = pedido(metodoEntrega);
+		pedido.setEstadoPedido(EstadoPedido.PENDIENTE_TRANSFERENCIA);
+		pedido.getPago().setProveedor(ProveedorPago.TRANSFERENCIA_BANCARIA);
+		pedido.getPago().setExternalReference("TRF-1");
 		return pedido;
 	}
 

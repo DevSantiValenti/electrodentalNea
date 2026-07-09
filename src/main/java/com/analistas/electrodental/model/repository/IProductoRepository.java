@@ -67,12 +67,14 @@ public interface IProductoRepository extends JpaRepository<Producto, Long> {
 			  and (:categoriaId is null or p.categoria.id = :categoriaId)
 			  and (:subcategoriaId is null or p.subcategoria.id = :subcategoriaId)
 			  and (:soloBajoStock = false or coalesce(p.stockWeb, 0) <= coalesce(p.stockMinimo, 0))
+			  and (:soloOfertas = false or coalesce(p.oferta, false) = true)
 			order by p.nombre asc
 			""")
 	List<Producto> filtrarAdmin(
 			@Param("categoriaId") Long categoriaId,
 			@Param("subcategoriaId") Long subcategoriaId,
-			@Param("soloBajoStock") boolean soloBajoStock);
+			@Param("soloBajoStock") boolean soloBajoStock,
+			@Param("soloOfertas") boolean soloOfertas);
 
 	@Query("""
 			select count(p) from Producto p
@@ -80,6 +82,13 @@ public interface IProductoRepository extends JpaRepository<Producto, Long> {
 			  and coalesce(p.stockWeb, 0) <= coalesce(p.stockMinimo, 0)
 			""")
 	long contarBajoStockAdmin();
+
+	@Query("""
+			select count(p) from Producto p
+			where (p.eliminado is null or p.eliminado = false or p.activo = true)
+			  and coalesce(p.oferta, false) = true
+			""")
+	long contarOfertasAdmin();
 
 	@Modifying(clearAutomatically = true, flushAutomatically = true)
 	@Query("update Producto p set p.subcategoria = null where p.subcategoria.id = :subcategoriaId")

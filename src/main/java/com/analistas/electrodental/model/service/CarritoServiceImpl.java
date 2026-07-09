@@ -95,17 +95,19 @@ public class CarritoServiceImpl implements ICarritoService {
 	}
 
 	private CarritoItemDTO crearItem(Producto producto, Integer cantidad) {
-		BigDecimal subtotal = producto.getPrecio().multiply(BigDecimal.valueOf(cantidad));
+		BigDecimal precioUnitario = producto.precioOferta();
+		BigDecimal subtotal = precioUnitario.multiply(BigDecimal.valueOf(cantidad));
 		return new CarritoItemDTO(
 				producto.getId(),
 				producto.getSlug(),
 				producto.getNombre(),
 				producto.getImagenPrincipal(),
-				producto.getPrecio(),
+				precioUnitario,
 				cantidad,
 				subtotal,
 				stockDisponible(producto),
-				Boolean.TRUE.equals(producto.getEnvioOcaDesactivado()));
+				Boolean.TRUE.equals(producto.getEnvioOcaDesactivado()),
+				producto.tieneOferta());
 	}
 
 	private CarritoItemDTO actualizarItemDesdeStockActual(CarritoItemDTO item, Integer cantidad) {
@@ -120,7 +122,8 @@ public class CarritoServiceImpl implements ICarritoService {
 				cantidadFinal,
 				item.precioUnitario().multiply(BigDecimal.valueOf(cantidadFinal)),
 				item.stockDisponible(),
-				item.envioOcaDesactivado());
+				item.envioOcaDesactivado(),
+				item.oferta());
 	}
 
 	private int stockDisponible(Producto producto) {

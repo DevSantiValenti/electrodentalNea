@@ -9,7 +9,7 @@ public interface IProductoService {
 
 	List<Producto> listarTodos();
 
-	List<Producto> filtrarAdmin(Long categoriaId, Long subcategoriaId, boolean soloBajoStock);
+	List<Producto> filtrarAdmin(Long categoriaId, Long subcategoriaId, boolean soloBajoStock, boolean soloOfertas);
 
 	List<Producto> listarActivos();
 
@@ -24,6 +24,8 @@ public interface IProductoService {
 	List<Producto> listarBajoStock();
 
 	long contarBajoStockAdmin();
+
+	long contarOfertasAdmin();
 
 	List<Producto> listarRelacionados(Producto producto);
 

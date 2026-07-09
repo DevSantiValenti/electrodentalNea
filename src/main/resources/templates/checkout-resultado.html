@@ -12,9 +12,21 @@
 			<p class="mt-2 text-3xl font-black text-secondary" th:text="${codigoCompra}">RET-0000</p>
 			<p class="mt-2 text-sm font-semibold text-slate-600">Usá este código para retirar en sucursal o coordinar con el vendedor.</p>
 		</div>
+		<div th:if="${mostrarDatosBancarios}" class="mt-6 rounded-xl border border-outline bg-slate-50 p-5 text-left">
+			<p class="text-sm font-black uppercase text-slate-500">Transferencia bancaria</p>
+			<div class="mt-3 grid gap-2 text-sm font-semibold text-slate-700">
+				<p th:if="${totalTransferencia != null}"><strong class="text-primary">Importe exacto:</strong> <span th:text="${@money.format(totalTransferencia)}">$ 0,00</span></p>
+				<p th:if="${!#strings.isEmpty(configuracionTienda.transferenciaBanco)}"><strong class="text-primary">Banco:</strong> <span th:text="${configuracionTienda.transferenciaBanco}">Banco</span></p>
+				<p><strong class="text-primary">Titular:</strong> <span th:text="${configuracionTienda.transferenciaTitular}">Titular</span></p>
+				<p th:if="${!#strings.isEmpty(configuracionTienda.transferenciaAlias)}"><strong class="text-primary">Alias:</strong> <span th:text="${configuracionTienda.transferenciaAlias}">Alias</span></p>
+				<p th:if="${!#strings.isEmpty(configuracionTienda.transferenciaCbu)}"><strong class="text-primary">CBU/CVU:</strong> <span th:text="${configuracionTienda.transferenciaCbu}">CBU</span></p>
+				<p th:if="${!#strings.isEmpty(configuracionTienda.transferenciaCuit)}"><strong class="text-primary">CUIT/CUIL:</strong> <span th:text="${configuracionTienda.transferenciaCuit}">CUIT</span></p>
+			</div>
+			<p class="mt-4 rounded-lg bg-amber-50 p-3 text-sm font-bold text-amber-800">Tu pedido queda pendiente hasta que validemos el comprobante.</p>
+		</div>
 		<div class="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
 			<a th:href="@{/catalogo}" class="rounded-xl bg-primary px-5 py-3 font-black text-white">Volver al catálogo</a>
-			<a th:href="${whatsappContactoLink}" target="_blank" rel="noopener" class="rounded-xl border border-outline px-5 py-3 font-black text-primary">Contactar</a>
+			<a th:href="${whatsappContactoLink}" target="_blank" rel="noopener" class="rounded-xl border border-outline px-5 py-3 font-black text-primary" th:text="${mostrarDatosBancarios} ? 'Enviar comprobante' : 'Contactar'">Contactar</a>
 		</div>
 	</section>
 </main>

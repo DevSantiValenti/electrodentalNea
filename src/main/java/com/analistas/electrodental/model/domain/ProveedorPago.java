@@ -1,5 +1,6 @@
 package com.analistas.electrodental.model.domain;
 
 public enum ProveedorPago {
-	MERCADO_PAGO
+	MERCADO_PAGO,
+	TRANSFERENCIA_BANCARIA
 }

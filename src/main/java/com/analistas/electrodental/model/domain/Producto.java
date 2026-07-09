@@ -1,6 +1,7 @@
 package com.analistas.electrodental.model.domain;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -13,6 +14,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -78,6 +80,9 @@ public class Producto {
 	@Column(precision = 5, scale = 2)
 	private BigDecimal porcentajeOferta = BigDecimal.ZERO;
 
+	@Transient
+	private String ofertaInput;
+
 	private Integer stockWeb = 0;
 
 	private Integer stockFisico = 0;
@@ -125,5 +130,31 @@ public class Producto {
 
 	public boolean disponibleParaCompraWeb() {
 		return permiteCompraWeb() && tieneStockWebDisponible();
+	}
+
+	public boolean tieneOferta() {
+		return Boolean.TRUE.equals(oferta);
+	}
+
+	public boolean tieneDescuentoOferta() {
+		return tieneOferta()
+				&& porcentajeOferta != null
+				&& porcentajeOferta.compareTo(BigDecimal.ZERO) > 0;
+	}
+
+	public BigDecimal precioOferta() {
+		if (!tieneDescuentoOferta()) {
+			return precio == null ? BigDecimal.ZERO : precio;
+		}
+		BigDecimal precioSeguro = precio == null ? BigDecimal.ZERO : precio;
+		BigDecimal descuento = porcentajeOferta.divide(BigDecimal.valueOf(100), 6, RoundingMode.HALF_UP);
+		return precioSeguro.subtract(precioSeguro.multiply(descuento)).max(BigDecimal.ZERO).setScale(2, RoundingMode.HALF_UP);
+	}
+
+	public String porcentajeOfertaTexto() {
+		if (porcentajeOferta == null) {
+			return "";
+		}
+		return porcentajeOferta.stripTrailingZeros().toPlainString();
 	}
 }

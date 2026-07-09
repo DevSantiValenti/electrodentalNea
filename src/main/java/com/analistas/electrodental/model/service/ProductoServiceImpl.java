@@ -26,8 +26,8 @@ public class ProductoServiceImpl implements IProductoService {
 	}
 
 	@Override
-	public List<Producto> filtrarAdmin(Long categoriaId, Long subcategoriaId, boolean soloBajoStock) {
-		return productoRepository.filtrarAdmin(categoriaId, subcategoriaId, soloBajoStock);
+	public List<Producto> filtrarAdmin(Long categoriaId, Long subcategoriaId, boolean soloBajoStock, boolean soloOfertas) {
+		return productoRepository.filtrarAdmin(categoriaId, subcategoriaId, soloBajoStock, soloOfertas);
 	}
 
 	@Override
@@ -69,6 +69,11 @@ public class ProductoServiceImpl implements IProductoService {
 	@Override
 	public long contarBajoStockAdmin() {
 		return productoRepository.contarBajoStockAdmin();
+	}
+
+	@Override
+	public long contarOfertasAdmin() {
+		return productoRepository.contarOfertasAdmin();
 	}
 
 	@Override

@@ -56,7 +56,19 @@ public class ProductoExcelService {
 
 	@Transactional(readOnly = true)
 	public byte[] exportarProductos() {
-		List<Producto> productos = productoRepository.findProductosParaExcel();
+		return exportarProductos(null, null, false, false);
+	}
+
+	@Transactional(readOnly = true)
+	public byte[] exportarProductos(Long categoriaId, Long subcategoriaId, boolean soloBajoStock) {
+		return exportarProductos(categoriaId, subcategoriaId, soloBajoStock, false);
+	}
+
+	@Transactional(readOnly = true)
+	public byte[] exportarProductos(Long categoriaId, Long subcategoriaId, boolean soloBajoStock, boolean soloOfertas) {
+		List<Producto> productos = soloBajoStock || soloOfertas
+				? productoRepository.filtrarAdmin(categoriaId, subcategoriaId, soloBajoStock, soloOfertas)
+				: productoRepository.findProductosParaExcel();
 		try (Workbook workbook = new XSSFWorkbook(); ByteArrayOutputStream output = new ByteArrayOutputStream()) {
 			Sheet sheet = workbook.createSheet(SHEET_PRODUCTOS);
 			Styles styles = crearStyles(workbook);
@@ -81,6 +93,11 @@ public class ProductoExcelService {
 
 	@Transactional(readOnly = true)
 	public ProductoExcelImportPreview previsualizar(MultipartFile archivo) {
+		return previsualizar(archivo, false);
+	}
+
+	@Transactional(readOnly = true)
+	public ProductoExcelImportPreview previsualizar(MultipartFile archivo, boolean importacionParcial) {
 		if (archivo == null || archivo.isEmpty()) {
 			throw new IllegalArgumentException("Seleccioná un archivo Excel para importar.");
 		}
@@ -118,16 +135,18 @@ public class ProductoExcelService {
 			}
 		}
 
-		List<ProductoExcelImportPreview.Deletion> eliminaciones = actuales.stream()
-				.filter(producto -> !idsImportados.contains(producto.getId()))
-				.map(producto -> new ProductoExcelImportPreview.Deletion(
-						producto.getId(),
-						nombreCategoria(producto),
-						nombreSubcategoria(producto),
-						valorTexto(producto.getNombre())))
-				.toList();
+		List<ProductoExcelImportPreview.Deletion> eliminaciones = importacionParcial
+				? List.of()
+				: actuales.stream()
+						.filter(producto -> !idsImportados.contains(producto.getId()))
+						.map(producto -> new ProductoExcelImportPreview.Deletion(
+								producto.getId(),
+								nombreCategoria(producto),
+								nombreSubcategoria(producto),
+								valorTexto(producto.getNombre())))
+						.toList();
 
-		return new ProductoExcelImportPreview(filasImportadas.size(), actualizaciones, eliminaciones, errores);
+		return new ProductoExcelImportPreview(filasImportadas.size(), actualizaciones, eliminaciones, errores, importacionParcial);
 	}
 
 	@Transactional

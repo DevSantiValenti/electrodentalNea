@@ -63,6 +63,91 @@ class ProductoExcelServiceTest {
 				.containsExactly("Nombre", "Stock web", "Precio");
 	}
 
+	@Test
+	void exportaProductosDeBajoStockSegunFiltros() throws Exception {
+		Producto producto = producto();
+		when(productoRepository.filtrarAdmin(10L, 20L, true, false)).thenReturn(List.of(producto));
+
+		byte[] exportado = productoExcelService.exportarProductos(10L, 20L, true);
+
+		try (Workbook workbook = WorkbookFactory.create(new ByteArrayInputStream(exportado))) {
+			Row row = workbook.getSheetAt(0).getRow(1);
+			assertThat(row.getCell(0).getNumericCellValue()).isEqualTo(1D);
+			assertThat(row.getCell(3).getStringCellValue()).isEqualTo("Turbina NSK");
+		}
+	}
+
+	@Test
+	void exportaProductosEnOfertaSegunFiltros() throws Exception {
+		Producto producto = producto();
+		producto.setOferta(true);
+		when(productoRepository.filtrarAdmin(10L, 20L, false, true)).thenReturn(List.of(producto));
+
+		byte[] exportado = productoExcelService.exportarProductos(10L, 20L, false, true);
+
+		try (Workbook workbook = WorkbookFactory.create(new ByteArrayInputStream(exportado))) {
+			Row row = workbook.getSheetAt(0).getRow(1);
+			assertThat(row.getCell(0).getNumericCellValue()).isEqualTo(1D);
+			assertThat(row.getCell(3).getStringCellValue()).isEqualTo("Turbina NSK");
+		}
+	}
+
+	@Test
+	void importacionParcialNoEliminaProductosAusentesDelExcel() throws Exception {
+		Producto producto = producto();
+		Producto otroProducto = producto();
+		otroProducto.setId(2L);
+		otroProducto.setNombre("Compresor dental");
+		when(productoRepository.findProductosParaExcel())
+				.thenReturn(List.of(producto))
+				.thenReturn(List.of(producto, otroProducto));
+
+		byte[] exportado = productoExcelService.exportarProductos();
+		ByteArrayOutputStream modificado = new ByteArrayOutputStream();
+		try (Workbook workbook = WorkbookFactory.create(new ByteArrayInputStream(exportado))) {
+			Row row = workbook.getSheetAt(0).getRow(1);
+			row.getCell(5).setCellValue(15);
+			workbook.write(modificado);
+		}
+
+		MockMultipartFile archivo = new MockMultipartFile(
+				"archivo",
+				"productos-bajo-stock.xlsx",
+				"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+				modificado.toByteArray());
+		ProductoExcelImportPreview preview = productoExcelService.previsualizar(archivo, true);
+
+		assertThat(preview.importacionParcial()).isTrue();
+		assertThat(preview.errores()).isEmpty();
+		assertThat(preview.actualizaciones()).hasSize(1);
+		assertThat(preview.eliminaciones()).isEmpty();
+	}
+
+	@Test
+	void importacionCompletaMantieneEliminacionDeProductosAusentesDelExcel() throws Exception {
+		Producto producto = producto();
+		Producto otroProducto = producto();
+		otroProducto.setId(2L);
+		otroProducto.setNombre("Compresor dental");
+		when(productoRepository.findProductosParaExcel())
+				.thenReturn(List.of(producto))
+				.thenReturn(List.of(producto, otroProducto));
+
+		byte[] exportado = productoExcelService.exportarProductos();
+		MockMultipartFile archivo = new MockMultipartFile(
+				"archivo",
+				"productos.xlsx",
+				"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+				exportado);
+		ProductoExcelImportPreview preview = productoExcelService.previsualizar(archivo);
+
+		assertThat(preview.importacionParcial()).isFalse();
+		assertThat(preview.errores()).isEmpty();
+		assertThat(preview.eliminaciones())
+				.extracting(ProductoExcelImportPreview.Deletion::productoId)
+				.containsExactly(2L);
+	}
+
 	private Producto producto() {
 		Categoria categoria = new Categoria();
 		categoria.setId(10L);

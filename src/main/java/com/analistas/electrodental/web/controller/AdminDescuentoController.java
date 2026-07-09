@@ -111,7 +111,9 @@ public class AdminDescuentoController {
 		List<Categoria> categorias = categoriaService.listarTodas();
 		model.addAttribute("descuento", descuento);
 		model.addAttribute("tiposAplicacion", TipoAplicacionDescuento.values());
-		model.addAttribute("productos", productoService.listarTodos());
+		model.addAttribute("productos", productoService.listarTodos().stream()
+				.filter(producto -> !producto.tieneOferta())
+				.toList());
 		model.addAttribute("categorias", categorias);
 		model.addAttribute("subcategorias", subcategoriaRepository.findByActivoTrueOrderByNombreAsc());
 		model.addAttribute("productoIdsSeleccionados", idsProductos(descuento));

@@ -14,11 +14,17 @@ public interface IPedidoService {
 
 	Pedido crearPedidoWeb(Cliente cliente, DireccionEnvio direccionEnvio, CarritoDTO carrito, String metodoEntrega, BigDecimal costoEnvio);
 
+	Pedido crearPedidoWebTransferencia(Cliente cliente, DireccionEnvio direccionEnvio, CarritoDTO carrito, String metodoEntrega, BigDecimal costoEnvio);
+
 	Pedido marcarPagado(String externalReference, String paymentId);
 
 	Pedido actualizarPagoMercadoPago(String externalReference, String paymentId, String status);
 
 	Pedido actualizarPagoMercadoPago(MercadoPagoPaymentDataDTO paymentData);
+
+	Pedido confirmarTransferencia(Long pedidoId);
+
+	Pedido rechazarTransferencia(Long pedidoId);
 
 	Pedido cancelarPedido(Long pedidoId, String motivo);
 }

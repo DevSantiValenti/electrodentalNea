@@ -62,6 +62,21 @@ public class ConfiguracionTienda {
 	@Column(nullable = false)
 	private Boolean paginaOculta = false;
 
+	@Column(length = 120)
+	private String transferenciaBanco = "";
+
+	@Column(length = 160)
+	private String transferenciaTitular = "";
+
+	@Column(length = 40)
+	private String transferenciaCbu = "";
+
+	@Column(length = 80)
+	private String transferenciaAlias = "";
+
+	@Column(length = 40)
+	private String transferenciaCuit = "";
+
 	@Column(length = 80)
 	private String adminUsuario = "admin";
 
@@ -108,10 +123,20 @@ public class ConfiguracionTienda {
 		if (paginaOculta == null) {
 			paginaOculta = false;
 		}
+		transferenciaBanco = limpiarTexto(transferenciaBanco);
+		transferenciaTitular = limpiarTexto(transferenciaTitular);
+		transferenciaCbu = limpiarTexto(transferenciaCbu);
+		transferenciaAlias = limpiarTexto(transferenciaAlias);
+		transferenciaCuit = limpiarTexto(transferenciaCuit);
 	}
 
 	public boolean paginaOcultaActiva() {
 		return Boolean.TRUE.equals(paginaOculta);
+	}
+
+	public boolean datosBancariosConfigurados() {
+		return !transferenciaTitular.isBlank()
+				&& (!transferenciaAlias.isBlank() || !transferenciaCbu.isBlank());
 	}
 
 	public String getWhatsappLink() {
@@ -168,5 +193,9 @@ public class ConfiguracionTienda {
 				.filter(email -> !email.isBlank())
 				.distinct()
 				.collect(Collectors.joining(", "));
+	}
+
+	private static String limpiarTexto(String texto) {
+		return texto == null ? "" : texto.trim();
 	}
 }

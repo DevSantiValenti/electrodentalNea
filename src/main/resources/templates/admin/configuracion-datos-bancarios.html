@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/fragments/layout :: head('Admin | Datos bancarios')}"></head>
+<body class="admin-shell text-slate-900">
+<aside th:replace="~{admin/fragments/layout :: sidebar('configuracion')}"></aside>
+<header th:replace="~{admin/fragments/layout :: mobilebar('configuracion')}"></header>
+
+<main class="p-4 sm:p-6 lg:ml-64 lg:p-8">
+	<div th:replace="~{admin/fragments/layout :: topbar('Datos bancarios', 'Información visible cuando el cliente elige transferencia bancaria.')}"></div>
+
+	<div th:if="${mensaje}" class="mb-5 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm font-bold text-green-800" th:text="${mensaje}">Guardado</div>
+
+	<form th:action="@{/admin/configuracion/datos-bancarios}" th:object="${configuracion}" method="post" class="admin-card rounded-2xl p-6">
+		<div class="grid gap-5 md:grid-cols-2">
+			<label class="block">
+				<span class="text-sm font-bold text-primary">Banco</span>
+				<input th:field="*{transferenciaBanco}" class="mt-1 w-full rounded-lg border-outline" placeholder="Banco">
+			</label>
+			<label class="block">
+				<span class="text-sm font-bold text-primary">Titular</span>
+				<input th:field="*{transferenciaTitular}" class="mt-1 w-full rounded-lg border-outline" placeholder="Electrodental NEA">
+			</label>
+			<label class="block">
+				<span class="text-sm font-bold text-primary">CBU / CVU</span>
+				<input th:field="*{transferenciaCbu}" class="mt-1 w-full rounded-lg border-outline" placeholder="0000000000000000000000">
+			</label>
+			<label class="block">
+				<span class="text-sm font-bold text-primary">Alias</span>
+				<input th:field="*{transferenciaAlias}" class="mt-1 w-full rounded-lg border-outline uppercase" placeholder="ELECTRODENTAL.NEA">
+			</label>
+			<label class="block">
+				<span class="text-sm font-bold text-primary">CUIT / CUIL</span>
+				<input th:field="*{transferenciaCuit}" class="mt-1 w-full rounded-lg border-outline" placeholder="Opcional">
+			</label>
+			<div class="rounded-xl border border-outline bg-surface-soft p-4 text-sm font-semibold text-slate-600">
+				<p class="font-black text-primary">Uso en checkout</p>
+				<p class="mt-1">Estos datos se muestran al cliente cuando selecciona Transferencia Bancaria. Para habilitarla, cargá al menos titular y alias o CBU.</p>
+			</div>
+		</div>
+		<div class="mt-6 flex flex-wrap gap-3 border-t border-outline pt-6">
+			<button class="rounded-xl bg-secondary px-5 py-3 font-black text-white hover:opacity-90">Guardar datos bancarios</button>
+			<a th:href="@{/admin/configuracion}" class="rounded-xl border border-outline px-5 py-3 font-bold text-primary hover:bg-surface-soft">Volver a configuración</a>
+		</div>
+	</form>
+</main>
+</body>
+</html>

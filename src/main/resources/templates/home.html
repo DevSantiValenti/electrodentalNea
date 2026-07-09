@@ -52,7 +52,8 @@
 					<a th:href="@{/productos/{slug}(slug=${producto.slug})}" class="mt-2 line-clamp-2 block min-h-12 font-bold text-primary hover:text-secondary" th:text="${producto.nombre}">Producto</a>
 					<div class="mt-4 flex items-end justify-between gap-3">
 						<div>
-							<p class="whitespace-nowrap text-xl font-black text-secondary" th:text="${@money.format(producto.precio)}">$ 0,00</p>
+							<p th:if="${producto.tieneDescuentoOferta()}" class="text-xs font-bold text-slate-400 line-through" th:text="${@money.format(producto.precio)}">$ 0,00</p>
+							<p class="whitespace-nowrap text-xl font-black text-secondary" th:text="${@money.format(producto.precioOferta())}">$ 0,00</p>
 							<p class="text-xs" th:classappend="${producto.stockWeb <= 0 ? ' text-red-700 font-bold' : ' text-slate-500'}" th:text="${producto.stockWeb > 0 ? 'Stock web: ' + producto.stockWeb : 'Sin stock'}">Stock</p>
 						</div>
 						<form th:if="${producto.disponibleParaCompraWeb()}" th:action="@{/carrito/agregar}" method="post">

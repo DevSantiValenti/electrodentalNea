@@ -38,6 +38,7 @@
 				</select>
 			</label>
 			<input type="hidden" name="bajoStock" th:if="${bajoStockSeleccionado}" value="true">
+			<input type="hidden" name="ofertas" th:if="${ofertasSeleccionado}" value="true">
 			<button class="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-primary px-4 text-sm font-black text-white hover:opacity-90">
 				<span class="material-symbols-outlined text-[19px]">filter_alt</span> Aplicar
 			</button>
@@ -57,14 +58,29 @@
 			   class="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-amber-500 px-4 py-3 text-sm font-black text-white hover:bg-amber-600">
 				<span class="material-symbols-outlined">notifications_active</span> Viendo bajo stock
 			</a>
+			<a th:if="${!ofertasSeleccionado}"
+			   th:href="@{/admin/productos(categoriaId=${categoriaSeleccionadaId},subcategoriaId=${subcategoriaSeleccionadaId},ofertas=true)}"
+			   class="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-black text-red-800 hover:bg-red-100">
+				<span class="material-symbols-outlined">local_offer</span>
+				<span th:text="|Ofertas: ${totalOfertas}|">Ofertas: 0</span>
+			</a>
+			<a th:if="${ofertasSeleccionado}"
+			   th:href="@{/admin/productos(categoriaId=${categoriaSeleccionadaId},subcategoriaId=${subcategoriaSeleccionadaId})}"
+			   class="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-secondary px-4 py-3 text-sm font-black text-white hover:opacity-90">
+				<span class="material-symbols-outlined">local_offer</span> Viendo ofertas
+			</a>
 			<a th:href="@{/admin/productos/nuevo(categoriaId=${categoriaSeleccionadaId},subcategoriaId=${subcategoriaSeleccionadaId})}" class="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-secondary px-4 py-3 text-sm font-bold text-white hover:opacity-90">
 				<span class="material-symbols-outlined">add_circle</span> Añadir Nuevo
 			</a>
-			<a th:href="@{/admin/productos/exportar}" class="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-outline bg-white px-4 py-3 text-sm font-black text-primary hover:bg-surface-soft">
+			<a th:href="@{/admin/productos/exportar(categoriaId=${categoriaSeleccionadaId},subcategoriaId=${subcategoriaSeleccionadaId},bajoStock=${bajoStockSeleccionado},ofertas=${ofertasSeleccionado})}" class="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-outline bg-white px-4 py-3 text-sm font-black text-primary hover:bg-surface-soft">
 				<span class="material-symbols-outlined">download</span> Exportar Excel
 			</a>
 			<form id="product-import-form" th:action="@{/admin/productos/importar/previsualizar}" method="post" enctype="multipart/form-data">
 				<input id="product-import-file" name="archivo" type="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" class="hidden">
+				<input type="hidden" name="categoriaId" th:value="${categoriaSeleccionadaId}">
+				<input type="hidden" name="subcategoriaId" th:value="${subcategoriaSeleccionadaId}">
+				<input type="hidden" name="bajoStock" th:value="${bajoStockSeleccionado}">
+				<input type="hidden" name="ofertas" th:value="${ofertasSeleccionado}">
 				<button id="product-import-trigger" type="button" class="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm font-black text-green-800 hover:bg-green-100">
 					<span class="material-symbols-outlined">upload_file</span> Importar Excel
 				</button>
@@ -98,6 +114,7 @@
 						<p class="mb-2 text-xs text-muted" th:text="|SKU: ${producto.slug}|">SKU</p>
 						<div class="flex flex-wrap items-center gap-2">
 							<span class="font-black text-primary" th:text="${@money.format(producto.precio)}">$ 0,00</span>
+							<span th:if="${producto.oferta}" class="rounded bg-secondary px-2 py-1 text-[10px] font-black uppercase text-white">Oferta</span>
 							<span class="rounded px-2 py-1 text-[10px] font-black uppercase"
 								  th:classappend="${producto.activo != null && producto.activo} ? ' bg-green-100 text-green-800' : ' bg-slate-200 text-slate-700'"
 								  th:text="${producto.activo != null && producto.activo} ? 'Activo' : 'Inactivo'">Activo</span>
@@ -153,11 +170,18 @@
 					<p class="mt-1 text-sm font-semibold text-muted">
 						Revisá los cambios detectados antes de actualizar productos.
 					</p>
+					<p th:if="${productoExcelImportPreview.importacionParcial}" class="mt-2 rounded-lg bg-amber-50 px-3 py-2 text-xs font-black text-amber-800">
+						Importación parcial por filtro activo: solo se actualizan los productos incluidos en el Excel. Los productos ausentes no se eliminan.
+					</p>
 					<p class="mt-2 text-xs font-bold text-slate-500">
 						Formato aceptado: ID, Categoria, Subcategoria, Nombre, Marca, Stock web, Stock fisico, Precio. Categoria y subcategoría son solo referencia.
 					</p>
 				</div>
 				<form th:action="@{/admin/productos/importar/cancelar}" method="post">
+					<input type="hidden" name="categoriaId" th:value="${categoriaSeleccionadaId}">
+					<input type="hidden" name="subcategoriaId" th:value="${subcategoriaSeleccionadaId}">
+					<input type="hidden" name="bajoStock" th:value="${bajoStockSeleccionado}">
+					<input type="hidden" name="ofertas" th:value="${ofertasSeleccionado}">
 					<button class="inline-flex h-10 w-10 items-center justify-center rounded-lg text-slate-500 hover:bg-surface-soft" aria-label="Cerrar">
 						<span class="material-symbols-outlined">close</span>
 					</button>
@@ -175,8 +199,8 @@
 						<p class="mt-1 text-2xl text-green-800" th:text="${productoExcelImportPreview.actualizaciones.size()}">0</p>
 					</div>
 					<div class="rounded-xl bg-red-50 p-4">
-						<p class="text-xs uppercase text-red-700">Productos a eliminar</p>
-						<p class="mt-1 text-2xl text-red-800" th:text="${productoExcelImportPreview.eliminaciones.size()}">0</p>
+						<p class="text-xs uppercase text-red-700" th:text="${productoExcelImportPreview.importacionParcial ? 'Eliminaciones' : 'Productos a eliminar'}">Productos a eliminar</p>
+						<p class="mt-1 text-2xl text-red-800" th:text="${productoExcelImportPreview.importacionParcial ? 'No aplica' : productoExcelImportPreview.eliminaciones.size()}">0</p>
 					</div>
 					<div class="rounded-xl bg-amber-50 p-4">
 						<p class="text-xs uppercase text-amber-700">Errores</p>
@@ -229,9 +253,17 @@
 
 			<footer class="flex flex-col gap-3 border-t border-outline p-5 sm:flex-row sm:items-center sm:justify-end">
 				<form th:action="@{/admin/productos/importar/cancelar}" method="post">
+					<input type="hidden" name="categoriaId" th:value="${categoriaSeleccionadaId}">
+					<input type="hidden" name="subcategoriaId" th:value="${subcategoriaSeleccionadaId}">
+					<input type="hidden" name="bajoStock" th:value="${bajoStockSeleccionado}">
+					<input type="hidden" name="ofertas" th:value="${ofertasSeleccionado}">
 					<button class="w-full rounded-lg border border-outline px-4 py-3 text-sm font-black text-primary hover:bg-surface-soft sm:w-auto">Cancelar</button>
 				</form>
 				<form th:action="@{/admin/productos/importar/confirmar}" method="post">
+					<input type="hidden" name="categoriaId" th:value="${categoriaSeleccionadaId}">
+					<input type="hidden" name="subcategoriaId" th:value="${subcategoriaSeleccionadaId}">
+					<input type="hidden" name="bajoStock" th:value="${bajoStockSeleccionado}">
+					<input type="hidden" name="ofertas" th:value="${ofertasSeleccionado}">
 					<button th:disabled="${!productoExcelImportPreview.puedeConfirmar()}"
 							class="w-full rounded-lg bg-primary px-5 py-3 text-sm font-black text-white hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto">
 						Confirmar importación

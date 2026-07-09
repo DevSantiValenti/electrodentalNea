@@ -33,6 +33,7 @@ import com.analistas.electrodental.model.repository.ISubcategoriaRepository;
 public class DescuentoServiceImpl implements IDescuentoService {
 
 	private static final BigDecimal CIEN = new BigDecimal("100");
+	private static final String MENSAJE_OFERTAS_EXENTAS = "Los productos en oferta están exentos del descuento.";
 
 	private final IDescuentoCodigoRepository descuentoRepository;
 	private final IProductoRepository productoRepository;
@@ -154,7 +155,7 @@ public class DescuentoServiceImpl implements IDescuentoService {
 		DescuentoAplicadoDTO descuentoAplicado = crearDescuentoAplicado(descuento, validacion.subtotalAplicable(), montoDescuento);
 		return new ResultadoDescuentoDTO(
 				true,
-				"Descuento " + descuentoAplicado.codigo() + " aplicado correctamente.",
+				"Descuento " + descuentoAplicado.codigo() + " aplicado correctamente. " + MENSAJE_OFERTAS_EXENTAS,
 				new CarritoDTO(
 						carritoConItemsDescontados.items(),
 						carritoConItemsDescontados.subtotal(),
@@ -199,17 +200,23 @@ public class DescuentoServiceImpl implements IDescuentoService {
 		descuento.getSubcategorias().clear();
 
 		switch (descuento.getTipoAplicacion()) {
-			case PRODUCTO -> descuento.getProductos().addAll(productoRepository.findAllById(productos));
+			case PRODUCTO -> descuento.getProductos().addAll(productosSinOferta(productos));
 			case CATEGORIA -> descuento.getCategorias().addAll(categoriaRepository.findAllById(categorias));
 			case SUBCATEGORIA -> descuento.getSubcategorias().addAll(subcategoriaRepository.findAllById(subcategorias));
 			case SELECCION_PERSONALIZADA -> {
-				descuento.getProductos().addAll(productoRepository.findAllById(productos));
+				descuento.getProductos().addAll(productosSinOferta(productos));
 				descuento.getCategorias().addAll(categoriaRepository.findAllById(categorias));
 				descuento.getSubcategorias().addAll(subcategoriaRepository.findAllById(subcategorias));
 			}
 			case CARRITO -> {
 			}
 		}
+	}
+
+	private List<Producto> productosSinOferta(Set<Long> productoIds) {
+		return productoRepository.findAllById(productoIds).stream()
+				.filter(producto -> !producto.tieneOferta())
+				.toList();
 	}
 
 	private void validarDestino(DescuentoCodigo descuento) {
@@ -247,15 +254,12 @@ public class DescuentoServiceImpl implements IDescuentoService {
 		}
 		BigDecimal subtotalAplicable = calcularSubtotalAplicable(descuento, carrito);
 		if (subtotalAplicable.compareTo(BigDecimal.ZERO) <= 0) {
-			return ResultadoValidacion.invalido("El código no aplica a los productos del carrito.");
+			return ResultadoValidacion.invalido("El código no aplica a los productos del carrito. " + MENSAJE_OFERTAS_EXENTAS);
 		}
 		return ResultadoValidacion.valido(subtotalAplicable);
 	}
 
 	private BigDecimal calcularSubtotalAplicable(DescuentoCodigo descuento, CarritoDTO carrito) {
-		if (descuento.getTipoAplicacion() == TipoAplicacionDescuento.CARRITO) {
-			return dinero(carrito.subtotal());
-		}
 		Set<Long> productoIds = carrito.items().stream()
 				.map(CarritoItemDTO::productoId)
 				.collect(Collectors.toSet());
@@ -276,8 +280,7 @@ public class DescuentoServiceImpl implements IDescuentoService {
 				.collect(Collectors.toMap(Producto::getId, Function.identity()));
 		List<CarritoItemDTO> items = carrito.items().stream()
 				.map(item -> {
-					boolean aplica = descuento.getTipoAplicacion() == TipoAplicacionDescuento.CARRITO
-							|| aplicaItem(descuento, productos.get(item.productoId()));
+					boolean aplica = aplicaItem(descuento, productos.get(item.productoId()));
 					if (!aplica) {
 						return item.sinDescuento();
 					}
@@ -292,6 +295,9 @@ public class DescuentoServiceImpl implements IDescuentoService {
 
 	private boolean aplicaItem(DescuentoCodigo descuento, Producto producto) {
 		if (producto == null) {
+			return false;
+		}
+		if (producto.tieneOferta()) {
 			return false;
 		}
 		Set<Long> productoIds = descuento.getProductos().stream()

@@ -33,7 +33,7 @@
 					<div class="flex items-center justify-between gap-3">
 						<div>
 							<h2 class="font-black text-primary">Productos incluidos</h2>
-							<p class="mt-1 text-xs font-semibold text-muted">El descuento se aplica solo sobre estos productos cuando correspondan al tipo elegido.</p>
+							<p class="mt-1 text-xs font-semibold text-muted">El descuento se aplica solo sobre estos productos cuando correspondan al tipo elegido. Los productos con Oferta activa no se listan ni reciben cupones.</p>
 						</div>
 					</div>
 					<div class="mt-4 grid max-h-72 gap-2 overflow-y-auto pr-2 md:grid-cols-2">
@@ -44,7 +44,7 @@
 								<span class="mt-1 block text-xs font-semibold text-muted" th:text="${producto.marca ?: 'Sin marca'}">Marca</span>
 							</span>
 						</label>
-						<p th:if="${#lists.isEmpty(productos)}" class="text-sm font-semibold text-muted">No hay productos cargados.</p>
+						<p th:if="${#lists.isEmpty(productos)}" class="text-sm font-semibold text-muted">No hay productos disponibles para cupones. Los productos con Oferta activa quedan excluidos.</p>
 					</div>
 				</section>
 

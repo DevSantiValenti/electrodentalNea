@@ -23,6 +23,7 @@ import com.analistas.electrodental.model.domain.PedidoItem;
 import com.analistas.electrodental.model.domain.Producto;
 import com.analistas.electrodental.model.domain.ProveedorPago;
 import com.analistas.electrodental.model.domain.dto.MercadoPagoPaymentDataDTO;
+import com.analistas.electrodental.model.domain.dto.OcaCreacionEnvioResponseDTO;
 import com.analistas.electrodental.model.repository.IClienteRepository;
 import com.analistas.electrodental.model.repository.IPagoRepository;
 import com.analistas.electrodental.model.repository.IPedidoRepository;
@@ -78,6 +79,18 @@ class PedidoServiceImplTest {
 	}
 
 	@Test
+	void aprobarPagoConDescuentoRegistraUsoDelCupon() {
+		Pedido pedido = pedido("SUCURSAL");
+		pedido.setCodigoDescuento("DENTAL10");
+		pedido.setDescuentoAplicado(BigDecimal.ONE);
+		when(pagoRepository.findByExternalReference("EXT-1")).thenReturn(Optional.of(pedido.getPago()));
+
+		service.actualizarPagoMercadoPago(payment("approved"));
+
+		verify(descuentoService).registrarUso("DENTAL10");
+	}
+
+	@Test
 	void rechazoCancelaPedidoYLiberaReserva() {
 		Pedido pedido = pedido("SUCURSAL");
 		when(pagoRepository.findByExternalReference("EXT-1")).thenReturn(Optional.of(pedido.getPago()));
@@ -115,12 +128,14 @@ class PedidoServiceImplTest {
 		assertThat(pedido.getPago().getEstadoPago()).isEqualTo(EstadoPago.APROBADO);
 		assertThat(pedido.getEstadoPedido()).isEqualTo(EstadoPedido.PAGADO);
 		verify(stockService, never()).liberarReservaWeb(any(), any(), any());
+		verify(descuentoService, never()).registrarUso(any());
 		verify(ocaService).crearEnvio(pedido);
 	}
 
 	@Test
 	void confirmarTransferenciaMarcaPagadoYCreaEnvioOca() {
 		Pedido pedido = pedidoTransferencia("OCA");
+		pedido.setCodigoDescuento("DENTAL10");
 		when(pedidoRepository.findDetalleById(10L)).thenReturn(Optional.of(pedido));
 
 		service.confirmarTransferencia(10L);
@@ -128,7 +143,26 @@ class PedidoServiceImplTest {
 		assertThat(pedido.getPago().getEstadoPago()).isEqualTo(EstadoPago.APROBADO);
 		assertThat(pedido.getEstadoPedido()).isEqualTo(EstadoPedido.PAGADO);
 		assertThat(pedido.getFechaPago()).isNotNull();
+		verify(descuentoService).registrarUso("DENTAL10");
 		verify(ocaService).crearEnvio(pedido);
+	}
+
+	@Test
+	void confirmarTransferenciaAdvierteSiNoSePudoCrearEnvioOca() {
+		Pedido pedido = pedidoTransferencia("OCA");
+		when(pedidoRepository.findDetalleById(10L)).thenReturn(Optional.of(pedido));
+		when(ocaService.crearEnvio(pedido)).thenReturn(new OcaCreacionEnvioResponseDTO(
+				false,
+				null,
+				null,
+				"Config faltante",
+				null,
+				null));
+
+		Pedido resultado = service.confirmarTransferencia(10L);
+
+		assertThat(resultado.getEstadoPedido()).isEqualTo(EstadoPedido.PAGADO);
+		assertThat(resultado.getAdvertenciaOperacion()).contains("no se pudo crear el envío OCA");
 	}
 
 	@Test

@@ -25,6 +25,8 @@ public class ConfiguracionTienda {
 
 	public static final Long CONFIG_ID = 1L;
 	public static final String DEFAULT_EMAIL = "info@electrodentalnea.com";
+	public static final String DEFAULT_LOGO_URL = "/img/electrodentallarge.png";
+	public static final String DEFAULT_FONDO_URL = "/img/arg.png";
 
 	@Id
 	private Long id = CONFIG_ID;
@@ -61,6 +63,12 @@ public class ConfiguracionTienda {
 
 	@Column(nullable = false)
 	private Boolean paginaOculta = false;
+
+	@Column(length = 320)
+	private String logoUrl = DEFAULT_LOGO_URL;
+
+	@Column(length = 320)
+	private String fondoUrl = DEFAULT_FONDO_URL;
 
 	@Column(length = 120)
 	private String transferenciaBanco = "";
@@ -123,6 +131,14 @@ public class ConfiguracionTienda {
 		if (paginaOculta == null) {
 			paginaOculta = false;
 		}
+		if (logoUrl == null || logoUrl.isBlank()) {
+			logoUrl = DEFAULT_LOGO_URL;
+		}
+		if (fondoUrl == null) {
+			fondoUrl = DEFAULT_FONDO_URL;
+		} else {
+			fondoUrl = limpiarTexto(fondoUrl);
+		}
 		transferenciaBanco = limpiarTexto(transferenciaBanco);
 		transferenciaTitular = limpiarTexto(transferenciaTitular);
 		transferenciaCbu = limpiarTexto(transferenciaCbu);
@@ -137,6 +153,16 @@ public class ConfiguracionTienda {
 	public boolean datosBancariosConfigurados() {
 		return !transferenciaTitular.isBlank()
 				&& (!transferenciaAlias.isBlank() || !transferenciaCbu.isBlank());
+	}
+
+	public boolean fondoConfigurado() {
+		return fondoUrl != null && !fondoUrl.isBlank();
+	}
+
+	public String getFondoMainStyle() {
+		return fondoConfigurado()
+				? "--public-main-background: url('" + fondoUrl + "')"
+				: "";
 	}
 
 	public String getWhatsappLink() {

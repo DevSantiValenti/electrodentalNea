@@ -4,14 +4,14 @@
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Servicios</title>
-	<link rel="icon" type="image/png" th:href="@{/img/electrodentallarge.png}">
-	<link rel="shortcut icon" type="image/png" th:href="@{/img/electrodentallarge.png}">
-	<link rel="apple-touch-icon" th:href="@{/img/electrodentallarge.png}">
+	<link rel="icon" type="image/png" th:href="${configuracionTienda.logoUrl}">
+	<link rel="shortcut icon" type="image/png" th:href="${configuracionTienda.logoUrl}">
+	<link rel="apple-touch-icon" th:href="${configuracionTienda.logoUrl}">
 	<link rel="stylesheet" th:href="@{/css/site.css}">
 </head>
 <body>
 <div th:replace="~{fragments/layout :: header}"></div>
-<main class="section page">
+<main class="section page" th:style="${configuracionTienda.fondoMainStyle}">
 	<p class="eyebrow">Servicios</p>
 	<h1>Soporte especializado para mantener tu equipamiento operativo.</h1>
 	<div class="grid">

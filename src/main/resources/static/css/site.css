@@ -20,6 +20,26 @@ body {
 	line-height: 1.5;
 }
 
+main {
+	position: relative;
+	isolation: isolate;
+}
+
+main::before {
+	content: "";
+	position: absolute;
+	inset: 0;
+	z-index: 0;
+	background: var(--public-main-background, none) center / cover no-repeat;
+	opacity: .5;
+	pointer-events: none;
+}
+
+main > * {
+	position: relative;
+	z-index: 1;
+}
+
 a {
 	color: inherit;
 	text-decoration: none;

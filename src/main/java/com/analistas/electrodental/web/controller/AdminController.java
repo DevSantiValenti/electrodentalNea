@@ -34,6 +34,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import com.analistas.electrodental.model.domain.Cliente;
 import com.analistas.electrodental.model.domain.ConfiguracionTienda;
 import com.analistas.electrodental.model.domain.Envio;
+import com.analistas.electrodental.model.domain.EstadoPago;
 import com.analistas.electrodental.model.domain.Pedido;
 import com.analistas.electrodental.model.domain.Producto;
 import com.analistas.electrodental.model.domain.dto.ProductoExcelImportPreview;
@@ -443,6 +444,10 @@ public class AdminController {
 		if (!"OCA".equals(pedido.getMetodoEntrega())) {
 			throw new IllegalArgumentException("El pedido no tiene envío OCA.");
 		}
+		if (pedido.getPago() == null || pedido.getPago().getEstadoPago() != EstadoPago.APROBADO) {
+			redirectAttributes.addFlashAttribute("mensaje", "El ticket OCA se puede generar recién cuando el pedido esté pagado.");
+			return "redirect:/admin/pedidos/" + id;
+		}
 		String html;
 		try {
 			html = ocaService.obtenerEtiquetaHtml(pedido);
@@ -499,8 +504,12 @@ public class AdminController {
 	@PostMapping("/admin/pedidos/{id}/transferencia/confirmar")
 	public String confirmarTransferencia(@PathVariable Long id, RedirectAttributes redirectAttributes) {
 		try {
-			pedidoService.confirmarTransferencia(id);
-			redirectAttributes.addFlashAttribute("mensaje", "Transferencia confirmada. El pedido quedó pagado.");
+			Pedido pedido = pedidoService.confirmarTransferencia(id);
+			redirectAttributes.addFlashAttribute(
+					"mensaje",
+					StringUtils.hasText(pedido.getAdvertenciaOperacion())
+							? pedido.getAdvertenciaOperacion()
+							: "Transferencia confirmada. El pedido quedó pagado.");
 		} catch (RuntimeException ex) {
 			redirectAttributes.addFlashAttribute("mensaje", "No se pudo confirmar la transferencia: " + ex.getMessage());
 		}
@@ -573,6 +582,65 @@ public class AdminController {
 		configuracionTiendaService.guardar(configuracion);
 		redirectAttributes.addFlashAttribute("mensaje", "Datos bancarios actualizados correctamente");
 		return "redirect:/admin/configuracion/datos-bancarios";
+	}
+
+	@GetMapping({ "/admin/configuracion/logo", "/admin/configuración/logo" })
+	public String logo(Model model) {
+		model.addAttribute("configuracion", configuracionTiendaService.obtener());
+		return "admin/configuracion-logo";
+	}
+
+	@PostMapping({ "/admin/configuracion/logo", "/admin/configuración/logo" })
+	public String guardarLogo(
+			@RequestParam(name = "logoArchivo", required = false) MultipartFile logoArchivo,
+			RedirectAttributes redirectAttributes) {
+		if (logoArchivo == null || logoArchivo.isEmpty()) {
+			redirectAttributes.addFlashAttribute("mensajeError", "Seleccioná una imagen para actualizar el logo.");
+			return "redirect:/admin/configuracion/logo";
+		}
+		try {
+			ConfiguracionTienda configuracion = configuracionTiendaService.obtener();
+			configuracion.setLogoUrl(productoImagenStorageService.guardarLogo(logoArchivo));
+			configuracionTiendaService.guardar(configuracion);
+			redirectAttributes.addFlashAttribute("mensaje", "Logo actualizado correctamente.");
+		} catch (RuntimeException ex) {
+			redirectAttributes.addFlashAttribute("mensajeError", "No se pudo actualizar el logo: " + ex.getMessage());
+		}
+		return "redirect:/admin/configuracion/logo";
+	}
+
+	@GetMapping({ "/admin/configuracion/fondo", "/admin/configuración/fondo" })
+	public String fondo(Model model) {
+		model.addAttribute("configuracion", configuracionTiendaService.obtener());
+		return "admin/configuracion-fondo";
+	}
+
+	@PostMapping({ "/admin/configuracion/fondo", "/admin/configuración/fondo" })
+	public String guardarFondo(
+			@RequestParam(name = "fondoArchivo", required = false) MultipartFile fondoArchivo,
+			RedirectAttributes redirectAttributes) {
+		if (fondoArchivo == null || fondoArchivo.isEmpty()) {
+			redirectAttributes.addFlashAttribute("mensajeError", "Seleccioná una imagen para actualizar el fondo.");
+			return "redirect:/admin/configuracion/fondo";
+		}
+		try {
+			ConfiguracionTienda configuracion = configuracionTiendaService.obtener();
+			configuracion.setFondoUrl(productoImagenStorageService.guardarFondo(fondoArchivo));
+			configuracionTiendaService.guardar(configuracion);
+			redirectAttributes.addFlashAttribute("mensaje", "Imagen de fondo actualizada correctamente.");
+		} catch (RuntimeException ex) {
+			redirectAttributes.addFlashAttribute("mensajeError", "No se pudo actualizar el fondo: " + ex.getMessage());
+		}
+		return "redirect:/admin/configuracion/fondo";
+	}
+
+	@PostMapping({ "/admin/configuracion/fondo/eliminar", "/admin/configuración/fondo/eliminar" })
+	public String eliminarFondo(RedirectAttributes redirectAttributes) {
+		ConfiguracionTienda configuracion = configuracionTiendaService.obtener();
+		configuracion.setFondoUrl("");
+		configuracionTiendaService.guardar(configuracion);
+		redirectAttributes.addFlashAttribute("mensaje", "Imagen de fondo eliminada. Las vistas públicas quedan sin fondo.");
+		return "redirect:/admin/configuracion/fondo";
 	}
 
 	@GetMapping("/admin/clientes")

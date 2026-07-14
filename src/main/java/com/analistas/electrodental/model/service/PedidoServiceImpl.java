@@ -19,6 +19,7 @@ import com.analistas.electrodental.model.domain.ProveedorPago;
 import com.analistas.electrodental.model.domain.dto.CarritoDTO;
 import com.analistas.electrodental.model.domain.dto.DescuentoAplicadoDTO;
 import com.analistas.electrodental.model.domain.dto.MercadoPagoPaymentDataDTO;
+import com.analistas.electrodental.model.domain.dto.OcaCreacionEnvioResponseDTO;
 import com.analistas.electrodental.model.repository.IClienteRepository;
 import com.analistas.electrodental.model.repository.IPagoRepository;
 import com.analistas.electrodental.model.repository.IPedidoRepository;
@@ -123,11 +124,7 @@ public class PedidoServiceImpl implements IPedidoService {
 
 		aplicarDescuento(pedido, carritoValidado.descuento());
 		pago.setTransactionAmount(pedido.getTotal());
-		Pedido guardado = pedidoRepository.save(pedido);
-		if (carritoValidado.tieneDescuento()) {
-			descuentoService.registrarUso(carritoValidado.descuento().codigo());
-		}
-		return guardado;
+		return pedidoRepository.save(pedido);
 	}
 
 	private CarritoDTO validarDescuento(CarritoDTO carrito) {
@@ -213,6 +210,7 @@ public class PedidoServiceImpl implements IPedidoService {
 				pago.setFechaAprobacion(LocalDateTime.now());
 				pedido.setEstadoPedido(EstadoPedido.PAGADO);
 				if (!pagoYaAprobado) {
+					registrarUsoDescuentoSiCorresponde(pedido);
 					pedido.setFechaPago(LocalDateTime.now());
 				}
 				crearEnvioOcaSiCorresponde(pedido);
@@ -253,6 +251,7 @@ public class PedidoServiceImpl implements IPedidoService {
 		pago.setFechaAprobacion(LocalDateTime.now());
 		pago.setTransactionAmount(pedido.getTotal());
 		pedido.setEstadoPedido(EstadoPedido.PAGADO);
+		registrarUsoDescuentoSiCorresponde(pedido);
 		pedido.setFechaPago(LocalDateTime.now());
 		crearEnvioOcaSiCorresponde(pedido);
 		return pedidoRepository.save(pedido);
@@ -286,9 +285,18 @@ public class PedidoServiceImpl implements IPedidoService {
 			return;
 		}
 		try {
-			ocaService.crearEnvio(pedido);
-		} catch (RuntimeException ignored) {
-			// El pago no debe fallar por un problema transitorio de OCA; admin puede reintentar la etiqueta.
+			OcaCreacionEnvioResponseDTO creacion = ocaService.crearEnvio(pedido);
+			if (creacion != null && !creacion.creado()) {
+				pedido.setAdvertenciaOperacion("El pago fue confirmado, pero no se pudo crear el envío OCA: " + creacion.mensaje());
+			}
+		} catch (RuntimeException ex) {
+			pedido.setAdvertenciaOperacion("El pago fue confirmado, pero ocurrió un error al crear el envío OCA: " + ex.getMessage());
+		}
+	}
+
+	private void registrarUsoDescuentoSiCorresponde(Pedido pedido) {
+		if (pedido.getCodigoDescuento() != null && !pedido.getCodigoDescuento().isBlank()) {
+			descuentoService.registrarUso(pedido.getCodigoDescuento());
 		}
 	}
 

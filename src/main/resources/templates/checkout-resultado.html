@@ -3,7 +3,7 @@
 <head th:replace="~{fragments/shop :: head('ElectrodentalNea | Pago')}"></head>
 <body class="bg-background font-sans text-slate-900">
 <header th:replace="~{fragments/shop :: header}"></header>
-<main class="mx-auto max-w-3xl px-4 py-12 sm:px-6">
+<main class="mx-auto max-w-3xl px-4 py-12 sm:px-6" th:style="${configuracionTienda.fondoMainStyle}">
 	<section class="rounded-2xl border border-outline bg-white p-8 text-center shadow-sm">
 		<h1 class="text-3xl font-black text-primary" th:text="${titulo}">Estado del pago</h1>
 		<p class="mt-3 text-slate-600" th:text="${mensaje}">Resultado informado por Mercado Pago.</p>

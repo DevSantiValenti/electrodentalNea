@@ -20,12 +20,29 @@ public class ProductoImagenStorageService {
 	private static final Set<String> EXTENSIONES_PERMITIDAS = Set.of("jpg", "jpeg", "png", "webp", "gif");
 
 	private final Path productosDir;
+	private final Path logoDir;
+	private final Path fondoDir;
 
 	public ProductoImagenStorageService(@Value("${electrodental.upload-dir:uploads}") String uploadDir) {
-		this.productosDir = Path.of(uploadDir).toAbsolutePath().normalize().resolve("productos");
+		Path baseDir = Path.of(uploadDir).toAbsolutePath().normalize();
+		this.productosDir = baseDir.resolve("productos");
+		this.logoDir = baseDir.resolve("logo");
+		this.fondoDir = baseDir.resolve("fondo");
 	}
 
 	public String guardar(MultipartFile archivo) {
+		return guardarEnDirectorio(archivo, productosDir, "/uploads/productos/");
+	}
+
+	public String guardarLogo(MultipartFile archivo) {
+		return guardarEnDirectorio(archivo, logoDir, "/uploads/logo/");
+	}
+
+	public String guardarFondo(MultipartFile archivo) {
+		return guardarEnDirectorio(archivo, fondoDir, "/uploads/fondo/");
+	}
+
+	private String guardarEnDirectorio(MultipartFile archivo, Path directorio, String urlPrefix) {
 		if (archivo == null || archivo.isEmpty()) {
 			return "";
 		}
@@ -40,16 +57,16 @@ public class ProductoImagenStorageService {
 		}
 
 		try {
-			Files.createDirectories(productosDir);
+			Files.createDirectories(directorio);
 			String nombreArchivo = UUID.randomUUID() + "." + extension;
-			Path destino = productosDir.resolve(nombreArchivo).normalize();
-			if (!destino.startsWith(productosDir)) {
+			Path destino = directorio.resolve(nombreArchivo).normalize();
+			if (!destino.startsWith(directorio)) {
 				throw new IllegalArgumentException("Nombre de archivo inválido.");
 			}
 			try (InputStream inputStream = archivo.getInputStream()) {
 				Files.copy(inputStream, destino, StandardCopyOption.REPLACE_EXISTING);
 			}
-			return "/uploads/productos/" + nombreArchivo;
+			return urlPrefix + nombreArchivo;
 		} catch (IOException ex) {
 			throw new IllegalStateException("No se pudo guardar la imagen subida.", ex);
 		}

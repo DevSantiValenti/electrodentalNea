@@ -49,9 +49,27 @@ public class ConfiguracionTiendaServiceImpl implements IConfiguracionTiendaServi
 		if (StringUtils.hasText(adminPassword)) {
 			configuracion.setAdminPasswordHash(passwordEncoder.encode(adminPassword.trim()));
 		}
+		conservarLogoSiNoFueEnviado(configuracion, actual);
+		conservarFondoSiNoFueEnviado(configuracion, actual);
 		conservarDatosBancariosSiNoFueronEnviados(configuracion, actual);
 		configuracion.completarDefaults();
 		return configuracionRepository.save(configuracion);
+	}
+
+	private void conservarLogoSiNoFueEnviado(ConfiguracionTienda configuracion, ConfiguracionTienda actual) {
+		if (configuracion.getLogoUrl() == null
+				|| (ConfiguracionTienda.DEFAULT_LOGO_URL.equals(configuracion.getLogoUrl())
+						&& !ConfiguracionTienda.DEFAULT_LOGO_URL.equals(actual.getLogoUrl()))) {
+			configuracion.setLogoUrl(actual.getLogoUrl());
+		}
+	}
+
+	private void conservarFondoSiNoFueEnviado(ConfiguracionTienda configuracion, ConfiguracionTienda actual) {
+		if (configuracion.getFondoUrl() == null
+				|| (ConfiguracionTienda.DEFAULT_FONDO_URL.equals(configuracion.getFondoUrl())
+						&& !ConfiguracionTienda.DEFAULT_FONDO_URL.equals(actual.getFondoUrl()))) {
+			configuracion.setFondoUrl(actual.getFondoUrl());
+		}
 	}
 
 	private void conservarDatosBancariosSiNoFueronEnviados(ConfiguracionTienda configuracion, ConfiguracionTienda actual) {

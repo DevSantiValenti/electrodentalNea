@@ -9,17 +9,20 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.analistas.electrodental.model.domain.Producto;
 import com.analistas.electrodental.model.domain.dto.ProductoBusquedaDTO;
+import com.analistas.electrodental.model.service.IConfiguracionTiendaService;
 import com.analistas.electrodental.model.service.IProductoService;
 
 @RestController
 public class ProductoBusquedaController {
 
-	private static final String IMAGEN_DEFAULT = "/img/electrodentallarge.png";
-
 	private final IProductoService productoService;
+	private final IConfiguracionTiendaService configuracionTiendaService;
 
-	public ProductoBusquedaController(IProductoService productoService) {
+	public ProductoBusquedaController(
+			IProductoService productoService,
+			IConfiguracionTiendaService configuracionTiendaService) {
 		this.productoService = productoService;
+		this.configuracionTiendaService = configuracionTiendaService;
 	}
 
 	@GetMapping("/api/productos/buscar")
@@ -36,7 +39,7 @@ public class ProductoBusquedaController {
 	private ProductoBusquedaDTO toDto(Producto producto) {
 		String imagen = StringUtils.hasText(producto.getImagenPrincipal())
 				? producto.getImagenPrincipal()
-				: IMAGEN_DEFAULT;
+				: configuracionTiendaService.obtener().getLogoUrl();
 		return new ProductoBusquedaDTO(
 				producto.getId(),
 				producto.getNombre(),

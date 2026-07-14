@@ -14,6 +14,12 @@
 		<a th:href="@{/admin/configuracion/datos-bancarios}" class="inline-flex items-center gap-2 rounded-xl border border-outline bg-white px-4 py-3 text-sm font-black text-primary hover:bg-surface-soft">
 			<span class="material-symbols-outlined text-[20px]">account_balance</span> Datos bancarios
 		</a>
+		<a th:href="@{/admin/configuracion/logo}" class="inline-flex items-center gap-2 rounded-xl border border-outline bg-white px-4 py-3 text-sm font-black text-primary hover:bg-surface-soft">
+			<span class="material-symbols-outlined text-[20px]">image</span> Logo
+		</a>
+		<a th:href="@{/admin/configuracion/fondo}" class="inline-flex items-center gap-2 rounded-xl border border-outline bg-white px-4 py-3 text-sm font-black text-primary hover:bg-surface-soft">
+			<span class="material-symbols-outlined text-[20px]">wallpaper</span> Imagen de fondo
+		</a>
 	</div>
 
 	<form th:action="@{/admin/configuracion}" th:object="${configuracion}" method="post" class="admin-card rounded-2xl p-6">

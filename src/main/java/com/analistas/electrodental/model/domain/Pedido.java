@@ -21,6 +21,7 @@ import jakarta.persistence.OneToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -95,6 +96,9 @@ public class Pedido {
 	private LocalDateTime fechaPago;
 
 	private LocalDateTime fechaCancelacion;
+
+	@Transient
+	private String advertenciaOperacion;
 
 	@PrePersist
 	public void prePersist() {

@@ -52,6 +52,26 @@
 				linear-gradient(180deg, #011427 0%, #08243b 25%, #011427 100%);
 		}
 
+		main {
+			position: relative;
+			isolation: isolate;
+		}
+
+		main::before {
+			content: "";
+			position: absolute;
+			inset: 0;
+			z-index: 0;
+			background: var(--public-main-background, none) center / cover no-repeat;
+			opacity: .5;
+			pointer-events: none;
+		}
+
+		main > * {
+			position: relative;
+			z-index: 1;
+		}
+
 		.container {
 			width: calc(100% - 48px);
 			max-width: 1280px;
@@ -916,7 +936,7 @@
 			<nav class="nav" aria-label="Navegacion de servicio tecnico">
 				<a href="#servicios">Servicios</a>
 				<a class="nav-home-logo" th:href="@{/}" aria-label="Ir a ElectrodentalNea">
-					<img th:src="@{/img/electrodentallarge.png}" alt="ElectrodentalNea">
+					<img th:src="${configuracionTienda.logoUrl}" alt="ElectrodentalNea">
 				</a>
 				<a href="#proceso">Proceso</a>
 				<a href="#contacto">Contacto</a>
@@ -928,7 +948,7 @@
 		</div>
 	</header>
 
-	<main>
+	<main th:style="${configuracionTienda.fondoMainStyle}">
 		<section class="hero container">
 			<div>
 				<p class="kicker">Division de ElectrodentalNea</p>

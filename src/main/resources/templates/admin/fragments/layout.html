@@ -4,9 +4,9 @@
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title th:text="${title}">Admin | ElectrodentalNea</title>
-	<link rel="icon" type="image/png" th:href="@{/img/electrodentallarge.png}">
-	<link rel="shortcut icon" type="image/png" th:href="@{/img/electrodentallarge.png}">
-	<link rel="apple-touch-icon" th:href="@{/img/electrodentallarge.png}">
+	<link rel="icon" type="image/png" th:href="${configuracionTienda.logoUrl}">
+	<link rel="shortcut icon" type="image/png" th:href="${configuracionTienda.logoUrl}">
+	<link rel="apple-touch-icon" th:href="${configuracionTienda.logoUrl}">
 	<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 	<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
@@ -51,7 +51,7 @@
 <body>
 <aside th:fragment="sidebar(active)" class="fixed inset-y-0 left-0 z-40 hidden w-64 flex-col overflow-y-auto border-r border-outline bg-white p-3 lg:flex">
 	<a th:href="@{/admin}" class="mb-3 flex items-center px-4 py-2">
-		<img src="/img/electrodentallarge.png" alt="ElectrodentalNea" class="h-11 w-auto object-contain">
+		<img th:src="${configuracionTienda.logoUrl}" alt="ElectrodentalNea" class="h-11 w-auto object-contain">
 	</a>
 	<nav class="flex flex-1 flex-col gap-0.5">
 		<a th:href="@{/admin}" th:classappend="${active == 'dashboard'} ? ' admin-link-active' : ''" class="flex items-center gap-3 rounded-lg px-4 py-2.5 text-sm font-bold text-slate-600 hover:bg-surface-soft">
@@ -99,7 +99,7 @@
 
 <header th:fragment="mobilebar(active)" class="sticky top-0 z-40 border-b border-outline bg-white/95 px-4 py-3 backdrop-blur lg:hidden">
 	<div class="flex items-center justify-between gap-3">
-		<a th:href="@{/admin}" class="flex items-center"><img src="/img/electrodentallarge.png" alt="ElectrodentalNea" class="h-12 w-auto"></a>
+		<a th:href="@{/admin}" class="flex items-center"><img th:src="${configuracionTienda.logoUrl}" alt="ElectrodentalNea" class="h-12 w-auto"></a>
 		<a th:href="@{/admin/productos/nuevo}" class="inline-flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-sm font-bold text-white">
 			<span class="material-symbols-outlined text-[18px]">add</span> Producto
 		</a>

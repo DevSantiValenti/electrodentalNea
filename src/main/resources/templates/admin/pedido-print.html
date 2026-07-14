@@ -4,7 +4,7 @@
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title th:text="|Pedido ${pedido.codigoCompra ?: pedido.id}|">Pedido</title>
-	<link rel="icon" type="image/png" th:href="@{/img/electrodentallarge.png}">
+	<link rel="icon" type="image/png" th:href="${configuracionTienda.logoUrl}">
 	<style>
 		* { box-sizing: border-box; }
 		body { margin: 0; background: #f4f6f8; color: #071426; font-family: Arial, sans-serif; }
@@ -40,7 +40,7 @@
 <main class="sheet">
 	<header class="header">
 		<div>
-			<img src="/img/electrodentallarge.png" alt="ElectrodentalNea" class="logo">
+			<img th:src="${configuracionTienda.logoUrl}" alt="ElectrodentalNea" class="logo">
 			<p class="muted">Preparación de pedido</p>
 		</div>
 		<div class="right">

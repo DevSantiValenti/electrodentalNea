@@ -5,9 +5,9 @@
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>ElectrodentalNea | Carrito</title>
-	<link rel="icon" type="image/png" th:href="@{/img/electrodentallarge.png}">
-	<link rel="shortcut icon" type="image/png" th:href="@{/img/electrodentallarge.png}">
-	<link rel="apple-touch-icon" th:href="@{/img/electrodentallarge.png}">
+	<link rel="icon" type="image/png" th:href="${configuracionTienda.logoUrl}">
+	<link rel="shortcut icon" type="image/png" th:href="${configuracionTienda.logoUrl}">
+	<link rel="apple-touch-icon" th:href="${configuracionTienda.logoUrl}">
 	<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
 		rel="stylesheet">
@@ -41,6 +41,26 @@
 		.cart-shadow {
 			box-shadow: 0 8px 24px rgba(15, 23, 42, .06);
 		}
+
+		main {
+			position: relative;
+			isolation: isolate;
+		}
+
+		main::before {
+			content: "";
+			position: absolute;
+			inset: 0;
+			z-index: 0;
+			background: var(--public-main-background, none) center / cover no-repeat;
+			opacity: .5;
+			pointer-events: none;
+		}
+
+		main > * {
+			position: relative;
+			z-index: 1;
+		}
 	</style>
 </head>
 
@@ -48,7 +68,7 @@
 	<header class="border-b border-outline bg-white">
 		<div class="mx-auto flex h-20 max-w-7xl items-center justify-between px-4 sm:px-6">
 			<a th:href="@{/}" class="flex items-center">
-				<img src="/img/electrodentallarge.png" alt="ElectrodentalNea" class="h-12 w-auto object-contain">
+				<img th:src="${configuracionTienda.logoUrl}" alt="ElectrodentalNea" class="h-12 w-auto object-contain">
 			</a>
 			<nav class="hidden items-center gap-8 text-sm font-bold text-slate-600 md:flex">
 				<a th:href="@{/catalogo}" class="hover:text-secondary">Categorías</a>
@@ -75,7 +95,7 @@
 		</div>
 	</header>
 
-	<main class="mx-auto max-w-7xl px-4 py-8 sm:px-6">
+	<main class="mx-auto max-w-7xl px-4 py-8 sm:px-6" th:style="${configuracionTienda.fondoMainStyle}">
 		<div class="mx-auto mb-8 grid max-w-5xl gap-4 md:grid-cols-[160px_1fr_160px] md:items-start">
 			<a th:if="${pasoCheckout == 2}" th:href="@{/carrito}" class="inline-flex items-center justify-center gap-2 rounded-lg border border-outline bg-white px-4 py-3 text-sm font-black text-primary hover:bg-slate-50">
 				<span class="material-symbols-outlined text-[18px]">arrow_back</span> Volver
@@ -132,7 +152,7 @@
 					<div th:each="item : ${carrito.items}"
 						class="grid gap-4 py-5 sm:grid-cols-[96px_1fr_auto_auto_auto] sm:items-center">
 						<img class="h-24 w-24 rounded-lg bg-slate-100 object-cover"
-							th:src="${#strings.isEmpty(item.imagenPrincipal) ? '/img/electrodentallarge.png' : item.imagenPrincipal}"
+							th:src="${#strings.isEmpty(item.imagenPrincipal) ? configuracionTienda.logoUrl : item.imagenPrincipal}"
 							th:alt="${item.nombre}">
 						<div>
 							<a th:href="@{/productos/{slug}(slug=${item.slug})}"

@@ -4,9 +4,9 @@
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title th:text="${title}">ElectrodentalNea</title>
-	<link rel="icon" type="image/png" th:href="@{/img/electrodentallarge.png}">
-	<link rel="shortcut icon" type="image/png" th:href="@{/img/electrodentallarge.png}">
-	<link rel="apple-touch-icon" th:href="@{/img/electrodentallarge.png}">
+	<link rel="icon" type="image/png" th:href="${configuracionTienda.logoUrl}">
+	<link rel="shortcut icon" type="image/png" th:href="${configuracionTienda.logoUrl}">
+	<link rel="apple-touch-icon" th:href="${configuracionTienda.logoUrl}">
 	<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 	<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
@@ -37,6 +37,9 @@
 		.brand-logo:hover { opacity: 1; filter: grayscale(0); transform: translateY(-2px); }
 		.brand-logo img { max-width: 100%; max-height: 64px; object-fit: contain; }
 		.search-suggestions-scroll { max-height: min(420px, calc(100vh - 190px)); overflow-y: auto; }
+		main { position: relative; isolation: isolate; }
+		main::before { content: ""; position: absolute; inset: 0; z-index: 0; background: var(--public-main-background, none) center / cover no-repeat; opacity: .5; pointer-events: none; }
+		main > * { position: relative; z-index: 1; }
 		@keyframes brand-scroll-left { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 		@media (prefers-reduced-motion: reduce) { .brand-carousel-track { animation: none; flex-wrap: wrap; width: 100%; justify-content: center; } }
 		@media (max-width: 639px) {
@@ -67,9 +70,9 @@
 	</div>
 	<div class="shop-header-main mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-4 py-3 sm:px-6">
 		<a th:href="@{/}" class="flex items-center">
-			<img src="/img/electrodentallarge.png" alt="ElectrodentalNea" class="h-16 w-auto object-contain">
+			<img th:src="${configuracionTienda.logoUrl}" alt="ElectrodentalNea" class="h-16 w-auto object-contain">
 		</a>
-		<form th:action="@{/catalogo}" method="get" class="site-search relative order-3 w-full flex-1 lg:order-2 lg:max-w-xl" data-product-search th:data-search-url="@{/api/productos/buscar}">
+		<form th:action="@{/catalogo}" method="get" class="site-search relative order-3 w-full flex-1 lg:order-2 lg:max-w-xl" data-product-search th:data-search-url="@{/api/productos/buscar}" th:data-logo-url="${configuracionTienda.logoUrl}">
 			<label class="relative block">
 				<span class="site-search-icon material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-500">search</span>
 				<input name="q" autocomplete="off" class="w-full rounded-lg border border-outline bg-surface-soft py-3 pl-12 pr-4 outline-none focus:ring-2 focus:ring-primary-container" placeholder="Buscar productos..." type="search" data-product-search-input>
@@ -117,7 +120,7 @@
 	</a>
 	<div class="mx-auto grid max-w-7xl gap-8 px-4 py-12 sm:px-6 lg:grid-cols-[1.1fr_.75fr_.9fr_1.45fr]">
 		<div>
-			<img src="/img/electrodentallarge.png" alt="ElectrodentalNea" class="mb-4 h-16 w-auto">
+			<img th:src="${configuracionTienda.logoUrl}" alt="ElectrodentalNea" class="mb-4 h-16 w-auto">
 			<p class="text-sm text-white/75">Equipamiento, insumos y servicio técnico odontológico para profesionales.</p>
 			<div class="mt-5 flex gap-3">
 				<a th:href="${configuracionTienda.instagram}" target="_blank" rel="noopener" aria-label="Instagram" class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/10 p-2 transition hover:bg-white">
@@ -209,6 +212,7 @@
 				const results = form.querySelector("[data-product-search-results]");
 				const allLink = form.querySelector("[data-product-search-all]");
 				const searchUrl = form.dataset.searchUrl;
+				const logoUrl = form.dataset.logoUrl || "/img/electrodentallarge.png";
 				let debounceId;
 				let controller;
 
@@ -253,7 +257,7 @@
 						link.className = "grid grid-cols-[56px_1fr_auto] items-center gap-3 px-4 py-3 transition hover:bg-surface-soft";
 
 						const image = document.createElement("img");
-						image.src = product.imagen || "/img/electrodentallarge.png";
+						image.src = product.imagen || logoUrl;
 						image.alt = product.nombre || "Producto";
 						image.loading = "lazy";
 						image.className = "h-14 w-14 rounded-xl border border-outline bg-white object-contain p-1.5";

@@ -8,7 +8,9 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.web.util.HtmlUtils;
 
+import com.analistas.electrodental.model.domain.ConfiguracionTienda;
 import com.analistas.electrodental.model.service.IConfiguracionTiendaService;
 
 import jakarta.servlet.FilterChain;
@@ -27,8 +29,6 @@ public class MaintenanceModeFilter extends OncePerRequestFilter {
 	private static final List<String> ADMIN_RESOURCE_PATHS = List.of(
 			"/uploads");
 
-	private static final String MAINTENANCE_LOGO_PATH = "/img/electrodentallarge.png";
-
 	private final IConfiguracionTiendaService configuracionTiendaService;
 
 	public MaintenanceModeFilter(IConfiguracionTiendaService configuracionTiendaService) {
@@ -41,11 +41,12 @@ public class MaintenanceModeFilter extends OncePerRequestFilter {
 			HttpServletResponse response,
 			FilterChain filterChain) throws ServletException, IOException {
 		String path = normalizarPath(request);
+		ConfiguracionTienda configuracion = configuracionTiendaService.obtener();
 		if (!esRutaAdmin(path)
 				&& !esRecursoDeAdmin(request, path)
-				&& !esLogoMantenimiento(path)
-				&& configuracionTiendaService.obtener().paginaOcultaActiva()) {
-			mostrarMantenimiento(response);
+				&& !esLogoMantenimiento(path, configuracion.getLogoUrl())
+				&& configuracion.paginaOcultaActiva()) {
+			mostrarMantenimiento(response, configuracion);
 			return;
 		}
 		filterChain.doFilter(request, response);
@@ -75,17 +76,20 @@ public class MaintenanceModeFilter extends OncePerRequestFilter {
 		return referer != null && ADMIN_PATHS.stream().anyMatch(referer::contains);
 	}
 
-	private boolean esLogoMantenimiento(String path) {
-		return MAINTENANCE_LOGO_PATH.equals(path);
+	private boolean esLogoMantenimiento(String path, String logoUrl) {
+		return ConfiguracionTienda.DEFAULT_LOGO_URL.equals(path)
+				|| (logoUrl != null && logoUrl.equals(path));
 	}
 
-	private void mostrarMantenimiento(HttpServletResponse response) throws IOException {
+	private void mostrarMantenimiento(HttpServletResponse response, ConfiguracionTienda configuracion) throws IOException {
 		response.setStatus(HttpStatus.SERVICE_UNAVAILABLE.value());
 		response.setCharacterEncoding(StandardCharsets.UTF_8.name());
 		response.setContentType("text/html;charset=UTF-8");
 		response.setHeader(HttpHeaders.CACHE_CONTROL, "no-store, no-cache, must-revalidate, max-age=0");
 		response.setHeader(HttpHeaders.PRAGMA, "no-cache");
-		response.getWriter().write(PAGINA_MANTENIMIENTO);
+		response.getWriter().write(PAGINA_MANTENIMIENTO.replace(
+				"{{LOGO_URL}}",
+				HtmlUtils.htmlEscape(configuracion.getLogoUrl())));
 	}
 
 	private static final String PAGINA_MANTENIMIENTO = """
@@ -279,7 +283,7 @@ public class MaintenanceModeFilter extends OncePerRequestFilter {
 			<body>
 				<main>
 					<div class="logo-wrap">
-						<img class="logo" src="/img/electrodentallarge.png" alt="ElectrodentalNea">
+						<img class="logo" src="{{LOGO_URL}}" alt="ElectrodentalNea">
 					</div>
 					<div class="scene" aria-hidden="true">
 						<div class="monitor"><div class="gear"></div></div>

@@ -47,7 +47,7 @@
 			</div>
 			<div class="divide-y divide-outline">
 				<div th:each="item : ${pedido.items}" class="grid gap-4 p-5 sm:grid-cols-[92px_1fr_auto] sm:items-center">
-					<img th:src="${item.producto.imagenPrincipal != null && !item.producto.imagenPrincipal.isBlank() ? item.producto.imagenPrincipal : '/img/electrodentallarge.png'}"
+					<img th:src="${item.producto.imagenPrincipal != null && !item.producto.imagenPrincipal.isBlank() ? item.producto.imagenPrincipal : configuracionTienda.logoUrl}"
 						 th:alt="${item.nombreSnapshot}"
 						 class="h-24 w-24 rounded-xl border border-outline bg-white object-contain p-2">
 					<div>
@@ -175,14 +175,18 @@
 					</div>
 					<div>
 						<h2 class="text-lg font-black text-primary">Ticket de envío</h2>
-						<p class="mt-1 text-sm text-muted" th:if="${pedido.metodoEntrega == 'OCA'}">Descarga la etiqueta HTML de OCA. Si el envío aún no existe, se crea antes de generar la etiqueta.</p>
+						<p class="mt-1 text-sm text-muted" th:if="${pedido.metodoEntrega == 'OCA' && pedido.pago != null && pedido.pago.estadoPago.name() == 'APROBADO'}">Descarga la etiqueta HTML de OCA. Si el envío aún no existe, se crea antes de generar la etiqueta.</p>
+						<p class="mt-1 text-sm text-muted" th:if="${pedido.metodoEntrega == 'OCA' && (pedido.pago == null || pedido.pago.estadoPago.name() != 'APROBADO')}">Disponible cuando el pedido esté pagado.</p>
 						<p class="mt-1 text-sm text-muted" th:if="${pedido.metodoEntrega != 'OCA'}">Disponible para pedidos con envío OCA.</p>
 					</div>
 				</div>
-				<a th:if="${pedido.metodoEntrega == 'OCA'}" th:href="@{/admin/pedidos/{id}/envio/ticket(id=${pedido.id})}"
+				<a th:if="${pedido.metodoEntrega == 'OCA' && pedido.pago != null && pedido.pago.estadoPago.name() == 'APROBADO'}" th:href="@{/admin/pedidos/{id}/envio/ticket(id=${pedido.id})}"
 				   class="mt-5 flex w-full items-center justify-center gap-2 rounded-lg bg-secondary px-4 py-3 text-sm font-black text-white hover:opacity-90">
 					<span class="material-symbols-outlined">download</span> Descargar ticket de envío
 				</a>
+				<button th:if="${pedido.metodoEntrega == 'OCA' && (pedido.pago == null || pedido.pago.estadoPago.name() != 'APROBADO')}" type="button" disabled class="mt-5 flex w-full cursor-not-allowed items-center justify-center gap-2 rounded-lg bg-surface-soft px-4 py-3 text-sm font-black text-muted">
+					<span class="material-symbols-outlined">lock</span> Esperando pago
+				</button>
 				<button th:if="${pedido.metodoEntrega != 'OCA'}" type="button" disabled class="mt-5 flex w-full cursor-not-allowed items-center justify-center gap-2 rounded-lg bg-surface-soft px-4 py-3 text-sm font-black text-muted">
 					<span class="material-symbols-outlined">download</span> Descargar ticket de envío
 				</button>

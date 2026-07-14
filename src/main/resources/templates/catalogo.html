@@ -4,7 +4,7 @@
 <body class="bg-background font-sans text-slate-900">
 <header th:replace="~{fragments/shop :: header}"></header>
 
-<main class="mx-auto max-w-7xl px-4 py-10 sm:px-6">
+<main class="mx-auto max-w-7xl px-4 py-10 sm:px-6" th:style="${configuracionTienda.fondoMainStyle}">
 	<div class="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
 		<div>
 			<p class="text-sm font-semibold text-slate-500">Inicio / Catálogo</p>
@@ -86,7 +86,7 @@
 			<div th:if="${!#lists.isEmpty(productos)}" class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
 				<article th:each="producto : ${productos}" class="overflow-hidden rounded-lg border border-outline bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-md">
 					<a th:href="@{/productos/{slug}(slug=${producto.slug})}" class="relative block aspect-[4/3] bg-surface-soft p-5">
-						<img class="h-full w-full object-contain" th:src="${#strings.isEmpty(producto.imagenPrincipal) ? '/img/electrodentallarge.png' : producto.imagenPrincipal}" th:alt="${producto.nombre}">
+						<img class="h-full w-full object-contain" th:src="${#strings.isEmpty(producto.imagenPrincipal) ? configuracionTienda.logoUrl : producto.imagenPrincipal}" th:alt="${producto.nombre}">
 						<span th:if="${producto.oferta}" class="absolute left-3 top-3 rounded-md bg-secondary px-2 py-1 text-[11px] font-black text-white">OFERTA</span>
 						<span th:if="${producto.destacado}" class="absolute right-3 top-3 rounded-md bg-primary-container px-2 py-1 text-[11px] font-black text-white">DESTACADO</span>
 					</a>

@@ -103,7 +103,7 @@
 			<div class="total-row"><span>Envío</span><strong th:text="${@money.format(pedido.costoEnvio)}">$ 0,00</strong></div>
 			<div class="total-row"><span>Total antes descuento</span><strong th:text="${@money.format(pedido.totalAntesDescuento)}">$ 0,00</strong></div>
 			<div class="total-row" th:if="${pedido.descuentoAplicado != null && pedido.descuentoAplicado.signum() > 0}">
-				<span th:text="|Descuento ${pedido.codigoDescuento}|">Descuento</span>
+				<span th:text="${pedido.codigoDescuento != null && !#strings.isEmpty(pedido.codigoDescuento)} ? |Descuento ${pedido.codigoDescuento}| : 'Descuento transferencia 10% OFF'">Descuento</span>
 				<strong th:text="|-${@money.format(pedido.descuentoAplicado)}|">-$ 0,00</strong>
 			</div>
 			<div class="total-row grand"><span>Total después descuento</span><strong th:text="${@money.format(pedido.totalDespuesDescuento)}">$ 0,00</strong></div>

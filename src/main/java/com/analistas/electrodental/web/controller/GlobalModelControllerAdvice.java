@@ -3,6 +3,8 @@ package com.analistas.electrodental.web.controller;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ModelAttribute;
 
+import java.math.BigDecimal;
+
 import com.analistas.electrodental.model.domain.Categoria;
 import com.analistas.electrodental.model.domain.ConfiguracionTienda;
 import com.analistas.electrodental.model.domain.dto.CarritoDTO;
@@ -13,6 +15,8 @@ import com.analistas.electrodental.model.service.ICarritoService;
 import com.analistas.electrodental.model.service.IConfiguracionTiendaService;
 import com.analistas.electrodental.model.service.IDescuentoService;
 
+import jakarta.servlet.RequestDispatcher;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import java.util.List;
 
@@ -39,7 +43,10 @@ public class GlobalModelControllerAdvice {
 	}
 
 	@ModelAttribute("carrito")
-	public CarritoDTO carrito(HttpSession session) {
+	public CarritoDTO carrito(HttpSession session, HttpServletRequest request) {
+		if (esVistaError(request)) {
+			return new CarritoDTO();
+		}
 		Object carrito = session.getAttribute("carrito");
 		if (carrito instanceof CarritoDTO carritoDTO) {
 			CarritoDTO actualizado = descuentoService.recalcular(carritoDTO);
@@ -53,19 +60,38 @@ public class GlobalModelControllerAdvice {
 		return nuevo;
 	}
 
+	@ModelAttribute("descuentoTransferenciaCheckout")
+	public BigDecimal descuentoTransferenciaCheckout(HttpSession session, HttpServletRequest request) {
+		return carrito(session, request).descuentoTransferencia();
+	}
+
+	@ModelAttribute("totalTransferenciaCheckout")
+	public BigDecimal totalTransferenciaCheckout(HttpSession session, HttpServletRequest request) {
+		return carrito(session, request).totalTransferencia();
+	}
+
 	@ModelAttribute("categoriasNav")
-	public List<Categoria> categoriasNav() {
+	public List<Categoria> categoriasNav(HttpServletRequest request) {
+		if (esVistaError(request)) {
+			return List.of();
+		}
 		return categoriaService.listarActivas();
 	}
 
 	@ModelAttribute("configuracionTienda")
-	public ConfiguracionTienda configuracionTienda() {
+	public ConfiguracionTienda configuracionTienda(HttpServletRequest request) {
+		if (esVistaError(request)) {
+			return new ConfiguracionTienda();
+		}
 		return configuracionTiendaService.obtener();
 	}
 
 	@ModelAttribute("ocaDisponible")
-	public boolean ocaDisponible(HttpSession session) {
-		CarritoDTO carrito = carrito(session);
+	public boolean ocaDisponible(HttpSession session, HttpServletRequest request) {
+		if (esVistaError(request)) {
+			return true;
+		}
+		CarritoDTO carrito = carrito(session, request);
 		if (carrito == null || carrito.items().isEmpty()) {
 			return true;
 		}
@@ -80,5 +106,11 @@ public class GlobalModelControllerAdvice {
 						.map(Producto::getEnvioOcaDesactivado)
 						.map(Boolean.TRUE::equals)
 						.orElse(false));
+	}
+
+	private boolean esVistaError(HttpServletRequest request) {
+		return request != null
+				&& ("/error".equals(request.getRequestURI())
+						|| request.getAttribute(RequestDispatcher.ERROR_REQUEST_URI) != null);
 	}
 }

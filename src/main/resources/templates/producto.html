@@ -84,6 +84,10 @@
 						<p class="text-4xl font-black text-secondary" th:text="${@money.format(producto.precioOferta())}">$ 0,00</p>
 						<span th:if="${producto.tieneDescuentoOferta()}" class="pb-2 text-sm font-black text-secondary" th:text="|${producto.porcentajeOfertaTexto()}% OFF|">OFF</span>
 					</div>
+					<div class="mt-2 text-sky-700">
+						<p class="text-sm font-black uppercase leading-tight tracking-wide">Abonando con transferencia 10% OFF</p>
+						<p class="text-3xl font-black leading-tight" th:text="${@money.format(producto.precioTransferencia10Off())}">$ 0,00</p>
+					</div>
 					<p class="mt-3 flex items-center gap-2 text-sm font-bold" th:classappend="${producto.stockWeb <= 0 ? ' text-red-700' : (producto.stockWeb <= producto.stockMinimo ? ' text-amber-600' : ' text-green-700')}">
 						<span class="material-symbols-outlined text-[18px]" th:text="${producto.stockWeb > 0 ? 'check_circle' : 'inventory_2'}">check_circle</span>
 						<span th:text="${producto.stockWeb > 0 ? 'Stock disponible: ' + producto.stockWeb + ' unidades' : 'Sin stock'}">Stock</span>

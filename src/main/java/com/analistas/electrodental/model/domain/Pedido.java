@@ -62,6 +62,10 @@ public class Pedido {
 	@Column(nullable = false, length = 40)
 	private EstadoPedido estadoPedido = EstadoPedido.BORRADOR;
 
+	@Enumerated(EnumType.STRING)
+	@Column(length = 40)
+	private EstadoOperativoPedido estadoOperativo = EstadoOperativoPedido.N_A;
+
 	@Column(nullable = false, precision = 14, scale = 2)
 	private BigDecimal subtotal = BigDecimal.ZERO;
 
@@ -104,12 +108,14 @@ public class Pedido {
 	public void prePersist() {
 		fechaCreacion = LocalDateTime.now();
 		fechaActualizacion = fechaCreacion;
+		asegurarEstadoOperativo();
 		recalcularTotales();
 	}
 
 	@PreUpdate
 	public void preUpdate() {
 		fechaActualizacion = LocalDateTime.now();
+		asegurarEstadoOperativo();
 		recalcularTotales();
 	}
 
@@ -139,6 +145,10 @@ public class Pedido {
 		return descuentoAplicado == null ? BigDecimal.ZERO : descuentoAplicado;
 	}
 
+	public EstadoOperativoPedido getEstadoOperativo() {
+		return estadoOperativo == null ? EstadoOperativoPedido.N_A : estadoOperativo;
+	}
+
 	public BigDecimal getTotalAntesDescuento() {
 		if (totalAntesDescuento != null) {
 			return totalAntesDescuento;
@@ -166,5 +176,11 @@ public class Pedido {
 			total = BigDecimal.ZERO;
 		}
 		totalDespuesDescuento = total;
+	}
+
+	private void asegurarEstadoOperativo() {
+		if (estadoOperativo == null) {
+			estadoOperativo = EstadoOperativoPedido.N_A;
+		}
 	}
 }

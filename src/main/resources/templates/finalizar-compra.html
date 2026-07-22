@@ -406,6 +406,10 @@
 							<div class="min-w-0 flex-1">
 								<h2 class="font-black text-primary">Transferencia Bancaria</h2>
 								<p class="mt-1 text-sm font-semibold text-slate-600">El pedido queda reservado y pendiente hasta que confirmemos el comprobante.</p>
+								<p class="mt-2 text-sm font-black text-sky-700">
+									Abonando por transferencia tenés 10% OFF. Total estimado:
+									<span th:text="${@money.format(totalTransferenciaCheckout)}">$ 0,00</span>
+								</p>
 								<div th:if="${configuracionTienda.datosBancariosConfigurados()}" class="mt-4 grid gap-2 rounded-lg bg-slate-50 p-4 text-sm">
 									<p th:if="${!#strings.isEmpty(configuracionTienda.transferenciaBanco)}"><strong>Banco:</strong> <span th:text="${configuracionTienda.transferenciaBanco}">Banco</span></p>
 									<p><strong>Titular:</strong> <span th:text="${configuracionTienda.transferenciaTitular}">Titular</span></p>
@@ -472,6 +476,16 @@
 							<strong class="text-3xl font-black text-secondary" th:text="${@money.format(totalCheckout ?: carrito.total)}">$ 0,00</strong>
 						</div>
 					</div>
+					<div class="border-t border-sky-100 pt-4 text-sky-700">
+						<div class="flex items-center justify-between gap-3">
+							<span class="font-black">Pagando con transferencia 10% OFF</span>
+							<strong th:text="|-${@money.format(descuentoTransferenciaCheckout)}|">-$ 0,00</strong>
+						</div>
+						<div class="mt-2 flex items-center justify-between gap-3">
+							<span class="text-sm font-black">Total transferencia</span>
+							<strong class="text-xl font-black" th:text="${@money.format(totalTransferenciaCheckout)}">$ 0,00</strong>
+						</div>
+					</div>
 				</div>
 				<a th:if="${pasoCheckout == null || pasoCheckout == 1}" th:href="@{/checkout/datos}"
 					class="mt-6 flex w-full items-center justify-center gap-3 rounded-xl bg-primary px-5 py-4 font-black text-white hover:opacity-95">
@@ -510,7 +524,7 @@
 						value="TRANSFERENCIA_BANCARIA"
 						th:disabled="${!configuracionTienda.datosBancariosConfigurados()}"
 						class="flex w-full items-center justify-center gap-3 rounded-xl border border-outline bg-white px-5 py-4 font-black text-primary hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-45">
-						Pagar por transferencia <span class="material-symbols-outlined">account_balance</span>
+						Pagar por transferencia - 10% OFF <span class="material-symbols-outlined">account_balance</span>
 					</button>
 				</form>
 				<div class="mt-8 flex gap-4 rounded-lg bg-slate-100 p-4">

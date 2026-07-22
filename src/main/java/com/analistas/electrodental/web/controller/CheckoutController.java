@@ -6,11 +6,15 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.StringUtils;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.client.RestClient;
@@ -41,6 +45,7 @@ import tools.jackson.databind.JsonNode;
 @Controller
 public class CheckoutController {
 
+	private static final Logger log = LoggerFactory.getLogger(CheckoutController.class);
 	private static final String OCA_DOMICILIO = "DOMICILIO";
 	private static final String OCA_SUCURSAL = "SUCURSAL";
 
@@ -101,7 +106,7 @@ public class CheckoutController {
 		BigDecimal costoEnvio = resolverCostoEnvio(envioSeleccionado, session, carrito);
 		model.addAttribute("costoEnvioCheckout", costoEnvio);
 		model.addAttribute("envioGratisAplicado", envioGratisAplicado(envioSeleccionado, carrito));
-		model.addAttribute("totalCheckout", dinero(carrito.total().add(costoEnvio)));
+		agregarTotalesCheckout(model, carrito, costoEnvio);
 		return "finalizar-compra";
 	}
 
@@ -172,7 +177,7 @@ public class CheckoutController {
 		BigDecimal costoEnvio = resolverCostoEnvio(envioSeleccionado, session, carrito);
 		model.addAttribute("costoEnvioCheckout", costoEnvio);
 		model.addAttribute("envioGratisAplicado", envioGratisAplicado(envioSeleccionado, carrito));
-		model.addAttribute("totalCheckout", dinero(carrito.total().add(costoEnvio)));
+		agregarTotalesCheckout(model, carrito, costoEnvio);
 		return "finalizar-compra";
 	}
 
@@ -300,6 +305,10 @@ public class CheckoutController {
 		try {
 			preference = mercadoPagoService.crearPreferencia(pedido);
 		} catch (RuntimeException ex) {
+			log.error("No se pudo crear preferencia de Mercado Pago para pedido {} y pago {}.",
+					pedido.getCodigoCompra(),
+					pedido.getPago() == null ? null : pedido.getPago().getExternalReference(),
+					ex);
 			pedidoService.cancelarPedido(pedido.getId(), "No se pudo crear la preferencia de Mercado Pago");
 			redirectAttributes.addFlashAttribute("mensaje", "No se pudo iniciar Mercado Pago. Intentá nuevamente.");
 			return "redirect:/carrito";
@@ -322,7 +331,9 @@ public class CheckoutController {
 		return "checkout-resultado";
 	}
 
-	@GetMapping({ "/checkout/mercadopago/success", "/checkout/mercadopago/failure", "/checkout/mercadopago/pending" })
+	@RequestMapping(
+			value = { "/checkout/mercadopago/success", "/checkout/mercadopago/failure", "/checkout/mercadopago/pending" },
+			method = { RequestMethod.GET, RequestMethod.POST })
 	public String retornoMercadoPago(
 			@RequestParam(required = false, name = "external_reference") String externalReference,
 			@RequestParam(required = false, name = "payment_id") String paymentId,
@@ -448,6 +459,13 @@ public class CheckoutController {
 
 	private BigDecimal dinero(BigDecimal valor) {
 		return (valor == null ? BigDecimal.ZERO : valor).setScale(2, RoundingMode.HALF_UP);
+	}
+
+	private void agregarTotalesCheckout(Model model, CarritoDTO carrito, BigDecimal costoEnvio) {
+		BigDecimal envio = dinero(costoEnvio);
+		model.addAttribute("totalCheckout", dinero(carrito.total().add(envio)));
+		model.addAttribute("descuentoTransferenciaCheckout", carrito.descuentoTransferencia());
+		model.addAttribute("totalTransferenciaCheckout", dinero(carrito.totalTransferencia().add(envio)));
 	}
 
 	private boolean cotizacionOcaValida(HttpSession session) {

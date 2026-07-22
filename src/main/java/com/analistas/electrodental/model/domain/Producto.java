@@ -151,6 +151,12 @@ public class Producto {
 		return precioSeguro.subtract(precioSeguro.multiply(descuento)).max(BigDecimal.ZERO).setScale(2, RoundingMode.HALF_UP);
 	}
 
+	public BigDecimal precioTransferencia10Off() {
+		return precioOferta()
+				.multiply(BigDecimal.valueOf(90))
+				.divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+	}
+
 	public String porcentajeOfertaTexto() {
 		if (porcentajeOferta == null) {
 			return "";

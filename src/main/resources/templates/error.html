@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Electrodental NEA | Error</title>
+	<link rel="icon" type="image/png" href="/img/electrodentallarge.png">
+	<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+	<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+	<script>
+		tailwind.config = {
+			theme: {
+				extend: {
+					colors: {
+						primary: "#000d1b",
+						secondary: "#b71f2a",
+						background: "#f8f9fb",
+						outline: "#d5d9df"
+					},
+					fontFamily: { sans: ["Inter", "sans-serif"] }
+				}
+			}
+		}
+	</script>
+	<style>
+		body { font-family: "Inter", sans-serif; }
+		.material-symbols-outlined { font-variation-settings: "FILL" 0, "wght" 500, "GRAD" 0, "opsz" 24; }
+	</style>
+</head>
+<body class="min-h-screen bg-background text-slate-900">
+	<main class="mx-auto flex min-h-screen w-full max-w-5xl items-center px-4 py-8 sm:px-6">
+		<section class="w-full overflow-hidden rounded-2xl border border-outline bg-white shadow-2xl shadow-slate-900/10">
+			<div class="grid gap-0 lg:grid-cols-[.9fr_1.1fr]">
+				<div class="flex flex-col justify-between bg-primary p-8 text-white sm:p-10">
+					<div>
+						<img src="/img/electrodentallarge.png" alt="Electrodental NEA" class="h-20 w-auto rounded bg-white/95 p-2">
+						<div class="mt-10 inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-sm font-black">
+							<span class="material-symbols-outlined text-[18px]">report</span>
+							Error <span th:text="${estadoError}">500</span>
+						</div>
+						<h1 class="mt-5 text-4xl font-black leading-tight sm:text-5xl" th:text="${tituloError}">Algo salio mal</h1>
+						<p class="mt-4 text-base font-semibold leading-7 text-white/80" th:text="${descripcionError}">
+							Toma una captura de pantalla y enviamela contando que ocurrio para poder solucionarlo rapidamente.
+						</p>
+					</div>
+					<a th:href="${whatsappErrorLink}" target="_blank" rel="noopener" class="mt-8 inline-flex items-center justify-center gap-3 rounded-xl bg-[#25D366] px-5 py-4 text-sm font-black text-white shadow-lg hover:brightness-105">
+						<img src="/img/whatsapp.png" alt="" class="h-6 w-6">
+						Enviar captura por WhatsApp
+					</a>
+				</div>
+
+				<div class="p-8 sm:p-10">
+					<div class="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm font-bold text-amber-900">
+						Toma una captura de pantalla de esta vista y enviamela contando que estabas haciendo cuando ocurrio. Con estos datos puedo ubicar el error en los logs mas rapido.
+					</div>
+
+					<div class="mt-6 grid gap-3 text-sm">
+						<div class="rounded-xl border border-outline bg-slate-50 p-4">
+							<p class="text-xs font-black uppercase text-slate-500">Codigo para logs</p>
+							<p class="mt-1 break-all text-lg font-black text-secondary" th:text="${codigoError}">ERR-000000</p>
+						</div>
+						<div class="grid gap-3 sm:grid-cols-2">
+							<div class="rounded-xl border border-outline p-4">
+								<p class="text-xs font-black uppercase text-slate-500">Fecha y hora</p>
+								<p class="mt-1 font-black text-primary" th:text="${fechaHoraError}">22/07/2026 10:30:00</p>
+							</div>
+							<div class="rounded-xl border border-outline p-4">
+								<p class="text-xs font-black uppercase text-slate-500">Estado</p>
+								<p class="mt-1 font-black text-primary" th:text="${estadoError}">500</p>
+							</div>
+						</div>
+						<div class="grid gap-3 sm:grid-cols-2">
+							<div class="rounded-xl border border-outline p-4">
+								<p class="text-xs font-black uppercase text-slate-500">Metodo</p>
+								<p class="mt-1 font-black text-primary" th:text="${metodoError}">GET</p>
+							</div>
+							<div class="rounded-xl border border-outline p-4">
+								<p class="text-xs font-black uppercase text-slate-500">Error</p>
+								<p class="mt-1 break-all font-black text-primary" th:text="${nombreError}">Error</p>
+							</div>
+						</div>
+						<div class="rounded-xl border border-outline p-4">
+							<p class="text-xs font-black uppercase text-slate-500">Ruta</p>
+							<p class="mt-1 break-all font-black text-primary" th:text="${rutaError}">/ruta</p>
+						</div>
+						<div class="rounded-xl border border-outline p-4">
+							<p class="text-xs font-black uppercase text-slate-500">Detalle</p>
+							<p class="mt-1 break-words font-semibold text-slate-700" th:text="${mensajeError}">Detalle del error</p>
+						</div>
+						<div th:if="${refererError != null}" class="rounded-xl border border-outline p-4">
+							<p class="text-xs font-black uppercase text-slate-500">Venias desde</p>
+							<p class="mt-1 break-all font-semibold text-slate-700" th:text="${refererError}">Referer</p>
+						</div>
+					</div>
+
+					<div class="mt-7 grid gap-3 sm:grid-cols-2">
+						<a href="/" class="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-5 py-4 text-sm font-black text-white hover:opacity-95">
+							<span class="material-symbols-outlined text-[18px]">home</span>
+							Volver al inicio
+						</a>
+						<a href="/catalogo" class="inline-flex items-center justify-center gap-2 rounded-xl border border-outline bg-white px-5 py-4 text-sm font-black text-primary hover:bg-slate-50">
+							<span class="material-symbols-outlined text-[18px]">category</span>
+							Ir al catalogo
+						</a>
+					</div>
+				</div>
+			</div>
+		</section>
+	</main>
+</body>
+</html>

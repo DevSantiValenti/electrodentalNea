@@ -32,7 +32,7 @@
 				<span th:if="${pedidosPage.totalPages > 0}" th:text="|Página ${pedidosPage.number + 1} de ${pedidosPage.totalPages}|">Página 1 de 1</span>
 			</div>
 			<div class="overflow-x-auto">
-				<table class="w-full min-w-[900px] text-left text-sm">
+				<table class="w-full min-w-[1080px] text-left text-sm">
 					<thead class="bg-surface-soft text-xs uppercase text-muted">
 						<tr>
 							<th class="px-5 py-3">ID</th>
@@ -41,6 +41,7 @@
 							<th class="px-5 py-3">Entrega</th>
 							<th class="px-5 py-3">Fecha</th>
 							<th class="px-5 py-3">Estado</th>
+							<th class="px-5 py-3">Seguimiento</th>
 							<th class="px-5 py-3">Descuento</th>
 							<th class="px-5 py-3">Total</th>
 							<th class="px-5 py-3 text-right">Acciones</th>
@@ -48,7 +49,7 @@
 					</thead>
 					<tbody class="divide-y divide-outline">
 						<tr th:if="${#lists.isEmpty(pedidos)}">
-							<td colspan="9" class="p-10 text-center text-muted">No hay pedidos para esos filtros.</td>
+							<td colspan="10" class="p-10 text-center text-muted">No hay pedidos para esos filtros.</td>
 						</tr>
 						<tr th:each="pedido : ${pedidos}" class="hover:bg-surface-soft">
 							<td class="px-5 py-4 font-black" th:text="|#${pedido.id}|">#1</td>
@@ -67,11 +68,28 @@
 									  th:text="${pedido.estadoPedido}">Estado</span>
 							</td>
 							<td class="px-5 py-4">
+								<form th:action="@{/admin/pedidos/{id}/estado-operativo(id=${pedido.id})}" method="post">
+									<select name="estadoOperativo"
+											onchange="this.form.submit()"
+											class="h-9 min-w-36 rounded-full border px-3 text-xs font-black outline-none focus:ring-2 focus:ring-primary/20"
+											th:classappend="${pedido.estadoOperativo.cssClass}">
+										<option th:each="estadoOperativo : ${estadosOperativosPedido}"
+												th:value="${estadoOperativo.name()}"
+												th:selected="${pedido.estadoOperativo == estadoOperativo}"
+												th:text="${estadoOperativo.etiqueta}">N/A</option>
+									</select>
+								</form>
+							</td>
+							<td class="px-5 py-4">
 								<div th:if="${pedido.codigoDescuento != null && !#strings.isEmpty(pedido.codigoDescuento)}">
 									<span class="rounded bg-green-50 px-2 py-1 text-xs font-black text-green-800" th:text="${pedido.codigoDescuento}">DENTAL10</span>
 									<p class="mt-1 text-xs font-bold text-green-700" th:text="|-${@money.format(pedido.descuentoAplicado)}|">-$ 0,00</p>
 								</div>
-								<span th:unless="${pedido.codigoDescuento != null && !#strings.isEmpty(pedido.codigoDescuento)}" class="text-xs font-bold text-muted">Sin código</span>
+								<div th:if="${(pedido.codigoDescuento == null || #strings.isEmpty(pedido.codigoDescuento)) && pedido.descuentoAplicado != null && pedido.descuentoAplicado.signum() > 0}">
+									<span class="rounded bg-sky-50 px-2 py-1 text-xs font-black text-sky-800">Transferencia 10% OFF</span>
+									<p class="mt-1 text-xs font-bold text-sky-700" th:text="|-${@money.format(pedido.descuentoAplicado)}|">-$ 0,00</p>
+								</div>
+								<span th:unless="${(pedido.codigoDescuento != null && !#strings.isEmpty(pedido.codigoDescuento)) || (pedido.descuentoAplicado != null && pedido.descuentoAplicado.signum() > 0)}" class="text-xs font-bold text-muted">Sin código</span>
 							</td>
 							<td class="px-5 py-4 font-black text-primary" th:text="${@money.format(pedido.total)}">$ 0,00</td>
 							<td class="px-5 py-4 text-right">

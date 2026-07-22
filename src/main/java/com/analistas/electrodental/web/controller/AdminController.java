@@ -2,6 +2,7 @@ package com.analistas.electrodental.web.controller;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.net.URI;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -27,6 +28,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -34,6 +36,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import com.analistas.electrodental.model.domain.Cliente;
 import com.analistas.electrodental.model.domain.ConfiguracionTienda;
 import com.analistas.electrodental.model.domain.Envio;
+import com.analistas.electrodental.model.domain.EstadoOperativoPedido;
 import com.analistas.electrodental.model.domain.EstadoPago;
 import com.analistas.electrodental.model.domain.Pedido;
 import com.analistas.electrodental.model.domain.Producto;
@@ -427,6 +430,7 @@ public class AdminController {
 	public String detallePedido(@PathVariable Long id, Model model) {
 		model.addAttribute("pedido", pedidoRepository.findDetalleById(id)
 				.orElseThrow(() -> new IllegalArgumentException("Pedido no encontrado: " + id)));
+		model.addAttribute("estadosOperativosPedido", EstadoOperativoPedido.values());
 		return "admin/pedido-detalle";
 	}
 
@@ -488,6 +492,20 @@ public class AdminController {
 		pedidoRepository.deleteById(id);
 		redirectAttributes.addFlashAttribute("mensaje", "Pedido eliminado correctamente.");
 		return "redirect:/admin/pedidos";
+	}
+
+	@PostMapping("/admin/pedidos/{id}/estado-operativo")
+	public String actualizarEstadoOperativoPedido(
+			@PathVariable Long id,
+			@RequestParam(defaultValue = "N_A") EstadoOperativoPedido estadoOperativo,
+			@RequestHeader(value = HttpHeaders.REFERER, required = false) String referer,
+			RedirectAttributes redirectAttributes) {
+		Pedido pedido = pedidoRepository.findById(id)
+				.orElseThrow(() -> new IllegalArgumentException("Pedido no encontrado: " + id));
+		pedido.setEstadoOperativo(estadoOperativo == null ? EstadoOperativoPedido.N_A : estadoOperativo);
+		pedidoRepository.save(pedido);
+		redirectAttributes.addFlashAttribute("mensaje", "Estado operativo actualizado.");
+		return redirigirARefererAdmin(referer, "/admin/pedidos/" + id);
 	}
 
 	@PostMapping("/admin/pedidos/{id}/cancelar-pendiente")
@@ -1076,6 +1094,22 @@ public class AdminController {
 		return valor == null || valor.isBlank() ? defaultValue : valor.trim();
 	}
 
+	private String redirigirARefererAdmin(String referer, String fallbackPath) {
+		if (!StringUtils.hasText(referer)) {
+			return "redirect:" + fallbackPath;
+		}
+		try {
+			URI uri = URI.create(referer);
+			String path = uri.getPath();
+			if (path != null && (path.equals("/admin/pedidos") || path.startsWith("/admin/pedidos/"))) {
+				String query = StringUtils.hasText(uri.getQuery()) ? "?" + uri.getQuery() : "";
+				return "redirect:" + path + query;
+			}
+		} catch (IllegalArgumentException ignored) {
+		}
+		return "redirect:" + fallbackPath;
+	}
+
 	private void cargarEnvios(Model model, String q, LocalDate fechaDesde, LocalDate fechaHasta, int page) {
 		String termino = StringUtils.hasText(q) ? "%" + q.trim().toLowerCase() + "%" : null;
 		LocalDateTime desde = fechaDesde == null ? null : fechaDesde.atStartOfDay();
@@ -1106,6 +1140,7 @@ public class AdminController {
 		model.addAttribute("q", StringUtils.hasText(q) ? q.trim() : "");
 		model.addAttribute("fechaDesde", fechaDesde);
 		model.addAttribute("fechaHasta", fechaHasta);
+		model.addAttribute("estadosOperativosPedido", EstadoOperativoPedido.values());
 	}
 
 	private void cargarVentas(Model model, String q, int page) {

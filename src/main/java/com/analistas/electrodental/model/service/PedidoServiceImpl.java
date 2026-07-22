@@ -1,6 +1,7 @@
 package com.analistas.electrodental.model.service;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 
 import org.springframework.stereotype.Service;
@@ -27,6 +28,9 @@ import com.analistas.electrodental.model.repository.IProductoRepository;
 
 @Service
 public class PedidoServiceImpl implements IPedidoService {
+
+	private static final BigDecimal DESCUENTO_TRANSFERENCIA = BigDecimal.valueOf(10);
+	private static final BigDecimal CIEN = BigDecimal.valueOf(100);
 
 	private final IPedidoRepository pedidoRepository;
 	private final IProductoRepository productoRepository;
@@ -123,6 +127,9 @@ public class PedidoServiceImpl implements IPedidoService {
 		});
 
 		aplicarDescuento(pedido, carritoValidado.descuento());
+		if (transferencia) {
+			aplicarDescuentoTransferencia(pedido);
+		}
 		pago.setTransactionAmount(pedido.getTotal());
 		return pedidoRepository.save(pedido);
 	}
@@ -147,6 +154,25 @@ public class PedidoServiceImpl implements IPedidoService {
 			pedido.setDescuentoAplicado(descuento.monto() == null ? BigDecimal.ZERO : descuento.monto());
 		}
 		pedido.recalcularTotales();
+	}
+
+	private void aplicarDescuentoTransferencia(Pedido pedido) {
+		BigDecimal descuento = calcularDescuentoTransferencia(pedido);
+		if (descuento.signum() <= 0) {
+			return;
+		}
+		pedido.setDescuentoAplicado(pedido.getDescuentoAplicado().add(descuento));
+		pedido.recalcularTotales();
+	}
+
+	private BigDecimal calcularDescuentoTransferencia(Pedido pedido) {
+		BigDecimal base = pedido.getSubtotal().subtract(pedido.getDescuentoAplicado());
+		if (base.signum() <= 0) {
+			return BigDecimal.ZERO;
+		}
+		return base
+				.multiply(DESCUENTO_TRANSFERENCIA)
+				.divide(CIEN, 2, RoundingMode.HALF_UP);
 	}
 
 	private String generarCodigoCompra(String metodoEntrega) {

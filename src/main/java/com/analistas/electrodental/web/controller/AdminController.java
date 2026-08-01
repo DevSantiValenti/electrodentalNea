@@ -452,18 +452,26 @@ public class AdminController {
 			redirectAttributes.addFlashAttribute("mensaje", "El ticket OCA se puede generar recién cuando el pedido esté pagado.");
 			return "redirect:/admin/pedidos/" + id;
 		}
-		String html;
 		try {
-			html = ocaService.obtenerEtiquetaHtml(pedido);
-		} catch (RuntimeException ex) {
-			redirectAttributes.addFlashAttribute("mensaje", "No se pudo descargar la etiqueta OCA: " + ex.getMessage());
-			return "redirect:/admin/pedidos/" + id;
+			byte[] pdf = ocaService.obtenerEtiquetaPdf(pedido);
+			String filename = "etiqueta-oca-pedido-" + pedido.getId() + ".pdf";
+			return ResponseEntity.ok()
+					.contentType(MediaType.APPLICATION_PDF)
+					.header(HttpHeaders.CONTENT_DISPOSITION, ContentDisposition.attachment().filename(filename).build().toString())
+					.body(pdf);
+		} catch (RuntimeException pdfEx) {
+			try {
+				String html = ocaService.obtenerEtiquetaHtml(pedido);
+				String filename = "etiqueta-oca-pedido-" + pedido.getId() + ".html";
+				return ResponseEntity.ok()
+						.contentType(MediaType.TEXT_HTML)
+						.header(HttpHeaders.CONTENT_DISPOSITION, ContentDisposition.attachment().filename(filename).build().toString())
+						.body(html);
+			} catch (RuntimeException htmlEx) {
+				redirectAttributes.addFlashAttribute("mensaje", "No se pudo descargar la etiqueta OCA. PDF: " + pdfEx.getMessage() + " HTML: " + htmlEx.getMessage());
+				return "redirect:/admin/pedidos/" + id;
+			}
 		}
-		String filename = "etiqueta-oca-pedido-" + pedido.getId() + ".html";
-		return ResponseEntity.ok()
-				.contentType(MediaType.TEXT_HTML)
-				.header(HttpHeaders.CONTENT_DISPOSITION, ContentDisposition.attachment().filename(filename).build().toString())
-				.body(html);
 	}
 
 	@PostMapping("/admin/pedidos/{id}/envio/sincronizar")

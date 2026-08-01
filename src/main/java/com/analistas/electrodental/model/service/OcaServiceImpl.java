@@ -59,6 +59,12 @@ public class OcaServiceImpl implements IOcaService {
 	private static final String TIPO_DOMICILIO = "DOMICILIO";
 	private static final String TIPO_SUCURSAL = "SUCURSAL";
 
+	private enum TipoBusquedaEtiqueta {
+		ENVIO,
+		ORDEN,
+		AMBOS
+	}
+
 	private final OcaProperties properties;
 	private final IEnvioRepository envioRepository;
 
@@ -278,65 +284,60 @@ public class OcaServiceImpl implements IOcaService {
 	@Override
 	@Transactional
 	public byte[] obtenerEtiquetaPdf(Pedido pedido) {
-		Envio envio = obtenerEnvio(pedido);
-		if (!StringUtils.hasText(envio.getNumeroOrdenRetiro()) && !StringUtils.hasText(envio.getNumeroEnvio())) {
-			OcaCreacionEnvioResponseDTO creacion = crearEnvio(pedido);
-			if (!creacion.creado()) {
-				throw new IllegalStateException("No se pudo crear el envio OCA: " + creacion.mensaje());
-			}
-			envio = obtenerEnvio(pedido);
-		}
-
-		String base64 = null;
+		Envio envio = asegurarEnvioCreado(pedido);
 		RuntimeException primerError = null;
-		try {
-			String responseXml = solicitarEtiquetaPdf(envio, "GetPdfDeEtiquetasPorOrdenOrNumeroEnvio");
-			base64 = textOfFirst(parseXml(responseXml), "string", "GetPdfDeEtiquetasPorOrdenOrNumeroEnvioResult");
-		} catch (RuntimeException ex) {
-			primerError = ex;
+
+		for (String operacion : List.of(
+				"GetPdfDeEtiquetasPorOrdenOrNumeroEnvio",
+				"GetPdfDeEtiquetasPorOrdenOrNumeroEnvioParaEtiquetadora")) {
+			for (TipoBusquedaEtiqueta tipoBusqueda : tiposBusquedaEtiqueta(envio)) {
+				try {
+					String responseXml = solicitarEtiqueta(envio, operacion, tipoBusqueda);
+					String base64 = textOfFirst(parseXml(responseXml), "string", operacion + "Result");
+					if (!StringUtils.hasText(base64)) {
+						continue;
+					}
+					byte[] pdf = Base64.getMimeDecoder().decode(base64.replaceAll("\\s+", ""));
+					if (pdf.length >= 4 && pdf[0] == '%' && pdf[1] == 'P' && pdf[2] == 'D' && pdf[3] == 'F') {
+						return pdf;
+					}
+					primerError = primerError == null
+							? new IllegalStateException("La etiqueta devuelta por OCA no tiene formato PDF.")
+							: primerError;
+				} catch (RuntimeException ex) {
+					if (primerError == null) {
+						primerError = ex;
+					}
+				}
+			}
 		}
-		if (!StringUtils.hasText(base64)) {
-			String responseXml = solicitarEtiquetaPdf(envio, "GetPdfDeEtiquetasPorOrdenOrNumeroEnvioParaEtiquetadora");
-			base64 = textOfFirst(parseXml(responseXml), "string", "GetPdfDeEtiquetasPorOrdenOrNumeroEnvioParaEtiquetadoraResult");
-		}
-		if (!StringUtils.hasText(base64)) {
-			throw new IllegalStateException("OCA no devolvio el PDF de la etiqueta.", primerError);
-		}
-		byte[] pdf = Base64.getMimeDecoder().decode(base64.replaceAll("\\s+", ""));
-		if (pdf.length < 4 || pdf[0] != '%' || pdf[1] != 'P' || pdf[2] != 'D' || pdf[3] != 'F') {
-			throw new IllegalStateException("La etiqueta devuelta por OCA no tiene formato PDF.");
-		}
-		return pdf;
+		throw new IllegalStateException("OCA no devolvio el PDF de la etiqueta.", primerError);
 	}
 
 	@Override
 	@Transactional
 	public String obtenerEtiquetaHtml(Pedido pedido) {
-		Envio envio = obtenerEnvio(pedido);
-		if (!StringUtils.hasText(envio.getNumeroOrdenRetiro()) && !StringUtils.hasText(envio.getNumeroEnvio())) {
-			OcaCreacionEnvioResponseDTO creacion = crearEnvio(pedido);
-			if (!creacion.creado()) {
-				throw new IllegalStateException("No se pudo crear el envio OCA: " + creacion.mensaje());
-			}
-			envio = obtenerEnvio(pedido);
-		}
-
-		String html = null;
+		Envio envio = asegurarEnvioCreado(pedido);
 		RuntimeException primerError = null;
-		try {
-			String responseXml = solicitarEtiquetaPdf(envio, "GetHtmlDeEtiquetasPorOrdenOrNumeroEnvio");
-			html = textOfFirst(parseXml(responseXml), "string", "GetHtmlDeEtiquetasPorOrdenOrNumeroEnvioResult");
-		} catch (RuntimeException ex) {
-			primerError = ex;
+
+		for (String operacion : List.of(
+				"GetHtmlDeEtiquetasPorOrdenOrNumeroEnvio",
+				"GetHtmlDeEtiquetasPorOrdenOrNumeroEnvioParaEtiquetadora")) {
+			for (TipoBusquedaEtiqueta tipoBusqueda : tiposBusquedaEtiqueta(envio)) {
+				try {
+					String responseXml = solicitarEtiqueta(envio, operacion, tipoBusqueda);
+					String html = textOfFirst(parseXml(responseXml), "string", operacion + "Result");
+					if (StringUtils.hasText(html)) {
+						return html;
+					}
+				} catch (RuntimeException ex) {
+					if (primerError == null) {
+						primerError = ex;
+					}
+				}
+			}
 		}
-		if (!StringUtils.hasText(html)) {
-			String responseXml = solicitarEtiquetaPdf(envio, "GetHtmlDeEtiquetasPorOrdenOrNumeroEnvioParaEtiquetadora");
-			html = textOfFirst(parseXml(responseXml), "string", "GetHtmlDeEtiquetasPorOrdenOrNumeroEnvioParaEtiquetadoraResult");
-		}
-		if (!StringUtils.hasText(html)) {
-			throw new IllegalStateException("OCA no devolvio el HTML de la etiqueta.", primerError);
-		}
-		return html;
+		throw new IllegalStateException("OCA no devolvio el HTML de la etiqueta.", primerError);
 	}
 
 	@Override
@@ -387,12 +388,12 @@ public class OcaServiceImpl implements IOcaService {
 		}
 	}
 
-	private String solicitarEtiquetaPdf(Envio envio, String operacion) {
+	private String solicitarEtiqueta(Envio envio, String operacion, TipoBusquedaEtiqueta tipoBusqueda) {
 		return RestClient.create()
 				.post()
 				.uri(endpoint(operacion))
 				.contentType(MediaType.APPLICATION_FORM_URLENCODED)
-				.body(formEtiquetaPdf(envio))
+				.body(formEtiqueta(envio, tipoBusqueda))
 				.retrieve()
 				.body(String.class);
 	}
@@ -564,16 +565,46 @@ public class OcaServiceImpl implements IOcaService {
 		return form;
 	}
 
-	private MultiValueMap<String, String> formEtiquetaPdf(Envio envio) {
+	private MultiValueMap<String, String> formEtiqueta(Envio envio, TipoBusquedaEtiqueta tipoBusqueda) {
 		MultiValueMap<String, String> form = new LinkedMultiValueMap<>();
-		String orden = valorConDefault(envio.getNumeroOrdenRetiro(), "");
-		String numeroEnvio = valorConDefault(envio.getNumeroEnvio(), "");
+		String orden = (tipoBusqueda == TipoBusquedaEtiqueta.ORDEN || tipoBusqueda == TipoBusquedaEtiqueta.AMBOS)
+				? valorConDefault(envio.getNumeroOrdenRetiro(), "")
+				: "";
+		String numeroEnvio = (tipoBusqueda == TipoBusquedaEtiqueta.ENVIO || tipoBusqueda == TipoBusquedaEtiqueta.AMBOS)
+				? valorConDefault(envio.getNumeroEnvio(), "")
+				: "";
 		form.add("idOrdenRetiro", orden);
 		form.add("ordenRetiro", orden);
 		form.add("nroEnvio", numeroEnvio);
 		form.add("numeroEnvio", numeroEnvio);
 		form.add("logisticaInversa", Boolean.toString(properties.isLogisticaInversa()));
 		return form;
+	}
+
+	private Envio asegurarEnvioCreado(Pedido pedido) {
+		Envio envio = obtenerEnvio(pedido);
+		if (!StringUtils.hasText(envio.getNumeroOrdenRetiro()) && !StringUtils.hasText(envio.getNumeroEnvio())) {
+			OcaCreacionEnvioResponseDTO creacion = crearEnvio(pedido);
+			if (!creacion.creado()) {
+				throw new IllegalStateException("No se pudo crear el envio OCA: " + creacion.mensaje());
+			}
+			envio = obtenerEnvio(pedido);
+		}
+		return envio;
+	}
+
+	private List<TipoBusquedaEtiqueta> tiposBusquedaEtiqueta(Envio envio) {
+		List<TipoBusquedaEtiqueta> tipos = new ArrayList<>();
+		if (StringUtils.hasText(envio.getNumeroEnvio())) {
+			tipos.add(TipoBusquedaEtiqueta.ENVIO);
+		}
+		if (StringUtils.hasText(envio.getNumeroOrdenRetiro())) {
+			tipos.add(TipoBusquedaEtiqueta.ORDEN);
+		}
+		if (StringUtils.hasText(envio.getNumeroEnvio()) && StringUtils.hasText(envio.getNumeroOrdenRetiro())) {
+			tipos.add(TipoBusquedaEtiqueta.AMBOS);
+		}
+		return tipos;
 	}
 
 	private MultiValueMap<String, String> formListadoEnvios(LocalDate fechaDesde, LocalDate fechaHasta) {
@@ -803,6 +834,13 @@ public class OcaServiceImpl implements IOcaService {
 		Set<String> buscados = Set.of(nombres).stream()
 				.map(nombre -> nombre.toLowerCase(Locale.ROOT))
 				.collect(java.util.stream.Collectors.toSet());
+		String nombreRaiz = root.getLocalName() == null ? root.getNodeName() : root.getLocalName();
+		if (buscados.contains(nombreRaiz.toLowerCase(Locale.ROOT))) {
+			String text = root.getTextContent();
+			if (StringUtils.hasText(text)) {
+				return text.trim();
+			}
+		}
 		NodeList nodes = root.getElementsByTagName("*");
 		for (int i = 0; i < nodes.getLength(); i++) {
 			Element element = (Element) nodes.item(i);

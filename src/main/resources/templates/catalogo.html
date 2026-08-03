@@ -4,8 +4,8 @@
 <body class="bg-background font-sans text-slate-900">
 <header th:replace="~{fragments/shop :: header}"></header>
 
-<main class="mx-auto max-w-7xl px-4 py-10 sm:px-6" th:style="${configuracionTienda.fondoMainStyle}">
-	<div class="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+<main class="mx-auto max-w-7xl px-4 py-8 sm:px-6" th:style="${configuracionTienda.fondoMainStyle}">
+	<div class="mb-6 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
 		<div>
 			<p class="text-sm font-semibold text-slate-500">Inicio / Catálogo</p>
 			<h1 class="mt-2 text-4xl font-black text-primary"
@@ -17,9 +17,9 @@
 		</a>
 	</div>
 
-	<div class="grid gap-8 lg:grid-cols-[280px_1fr]">
+	<div class="grid gap-6 lg:grid-cols-[260px_1fr]">
 		<aside class="space-y-6">
-			<section class="rounded-xl border border-outline bg-white p-5 shadow-sm">
+			<section class="rounded-xl border border-outline bg-white p-4 shadow-sm">
 				<h2 class="mb-4 text-sm font-black uppercase text-primary">Categorías</h2>
 				<div class="space-y-2">
 					<a th:href="@{/catalogo}" class="block rounded-lg px-3 py-2 text-sm font-bold hover:bg-surface-soft"
@@ -32,7 +32,7 @@
 				</div>
 			</section>
 
-			<section th:if="${categoriaActual != null}" class="rounded-xl border border-outline bg-white p-5 shadow-sm">
+			<section th:if="${categoriaActual != null}" class="rounded-xl border border-outline bg-white p-4 shadow-sm">
 				<h2 class="mb-4 text-sm font-black uppercase text-primary">Subcategorías</h2>
 				<div th:if="${#lists.isEmpty(subcategorias)}" class="rounded-lg bg-surface-soft p-3 text-sm font-semibold text-slate-500">Sin subcategorías cargadas.</div>
 				<div th:if="${!#lists.isEmpty(subcategorias)}" class="space-y-2">
@@ -46,7 +46,7 @@
 				</div>
 			</section>
 
-			<form th:action="@{/catalogo}" method="get" class="rounded-xl border border-outline bg-white p-5 shadow-sm">
+			<form th:action="@{/catalogo}" method="get" class="rounded-xl border border-outline bg-white p-4 shadow-sm">
 				<input type="hidden" name="categoria" th:if="${categoriaSeleccionada != null}" th:value="${categoriaSeleccionada}">
 				<input type="hidden" name="subcategoria" th:if="${subcategoriaSeleccionada != null}" th:value="${subcategoriaSeleccionada}">
 				<h2 class="mb-4 text-sm font-black uppercase text-primary">Filtros</h2>
@@ -85,20 +85,20 @@
 
 			<div th:if="${!#lists.isEmpty(productos)}" class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
 				<article th:each="producto : ${productos}" class="overflow-hidden rounded-lg border border-outline bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-md">
-					<a th:href="@{/productos/{slug}(slug=${producto.slug})}" class="relative block aspect-[4/3] bg-surface-soft p-5">
+					<a th:href="@{/productos/{slug}(slug=${producto.slug})}" class="relative block aspect-[4/3] bg-surface-soft p-3">
 						<img class="h-full w-full object-contain" th:src="${#strings.isEmpty(producto.imagenPrincipal) ? configuracionTienda.logoUrl : producto.imagenPrincipal}" th:alt="${producto.nombre}">
 						<span th:if="${producto.oferta}" class="absolute left-3 top-3 rounded-md bg-secondary px-2 py-1 text-[11px] font-black text-white">OFERTA</span>
 						<span th:if="${producto.destacado}" class="absolute right-3 top-3 rounded-md bg-primary-container px-2 py-1 text-[11px] font-black text-white">DESTACADO</span>
 					</a>
-					<div class="p-4">
+					<div class="p-[13px]">
 						<p class="text-[11px] font-black uppercase tracking-wide text-slate-500" th:text="${producto.marca ?: 'Sin marca'}">Marca</p>
-						<a th:href="@{/productos/{slug}(slug=${producto.slug})}" class="mt-1 line-clamp-2 block min-h-10 text-base font-black leading-5 text-primary hover:text-secondary" th:text="${producto.nombre}">Producto</a>
-						<p class="mt-2 line-clamp-2 min-h-10 text-[13px] leading-5 text-slate-600" th:text="${producto.descripcion ?: 'Producto odontológico profesional.'}">Descripción</p>
-						<div class="mt-4">
+						<a th:href="@{/productos/{slug}(slug=${producto.slug})}" class="mt-1 line-clamp-2 block min-h-10 text-[15px] font-black leading-5 text-primary hover:text-secondary" th:text="${producto.nombre}">Producto</a>
+						<p class="mt-1.5 line-clamp-2 text-[12px] leading-4 text-slate-600" th:text="${producto.descripcion ?: 'Producto odontológico profesional.'}">Descripción</p>
+						<div class="mt-3">
 							<div>
 								<p th:if="${producto.tieneDescuentoOferta()}" class="text-xs font-bold text-slate-400 line-through" th:text="${@money.format(producto.precio)}">$ 0,00</p>
 								<p class="whitespace-nowrap text-xl font-black leading-none text-secondary" th:text="${@money.format(producto.precioOferta())}">$ 0,00</p>
-								<div class="mt-1 text-sky-700">
+								<div class="mt-0.5 text-sky-700">
 									<p class="text-[10px] font-black uppercase leading-tight tracking-wide">Transferencia 10% OFF</p>
 									<p class="text-[19px] font-black leading-none" th:text="${@money.format(producto.precioTransferencia10Off())}">$ 0,00</p>
 								</div>

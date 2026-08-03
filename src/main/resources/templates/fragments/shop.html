@@ -62,20 +62,20 @@
 <body>
 <header th:fragment="header" class="sticky top-0 z-50 border-b border-outline bg-white shadow-sm">
 	<div class="bg-secondary text-white">
-		<div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-2 text-xs font-semibold sm:px-6">
+		<div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-1.5 text-[11px] font-semibold sm:px-6 lg:text-xs">
 			<span class="flex items-center gap-2"><span class="material-symbols-outlined text-[18px]">local_shipping</span> Envíos a todo el país</span>
 			<span class="hidden items-center gap-2 sm:flex"><span class="material-symbols-outlined text-[18px]">verified_user</span> Pago seguro</span>
 			<span class="flex items-center gap-2"><span class="material-symbols-outlined text-[18px]">support_agent</span> Asesoramiento técnico</span>
 		</div>
 	</div>
-	<div class="shop-header-main mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-4 py-3 sm:px-6">
+	<div class="shop-header-main mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-2.5 sm:px-6">
 		<a th:href="@{/}" class="flex items-center">
-			<img th:src="${configuracionTienda.logoUrl}" alt="ElectrodentalNea" class="h-16 w-auto object-contain">
+			<img th:src="${configuracionTienda.logoUrl}" alt="ElectrodentalNea" class="h-[60px] w-auto object-contain">
 		</a>
 		<form th:action="@{/catalogo}" method="get" class="site-search relative order-3 w-full flex-1 lg:order-2 lg:max-w-xl" data-product-search th:data-search-url="@{/api/productos/buscar}" th:data-logo-url="${configuracionTienda.logoUrl}">
 			<label class="relative block">
 				<span class="site-search-icon material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-500">search</span>
-				<input name="q" autocomplete="off" class="w-full rounded-lg border border-outline bg-surface-soft py-3 pl-12 pr-4 outline-none focus:ring-2 focus:ring-primary-container" placeholder="Buscar productos..." type="search" data-product-search-input>
+				<input name="q" autocomplete="off" class="w-full rounded-lg border border-outline bg-surface-soft py-2.5 pl-11 pr-4 text-[15px] outline-none focus:ring-2 focus:ring-primary-container" placeholder="Buscar productos..." type="search" data-product-search-input>
 			</label>
 			<div class="search-suggestions-scroll absolute left-0 right-0 top-[calc(100%+8px)] z-[70] hidden overflow-hidden rounded-2xl border border-outline bg-white shadow-2xl shadow-slate-900/12" data-product-search-panel>
 				<div class="border-b border-outline px-4 py-3 text-xs font-black uppercase tracking-wide text-slate-500">Coincidencias</div>
@@ -86,14 +86,14 @@
 				</a>
 			</div>
 		</form>
-		<nav class="shop-main-nav order-2 flex items-center gap-2 text-sm font-semibold lg:order-3">
-			<a th:href="@{/catalogo}" class="mobile-catalog-link rounded-lg px-3 py-2 text-slate-700 hover:bg-surface-soft sm:inline-flex">Catálogo</a>
-			<a th:href="@{/ofertas}" class="hidden rounded-lg px-3 py-2 text-slate-700 hover:bg-surface-soft sm:inline-flex">Ofertas</a>
-			<a th:href="@{/servicio-tecnico}" class="hidden items-center gap-2 rounded-xl border-[#66e2f8]/40 bg-[linear-gradient(135deg,#011427_0%,#12384d_45%,#66e2f8_100%)] px-3 py-2 text-white shadow-sm shadow-cyan-950/20 hover:brightness-110 sm:inline-flex">
-				<img src="/img/denttech-logo.svg" alt="DentTech" class="h-7 w-auto">
-				<span class="text-sm font-black text-white">Servicio técnico</span>
+		<nav class="shop-main-nav order-2 flex items-center gap-1.5 text-[13px] font-semibold lg:order-3">
+			<a th:href="@{/catalogo}" class="mobile-catalog-link rounded-lg px-2.5 py-2 text-slate-700 hover:bg-surface-soft sm:inline-flex">Catálogo</a>
+			<a th:href="@{/ofertas}" class="hidden rounded-lg px-2.5 py-2 text-slate-700 hover:bg-surface-soft sm:inline-flex">Ofertas</a>
+			<a th:href="@{/servicio-tecnico}" class="hidden items-center gap-2 rounded-xl border-[#66e2f8]/40 bg-[linear-gradient(135deg,#011427_0%,#12384d_45%,#66e2f8_100%)] px-2.5 py-2 text-white shadow-sm shadow-cyan-950/20 hover:brightness-110 sm:inline-flex">
+				<img src="/img/denttech-logo.svg" alt="DentTech" class="h-6 w-auto">
+				<span class="text-[13px] font-black text-white">Servicio técnico</span>
 			</a>
-			<a th:href="@{/carrito}" class="relative inline-flex items-center gap-2 rounded-lg px-3 py-2 text-slate-800 hover:bg-surface-soft">
+			<a th:href="@{/carrito}" class="relative inline-flex items-center gap-2 rounded-lg px-2.5 py-2 text-slate-800 hover:bg-surface-soft">
 				<span class="material-symbols-outlined text-secondary">shopping_cart</span>
 				<span class="hidden sm:inline">Carrito</span>
 				<span data-cart-count class="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-secondary px-1 text-[10px] text-white" th:text="${carrito != null ? carrito.cantidadTotal : 0}">0</span>
@@ -101,7 +101,7 @@
 		</nav>
 	</div>
 	<div class="border-t border-outline">
-		<nav class="mx-auto flex max-w-7xl gap-6 overflow-x-auto px-4 py-3 text-sm font-semibold text-slate-600 sm:px-6">
+		<nav class="mx-auto flex max-w-7xl gap-4 overflow-x-auto px-4 py-2.5 text-[13px] font-semibold text-slate-600 sm:px-6 lg:flex-wrap lg:justify-center lg:gap-x-5 lg:gap-y-2 lg:overflow-visible">
 			<a th:each="categoria : ${categoriasNav}"
 			   th:href="@{/catalogo(categoria=${categoria.slug})}"
 			   class="whitespace-nowrap hover:text-secondary"

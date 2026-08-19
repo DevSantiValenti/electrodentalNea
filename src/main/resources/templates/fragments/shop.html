@@ -4,6 +4,7 @@
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title th:text="${title}">ElectrodentalNea</title>
+	<meta name="description" th:content="${seoDescription ?: 'Electrodental NEA: equipamiento odontologico, insumos dentales, repuestos y servicio tecnico para profesionales, consultorios y clinicas dentales.'}">
 	<link rel="icon" type="image/png" th:href="${configuracionTienda.logoUrl}">
 	<link rel="shortcut icon" type="image/png" th:href="${configuracionTienda.logoUrl}">
 	<link rel="apple-touch-icon" th:href="${configuracionTienda.logoUrl}">
@@ -89,7 +90,7 @@
 		<nav class="shop-main-nav order-2 flex items-center gap-1.5 text-[13px] font-semibold lg:order-3">
 			<a th:href="@{/catalogo}" class="mobile-catalog-link rounded-lg px-2.5 py-2 text-slate-700 hover:bg-surface-soft sm:inline-flex">Catálogo</a>
 			<a th:href="@{/ofertas}" class="hidden rounded-lg px-2.5 py-2 text-slate-700 hover:bg-surface-soft sm:inline-flex">Ofertas</a>
-			<a th:href="@{/servicio-tecnico}" class="hidden items-center gap-2 rounded-xl border-[#66e2f8]/40 bg-[linear-gradient(135deg,#011427_0%,#12384d_45%,#66e2f8_100%)] px-2.5 py-2 text-white shadow-sm shadow-cyan-950/20 hover:brightness-110 sm:inline-flex">
+			<a href="https://denttech.com.ar" target="_blank" rel="noopener" class="hidden items-center gap-2 rounded-xl border-[#66e2f8]/40 bg-[linear-gradient(135deg,#011427_0%,#12384d_45%,#66e2f8_100%)] px-2.5 py-2 text-white shadow-sm shadow-cyan-950/20 hover:brightness-110 sm:inline-flex">
 				<img src="/img/denttech-logo.svg" alt="DentTech" class="h-6 w-auto">
 				<span class="text-[13px] font-black text-white">Servicio técnico</span>
 			</a>
@@ -103,7 +104,7 @@
 	<div class="border-t border-outline">
 		<nav class="mx-auto flex max-w-7xl gap-4 overflow-x-auto px-4 py-2.5 text-[13px] font-semibold text-slate-600 sm:px-6 lg:flex-wrap lg:justify-center lg:gap-x-5 lg:gap-y-2 lg:overflow-visible">
 			<a th:each="categoria : ${categoriasNav}"
-			   th:href="@{/catalogo(categoria=${categoria.slug})}"
+			   th:href="@{/catalogo/categoria/{slug}(slug=${categoria.slug})}"
 			   class="whitespace-nowrap hover:text-secondary"
 			   th:text="${categoria.nombre}">Categoría</a>
 		</nav>
@@ -116,18 +117,18 @@
 	</div>
 	<a th:href="${configuracionTienda.whatsappLink}" target="_blank" rel="noopener" aria-label="Consultar por WhatsApp"
 	   class="fixed bottom-5 right-5 z-50 inline-flex h-14 w-14 items-center justify-center rounded-full bg-[#25D366] text-lg font-black text-white shadow-xl ring-4 ring-white/70 transition hover:scale-105">
-		<img th:src="@{/img/whatsapp.png}" alt="whatsapp">
+		<img th:src="@{/img/whatsapp.png}" alt="WhatsApp de Electrodental NEA">
 	</a>
 	<div class="mx-auto grid max-w-7xl gap-8 px-4 py-12 sm:px-6 lg:grid-cols-[1.1fr_.75fr_.9fr_1.45fr]">
 		<div>
-			<img th:src="${configuracionTienda.logoUrl}" alt="ElectrodentalNea" class="mb-4 h-16 w-auto">
+			<img th:src="${configuracionTienda.logoUrl}" alt="Logo de Electrodental NEA" class="mb-4 h-16 w-auto">
 			<p class="text-sm text-white/75">Equipamiento, insumos y servicio técnico odontológico para profesionales.</p>
 			<div class="mt-5 flex gap-3">
 				<a th:href="${configuracionTienda.instagram}" target="_blank" rel="noopener" aria-label="Instagram" class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/10 p-2 transition hover:bg-white">
-					<img src="/img/instagram.png" alt="Instagram" class="h-full w-full object-contain">
+					<img src="/img/instagram.png" alt="Instagram de Electrodental NEA" class="h-full w-full object-contain">
 				</a>
 				<a th:href="${configuracionTienda.facebook}" target="_blank" rel="noopener" aria-label="Facebook" class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/10 p-2 transition hover:bg-white">
-					<img src="/img/facebook.png" alt="Facebook" class="h-full w-full object-contain">
+					<img src="/img/facebook.png" alt="Facebook de Electrodental NEA" class="h-full w-full object-contain">
 				</a>
 			</div>
 		</div>
@@ -150,7 +151,7 @@
 			</div>
 		</div>
 	</div>
-	<div class="border-t border-white/10 py-5 text-center text-xs text-white/60">© 2026 ElectrodentalNea</div>
+	<div class="border-t border-white/10 py-5 text-center text-xs text-white/60">© 2026 ElectrodentalNea | Desarrollado por <a href="https://www.linkedin.com/in/santiago-valenti-b683b2373/" target="_blank" rel="noopener noreferrer"><strong>DevSantiValenti</strong></a> -  <a href="http://wa.me/543624701036" target="_blank" rel="noopener noreferrer"><strong>Whatsapp</strong></a></div>
 	<script>
 		(() => {
 			const toast = document.querySelector("#cart-toast");

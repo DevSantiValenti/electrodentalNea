@@ -32,7 +32,18 @@ public class SiteController {
 		model.addAttribute("destacados", productoService.listarDestacados());
 		model.addAttribute("ofertas", productoService.listarOfertas());
 		model.addAttribute("bajoStock", productoService.listarBajoStock());
+		model.addAttribute("seoDescription", "Electrodental NEA ofrece equipamiento odontologico, insumos dentales, repuestos y servicio tecnico para consultorios, clinicas y laboratorios.");
 		return "home";
+	}
+
+	@GetMapping("/catalogo/categoria/{categoria}")
+	public String catalogoCategoria(@PathVariable String categoria, Model model) {
+		return catalogo(null, categoria, null, null, null, null, model);
+	}
+
+	@GetMapping("/catalogo/subcategoria/{subcategoria}")
+	public String catalogoSubcategoria(@PathVariable String subcategoria, Model model) {
+		return catalogo(null, null, subcategoria, null, null, null, model);
 	}
 
 	@GetMapping({ "/catalogo", "/productos" })
@@ -77,6 +88,11 @@ public class SiteController {
 		model.addAttribute("marcaSeleccionada", marca);
 		model.addAttribute("precioMin", precioMin);
 		model.addAttribute("precioMax", precioMax);
+		Object categoriaActual = model.asMap().get("categoriaActual");
+		String titulo = categoriaActual instanceof com.analistas.electrodental.model.domain.Categoria categoriaActualModel
+				? "Catalogo de " + categoriaActualModel.getNombre()
+				: "Catalogo de productos odontologicos";
+		model.addAttribute("seoDescription", titulo + " en Electrodental NEA: equipamiento, insumos dentales, repuestos y productos profesionales para odontologia.");
 		return "catalogo";
 	}
 
@@ -102,6 +118,7 @@ public class SiteController {
 				model.addAttribute("productoImagenes", obtenerImagenesProducto(producto));
 				model.addAttribute("caracteristicasProducto", obtenerCaracteristicasProducto(producto));
 				model.addAttribute("productosRelacionados", productoService.listarRelacionados(producto));
+				model.addAttribute("seoDescription", descripcionProductoSeo(producto));
 			});
 		}
 		return "producto";
@@ -110,6 +127,7 @@ public class SiteController {
 	@GetMapping({ "/carrito", "/checkout", "/finalizar-compra" })
 	public String finalizarCompra(Model model) {
 		model.addAttribute("pasoCheckout", 1);
+		model.addAttribute("seoDescription", "Revisa tu carrito de Electrodental NEA y finaliza la compra de equipamiento e insumos odontologicos de forma segura.");
 		return "finalizar-compra";
 	}
 
@@ -128,6 +146,7 @@ public class SiteController {
 				.distinct()
 				.sorted()
 				.toList());
+		model.addAttribute("seoDescription", "Ofertas de Electrodental NEA en equipamiento odontologico, insumos dentales y productos profesionales seleccionados.");
 		return "catalogo";
 	}
 
@@ -140,7 +159,17 @@ public class SiteController {
 
 	@GetMapping("/contacto")
 	public String contacto(Model model) {
+		model.addAttribute("seoDescription", "Contacta a Electrodental NEA para asesoramiento comercial, presupuestos, insumos odontologicos y servicio tecnico dental.");
 		return "contact";
+	}
+
+	private String descripcionProductoSeo(Producto producto) {
+		String marca = producto.getMarca() == null || producto.getMarca().isBlank() ? "Electrodental NEA" : producto.getMarca();
+		String descripcion = producto.getDescripcion() == null || producto.getDescripcion().isBlank()
+				? "Producto odontologico profesional disponible en Electrodental NEA."
+				: producto.getDescripcion().replaceAll("\\s+", " ").trim();
+		String base = producto.getNombre() + " " + marca + " en Electrodental NEA. " + descripcion;
+		return base.length() <= 155 ? base : base.substring(0, 152).trim() + "...";
 	}
 
 	private List<String> obtenerImagenesProducto(Producto producto) {

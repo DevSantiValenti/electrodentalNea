@@ -20,6 +20,7 @@ import com.analistas.electrodental.model.domain.Producto;
 import com.analistas.electrodental.model.domain.TipoAplicacionDescuento;
 import com.analistas.electrodental.model.domain.dto.CarritoDTO;
 import com.analistas.electrodental.model.domain.dto.CarritoItemDTO;
+import com.analistas.electrodental.model.domain.dto.DescuentoAplicadoDTO;
 import com.analistas.electrodental.model.repository.ICategoriaRepository;
 import com.analistas.electrodental.model.repository.IDescuentoCodigoRepository;
 import com.analistas.electrodental.model.repository.IProductoRepository;
@@ -112,6 +113,27 @@ class DescuentoServiceImplTest {
 		assertThat(resultado.carrito().descuentoTotal()).isEqualByComparingTo("10.00");
 		assertThat(resultado.carrito().items().get(0).descuentoAplicado()).isEqualByComparingTo("10.00");
 		assertThat(resultado.carrito().items().get(1).descuentoAplicado()).isZero();
+	}
+
+	@Test
+	void carritoConCuponAplicadoNoCalculaDescuentoTransferencia() {
+		CarritoDTO carrito = new CarritoDTO(
+				List.of(item(1L, "100.00")),
+				new BigDecimal("100.00"),
+				1,
+				new DescuentoAplicadoDTO(
+						1L,
+						"DENTAL15",
+						new BigDecimal("15.00"),
+						TipoAplicacionDescuento.CARRITO,
+						new BigDecimal("100.00"),
+						new BigDecimal("15.00"),
+						"15% - Todo el carrito"));
+
+		assertThat(carrito.tieneCuponAplicado()).isTrue();
+		assertThat(carrito.total()).isEqualByComparingTo("85.00");
+		assertThat(carrito.descuentoTransferencia()).isZero();
+		assertThat(carrito.totalTransferencia()).isEqualByComparingTo("85.00");
 	}
 
 	private DescuentoCodigo descuentoCarrito() {

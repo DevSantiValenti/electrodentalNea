@@ -127,7 +127,7 @@ public class PedidoServiceImpl implements IPedidoService {
 		});
 
 		aplicarDescuento(pedido, carritoValidado.descuento());
-		if (transferencia) {
+		if (transferencia && carritoValidado.puedeAplicarDescuentoTransferencia()) {
 			aplicarDescuentoTransferencia(pedido);
 		}
 		pago.setTransactionAmount(pedido.getTotal());
@@ -166,6 +166,12 @@ public class PedidoServiceImpl implements IPedidoService {
 	}
 
 	private BigDecimal calcularDescuentoTransferencia(Pedido pedido) {
+		if (pedido.getCodigoDescuento() != null && !pedido.getCodigoDescuento().isBlank()) {
+			return BigDecimal.ZERO;
+		}
+		if (pedidoTieneItemsEnOferta(pedido)) {
+			return BigDecimal.ZERO;
+		}
 		BigDecimal base = pedido.getSubtotal().subtract(pedido.getDescuentoAplicado());
 		if (base.signum() <= 0) {
 			return BigDecimal.ZERO;
@@ -173,6 +179,12 @@ public class PedidoServiceImpl implements IPedidoService {
 		return base
 				.multiply(DESCUENTO_TRANSFERENCIA)
 				.divide(CIEN, 2, RoundingMode.HALF_UP);
+	}
+
+	private boolean pedidoTieneItemsEnOferta(Pedido pedido) {
+		return pedido.getItems().stream()
+				.map(PedidoItem::getProducto)
+				.anyMatch(producto -> producto != null && producto.tieneOferta());
 	}
 
 	private String generarCodigoCompra(String metodoEntrega) {

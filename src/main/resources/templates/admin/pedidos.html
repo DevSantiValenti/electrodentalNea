@@ -99,7 +99,7 @@
 							<td class="px-5 py-4">
 								<span class="orders-badge rounded-full px-3 py-1 text-xs font-black"
 									  th:classappend="${pedido.estadoPedido.name() == 'PENDIENTE_PAGO' || pedido.estadoPedido.name() == 'PENDIENTE_TRANSFERENCIA'} ? ' bg-amber-100 text-amber-800' : (${pedido.estadoPedido.name() == 'PAGADO'} ? ' bg-blue-100 text-blue-800' : (${pedido.estadoPedido.name() == 'ENTREGADO'} ? ' bg-green-100 text-green-800' : (${pedido.estadoPedido.name() == 'CANCELADO'} ? ' bg-red-100 text-red-800' : ' bg-surface-soft text-primary')))"
-									  th:text="${pedido.estadoPedido}">Estado</span>
+									  th:text="${pedido.estadoPedido.name() == 'PENDIENTE_TRANSFERENCIA' ? 'PEND. TRANSF.' : pedido.estadoPedido}">Estado</span>
 							</td>
 							<td class="px-5 py-4">
 								<form th:action="@{/admin/pedidos/{id}/estado-operativo(id=${pedido.id})}" method="post">

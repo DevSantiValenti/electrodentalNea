@@ -28,6 +28,7 @@ public class SecurityConfig {
 						"/",
 						"/inicio",
 						"/catalogo",
+						"/catalogo/**",
 						"/productos",
 						"/productos/**",
 						"/producto",

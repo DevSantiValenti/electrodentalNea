@@ -17,7 +17,7 @@
 			<span>›</span>
 			<a th:href="@{/catalogo}" class="hover:text-secondary">Catálogo</a>
 			<span th:if="${producto.categoria != null}">›</span>
-			<a th:if="${producto.categoria != null}" th:href="@{/catalogo(categoria=${producto.categoria.slug})}" th:text="${producto.categoria.nombre}" class="hover:text-secondary">Categoría</a>
+			<a th:if="${producto.categoria != null}" th:href="@{/catalogo/categoria/{slug}(slug=${producto.categoria.slug})}" th:text="${producto.categoria.nombre}" class="hover:text-secondary">Categoría</a>
 			<span>›</span>
 			<span class="text-primary" th:text="${producto.nombre}">Producto</span>
 		</nav>
@@ -63,7 +63,7 @@
 						<div data-share-menu class="absolute right-0 top-[calc(100%+8px)] z-30 hidden w-56 overflow-hidden rounded-lg border border-outline bg-white py-2 shadow-2xl shadow-slate-900/20">
 							<a data-share-whatsapp href="#" target="_blank" rel="noopener" class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-900 hover:bg-surface-soft">
 								<span class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-outline bg-white p-2">
-									<img src="/img/whatsapp.png" alt="" class="h-full w-full object-contain">
+									<img src="/img/whatsapp.png" alt="WhatsApp" class="h-full w-full object-contain">
 								</span>
 								WhatsApp
 							</a>
@@ -84,7 +84,7 @@
 						<p class="text-4xl font-black text-secondary" th:text="${@money.format(producto.precioOferta())}">$ 0,00</p>
 						<span th:if="${producto.tieneDescuentoOferta()}" class="pb-2 text-sm font-black text-secondary" th:text="|${producto.porcentajeOfertaTexto()}% OFF|">OFF</span>
 					</div>
-					<div class="mt-2 text-sky-700">
+					<div th:if="${producto.permiteDescuentoTransferencia()}" class="mt-2 text-sky-700">
 						<p class="text-sm font-black uppercase leading-tight tracking-wide">Abonando con transferencia 10% OFF</p>
 						<p class="text-3xl font-black leading-tight" th:text="${@money.format(producto.precioTransferencia10Off())}">$ 0,00</p>
 					</div>
@@ -182,7 +182,7 @@
 		<section class="mt-10" th:if="${!#lists.isEmpty(productosRelacionados)}">
 			<div class="mb-5 flex items-center justify-between gap-4">
 				<h2 class="text-2xl font-black text-primary">Productos relacionados</h2>
-				<a th:if="${producto.categoria != null}" th:href="@{/catalogo(categoria=${producto.categoria.slug})}" class="text-sm font-black text-secondary hover:underline">Ver todos →</a>
+				<a th:if="${producto.categoria != null}" th:href="@{/catalogo/categoria/{slug}(slug=${producto.categoria.slug})}" class="text-sm font-black text-secondary hover:underline">Ver todos →</a>
 			</div>
 			<div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
 				<article th:each="relacionado : ${productosRelacionados}" class="overflow-hidden rounded-xl border border-outline bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg">

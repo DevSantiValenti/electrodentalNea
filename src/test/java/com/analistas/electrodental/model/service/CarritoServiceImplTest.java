@@ -71,6 +71,20 @@ class CarritoServiceImplTest {
 		assertThat(carrito.subtotal()).isEqualByComparingTo("1600.00");
 	}
 
+	@Test
+	void carritoConOfertaNoHabilitaDescuentoPorTransferencia() {
+		Producto producto = producto();
+		producto.setOferta(true);
+		producto.setPorcentajeOferta(new BigDecimal("20"));
+
+		CarritoDTO carrito = service.agregarProducto(service.nuevoCarrito(), producto, 1);
+
+		assertThat(carrito.tieneItemsEnOferta()).isTrue();
+		assertThat(carrito.puedeAplicarDescuentoTransferencia()).isFalse();
+		assertThat(carrito.descuentoTransferencia()).isZero();
+		assertThat(carrito.totalTransferencia()).isEqualByComparingTo("800.00");
+	}
+
 	private Producto producto() {
 		Producto producto = new Producto();
 		producto.setId(1L);

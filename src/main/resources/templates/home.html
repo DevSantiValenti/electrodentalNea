@@ -10,7 +10,7 @@
 			<div class="relative z-10">
 				<span class="inline-flex rounded bg-secondary px-3 py-1 text-xs font-bold uppercase tracking-wide text-white">Calidad profesional</span>
 				<h1 class="mt-6 max-w-2xl text-4xl font-black leading-tight text-primary sm:text-5xl">Equipamiento e insumos odontológicos para profesionales</h1>
-				<p class="mt-5 max-w-xl text-lg text-slate-600">Catálogo web, asesoramiento técnico y respaldo para consultorios, clínicas y laboratorios dentales.</p>
+				<p class="mt-5 max-w-xl text-lg text-slate-600">Catálogo web de equipamiento e insumos odontológicos, con asesoramiento técnico y respaldo para consultorios, clínicas y laboratorios dentales.</p>
 				<div class="mt-8 flex flex-wrap gap-3">
 					<a th:href="@{/catalogo}" class="inline-flex items-center gap-2 rounded-lg bg-primary-container px-6 py-3 font-bold text-white hover:opacity-90">
 						Ver catálogo <span class="material-symbols-outlined">arrow_forward</span>
@@ -54,7 +54,7 @@
 						<div class="min-w-0 flex-1">
 							<p th:if="${producto.tieneDescuentoOferta()}" class="text-xs font-bold text-slate-400 line-through" th:text="${@money.format(producto.precio)}">$ 0,00</p>
 							<p class="whitespace-nowrap text-xl font-black text-secondary" th:text="${@money.format(producto.precioOferta())}">$ 0,00</p>
-							<div class="mt-0.5 text-sky-700">
+							<div th:if="${producto.permiteDescuentoTransferencia()}" class="mt-0.5 text-sky-700">
 								<p class="text-[11px] font-black uppercase leading-tight tracking-wide">Transferencia 10% OFF</p>
 								<p class="text-[19px] font-black leading-none" th:text="${@money.format(producto.precioTransferencia10Off())}">$ 0,00</p>
 							</div>
@@ -101,27 +101,27 @@
 					<!-- <div class="brand-logo"><img src="/img/marcas/saevo.png" alt="Saevo"></div> -->
 					<div class="brand-logo"><img src="/img/marcas/Suntem.png" alt="Suntem"></div>
 					<div class="brand-logo"><img src="/img/marcas/woodpecker-.png" alt="Woodpecker"></div>
-					<div class="brand-logo" aria-hidden="true"><img src="/img/marcas/cingol-.png" alt=""></div>
-					<div class="brand-logo" aria-hidden="true"><img src="/img/marcas/coxo.png" alt=""></div>
+					<div class="brand-logo" aria-hidden="true"><img src="/img/marcas/cingol-.png" alt="Cingol"></div>
+					<div class="brand-logo" aria-hidden="true"><img src="/img/marcas/coxo.png" alt="Coxo"></div>
 					<!-- <div class="brand-logo" aria-hidden="true"><img src="/img/marcas/dabiatlante.png" alt=""></div> -->
 					<!-- <div class="brand-logo" aria-hidden="true"><img src="/img/marcas/Denimed.png" alt=""></div> -->
-					<div class="brand-logo" aria-hidden="true"><img src="/img/marcas/dsj-.png" alt=""></div>
+					<div class="brand-logo" aria-hidden="true"><img src="/img/marcas/dsj-.png" alt="DSJ"></div>
 					<div class="brand-logo" aria-hidden="true"><img src="/img/marcas/eighteeth.png" alt="Eightteeth"></div>
 					<div class="brand-logo" aria-hidden="true"><img src="/img/marcas/DTE.png" alt="DTE"></div>
 					<div class="brand-logo" aria-hidden="true"><img src="/img/marcas/easydent.png" alt="Easydent"></div>
 					<div class="brand-logo" aria-hidden="true"><img src="/img/marcas/fskeju.png" alt="Fskeju"></div>
-					<div class="brand-logo" aria-hidden="true"><img src="/img/marcas/egeo.png" alt=""></div>
-					<div class="brand-logo" aria-hidden="true"><img src="/img/marcas/gacela.png" alt=""></div>
-					<div class="brand-logo" aria-hidden="true"><img src="/img/marcas/gdk.png" alt=""></div>
+					<div class="brand-logo" aria-hidden="true"><img src="/img/marcas/egeo.png" alt="Egeo"></div>
+					<div class="brand-logo" aria-hidden="true"><img src="/img/marcas/gacela.png" alt="Gacela"></div>
+					<div class="brand-logo" aria-hidden="true"><img src="/img/marcas/gdk.png" alt="GDK"></div>
 
 					
 
 					<!-- <div class="brand-logo" aria-hidden="true"><img src="/img/marcas/gnatus.png" alt=""></div> -->
-					<div class="brand-logo" aria-hidden="true"><img src="/img/marcas/nardiherrero.png" alt=""></div>
-					<div class="brand-logo" aria-hidden="true"><img src="/img/marcas/powersilens.png" alt=""></div>
+					<div class="brand-logo" aria-hidden="true"><img src="/img/marcas/nardiherrero.png" alt="Nardi Herrero"></div>
+					<div class="brand-logo" aria-hidden="true"><img src="/img/marcas/powersilens.png" alt="Power Silens"></div>
 					<!-- <div class="brand-logo" aria-hidden="true"><img src="/img/marcas/saevo.png" alt=""></div> -->
-					<div class="brand-logo" aria-hidden="true"><img src="/img/marcas/Suntem.png" alt=""></div>
-					<div class="brand-logo" aria-hidden="true"><img src="/img/marcas/woodpecker-.png" alt=""></div>
+					<div class="brand-logo" aria-hidden="true"><img src="/img/marcas/Suntem.png" alt="Suntem"></div>
+					<div class="brand-logo" aria-hidden="true"><img src="/img/marcas/woodpecker-.png" alt="Woodpecker"></div>
 				</div>
 			</div>
 		</div>

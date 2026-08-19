@@ -56,6 +56,7 @@ public class OcaServiceImpl implements IOcaService {
 	private static final BigDecimal CM3_EN_M3 = new BigDecimal("1000000");
 	private static final DateTimeFormatter FECHA_OCA = DateTimeFormatter.BASIC_ISO_DATE;
 	private static final DateTimeFormatter FECHA_LISTADO_OCA = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+	private static final int DIAS_BUSQUEDA_LISTADO_ENVIO = 60;
 	private static final String TIPO_DOMICILIO = "DOMICILIO";
 	private static final String TIPO_SUCURSAL = "SUCURSAL";
 
@@ -357,20 +358,13 @@ public class OcaServiceImpl implements IOcaService {
 		LocalDate fechaReferencia = Optional.ofNullable(envio.getFechaCreacionEnvio())
 				.orElseGet(() -> Optional.ofNullable(envio.getFechaCotizacion()).orElse(LocalDateTime.now()))
 				.toLocalDate();
-		LocalDate fechaDesde = fechaReferencia.minusDays(10);
+		LocalDate fechaDesde = fechaReferencia.minusDays(DIAS_BUSQUEDA_LISTADO_ENVIO);
 		LocalDate fechaHasta = LocalDate.now().plusDays(1);
 
 		try {
-			String responseXml = RestClient.create()
-					.post()
-					.uri(endpoint("List_Envios"))
-					.contentType(MediaType.APPLICATION_FORM_URLENCODED)
-					.body(formListadoEnvios(fechaDesde, fechaHasta))
-					.retrieve()
-					.body(String.class);
-
-			Document response = parseXml(responseXml);
-			String estadoOca = buscarEstadoEnvioEnListado(response, envio);
+			ConsultaEstadoOca consulta = consultarEstadoActual(envio)
+					.orElseGet(() -> consultarEstadoEnListado(envio, fechaDesde, fechaHasta));
+			String estadoOca = consulta.estado();
 			EstadoEnvio estadoNuevo = mapearEstadoOca(estadoOca)
 					.orElseThrow(() -> new IllegalStateException("OCA no devolvio un estado reconocible para este envio."));
 			EstadoEnvio estadoAnterior = envio.getEstadoEnvio();
@@ -382,10 +376,47 @@ public class OcaServiceImpl implements IOcaService {
 			String mensaje = actualizado
 					? "Estado OCA actualizado: " + estadoAnterior + " -> " + estadoNuevo
 					: "Estado OCA sin cambios: " + estadoNuevo;
-			return new OcaSincronizacionEnvioResponseDTO(actualizado, estadoAnterior, estadoNuevo, mensaje, responseXml);
+			return new OcaSincronizacionEnvioResponseDTO(actualizado, estadoAnterior, estadoNuevo, mensaje, consulta.responseXml());
 		} catch (RestClientResponseException ex) {
 			throw new IllegalStateException(ex.getMessage(), ex);
 		}
+	}
+
+	private Optional<ConsultaEstadoOca> consultarEstadoActual(Envio envio) {
+		for (TipoBusquedaEtiqueta tipoBusqueda : tiposBusquedaEstado(envio)) {
+			try {
+				String responseXml = RestClient.create()
+						.post()
+						.uri(endpoint("GetEnvioEstadoActual"))
+						.contentType(MediaType.APPLICATION_FORM_URLENCODED)
+						.body(formEstadoActual(envio, tipoBusqueda))
+						.retrieve()
+						.body(String.class);
+				Document response = parseXml(responseXml);
+				String estado = estadoDesdeRespuesta(response);
+				if (!StringUtils.hasText(estado)) {
+					estado = buscarEstadoEnvioEnListado(response, envio);
+				}
+				if (StringUtils.hasText(estado)) {
+					return Optional.of(new ConsultaEstadoOca(estado, responseXml));
+				}
+			} catch (RuntimeException ex) {
+				// OCA no siempre responde igual entre ambientes; si falla, se usa List_Envios como respaldo.
+			}
+		}
+		return Optional.empty();
+	}
+
+	private ConsultaEstadoOca consultarEstadoEnListado(Envio envio, LocalDate fechaDesde, LocalDate fechaHasta) {
+		String responseXml = RestClient.create()
+				.post()
+				.uri(endpoint("List_Envios"))
+				.contentType(MediaType.APPLICATION_FORM_URLENCODED)
+				.body(formListadoEnvios(fechaDesde, fechaHasta))
+				.retrieve()
+				.body(String.class);
+		Document response = parseXml(responseXml);
+		return new ConsultaEstadoOca(buscarEstadoEnvioEnListado(response, envio), responseXml);
 	}
 
 	private String solicitarEtiqueta(Envio envio, String operacion, TipoBusquedaEtiqueta tipoBusqueda) {
@@ -607,9 +638,32 @@ public class OcaServiceImpl implements IOcaService {
 		return tipos;
 	}
 
+	private List<TipoBusquedaEtiqueta> tiposBusquedaEstado(Envio envio) {
+		List<TipoBusquedaEtiqueta> tipos = new ArrayList<>();
+		if (StringUtils.hasText(envio.getNumeroEnvio()) && StringUtils.hasText(envio.getNumeroOrdenRetiro())) {
+			tipos.add(TipoBusquedaEtiqueta.AMBOS);
+		}
+		if (StringUtils.hasText(envio.getNumeroEnvio())) {
+			tipos.add(TipoBusquedaEtiqueta.ENVIO);
+		}
+		if (StringUtils.hasText(envio.getNumeroOrdenRetiro())) {
+			tipos.add(TipoBusquedaEtiqueta.ORDEN);
+		}
+		return tipos;
+	}
+
+	private MultiValueMap<String, String> formEstadoActual(Envio envio, TipoBusquedaEtiqueta tipoBusqueda) {
+		MultiValueMap<String, String> form = new LinkedMultiValueMap<>();
+		boolean usarEnvio = tipoBusqueda != TipoBusquedaEtiqueta.ORDEN;
+		boolean usarOrden = tipoBusqueda != TipoBusquedaEtiqueta.ENVIO;
+		form.add("numeroEnvio", usarEnvio ? valorConDefault(envio.getNumeroEnvio(), "") : "");
+		form.add("ordenRetiro", usarOrden ? valorConDefault(envio.getNumeroOrdenRetiro(), "") : "");
+		return form;
+	}
+
 	private MultiValueMap<String, String> formListadoEnvios(LocalDate fechaDesde, LocalDate fechaHasta) {
 		MultiValueMap<String, String> form = new LinkedMultiValueMap<>();
-		form.add("CUIT", properties.getCuit());
+		form.add("CUIT", cuitConGuiones(properties.getCuit()));
 		form.add("FechaDesde", fechaDesde.format(FECHA_LISTADO_OCA));
 		form.add("FechaHasta", fechaHasta.format(FECHA_LISTADO_OCA));
 		return form;
@@ -716,6 +770,22 @@ public class OcaServiceImpl implements IOcaService {
 		return "";
 	}
 
+	private String estadoDesdeRespuesta(Document document) {
+		String estadoRaiz = estadoDesdeElemento(document.getDocumentElement());
+		if (StringUtils.hasText(estadoRaiz)) {
+			return estadoRaiz;
+		}
+		NodeList nodes = document.getElementsByTagName("*");
+		for (int i = 0; i < nodes.getLength(); i++) {
+			Element element = (Element) nodes.item(i);
+			String estado = estadoDesdeElemento(element);
+			if (StringUtils.hasText(estado)) {
+				return estado;
+			}
+		}
+		return "";
+	}
+
 	private String buscarEstadoEnvioEnListado(Document document, Envio envio) {
 		Set<String> claves = clavesEnvio(envio);
 		Element candidato = null;
@@ -727,25 +797,62 @@ public class OcaServiceImpl implements IOcaService {
 			if (!StringUtils.hasText(texto) || claves.stream().noneMatch(texto::contains)) {
 				continue;
 			}
-			if (texto.length() < textoMasCorto) {
-				candidato = element;
-				textoMasCorto = texto.length();
+			Element contenedor = contenedorConEstado(element);
+			if (contenedor == null) {
+				continue;
+			}
+			String textoContenedor = normalizarClave(contenedor.getTextContent());
+			if (textoContenedor.length() < textoMasCorto) {
+				candidato = contenedor;
+				textoMasCorto = textoContenedor.length();
 			}
 		}
 		if (candidato == null) {
 			throw new IllegalStateException("No se encontro el envio en el listado devuelto por OCA.");
 		}
-		String estado = textOfFirst(candidato,
-				"Estado",
-				"EstadoEnvio",
-				"EstadoEntrega",
-				"DescripcionEstado",
-				"DescEstado",
-				"UltimoEstado",
-				"Evento",
-				"Descripcion",
-				"Resultado");
+		String estado = estadoDesdeElemento(candidato);
 		return StringUtils.hasText(estado) ? estado : candidato.getTextContent();
+	}
+
+	private Element contenedorConEstado(Element element) {
+		Element actual = element;
+		while (actual != null) {
+			if (StringUtils.hasText(estadoDesdeElemento(actual))) {
+				return actual;
+			}
+			Node parent = actual.getParentNode();
+			actual = parent instanceof Element parentElement ? parentElement : null;
+		}
+		return null;
+	}
+
+	private String estadoDesdeElemento(Element element) {
+		List<String> partes = new ArrayList<>();
+		agregarParteEstado(partes, textOfFirst(element,
+				"CodigoEstadoWebOCA",
+				"CodEstadoWebOCA",
+				"CodigoEstado",
+				"CodEstado"));
+		agregarParteEstado(partes, textOfFirst(element, "EstadoWebOCA"));
+		agregarParteEstado(partes, textOfFirst(element, "Estado"));
+		agregarParteEstado(partes, textOfFirst(element, "EstadoEnvio"));
+		agregarParteEstado(partes, textOfFirst(element, "EstadoEntrega"));
+		agregarParteEstado(partes, textOfFirst(element, "EstadoDescripcion"));
+		agregarParteEstado(partes, textOfFirst(element, "DescripcionEstado"));
+		agregarParteEstado(partes, textOfFirst(element, "DescEstado"));
+		agregarParteEstado(partes, textOfFirst(element, "UltimoEstado"));
+		agregarParteEstado(partes, textOfFirst(element, "Evento"));
+		agregarParteEstado(partes, textOfFirst(element, "MotivoDescripcion"));
+		agregarParteEstado(partes, textOfFirst(element, "DescripcionEstadoMotivoUnificado"));
+		agregarParteEstado(partes, textOfFirst(element, "Descripcion"));
+		agregarParteEstado(partes, textOfFirst(element, "Resultado"));
+		return String.join(" ", partes);
+	}
+
+	private void agregarParteEstado(List<String> partes, String valor) {
+		if (StringUtils.hasText(valor) && !partes.contains(valor.trim())) {
+			partes.add(valor.trim());
+		}
 	}
 
 	private Set<String> clavesEnvio(Envio envio) {
@@ -774,6 +881,9 @@ public class OcaServiceImpl implements IOcaService {
 		if (!StringUtils.hasText(estado)) {
 			return Optional.empty();
 		}
+		if (contieneToken(estado, "9") || contieneToken(estado, "09")) {
+			return Optional.of(EstadoEnvio.ENTREGADO);
+		}
 		if (estado.contains("entreg") || estado.contains("recibid")) {
 			return Optional.of(EstadoEnvio.ENTREGADO);
 		}
@@ -800,6 +910,10 @@ public class OcaServiceImpl implements IOcaService {
 			return Optional.of(EstadoEnvio.FALLIDO);
 		}
 		return Optional.empty();
+	}
+
+	private boolean contieneToken(String texto, String token) {
+		return (" " + texto + " ").contains(" " + token + " ");
 	}
 
 	private Document parseXml(String xml) {
@@ -901,8 +1015,19 @@ public class OcaServiceImpl implements IOcaService {
 		return valor == null ? "" : valor.replaceAll("[^0-9]", "");
 	}
 
+	private String cuitConGuiones(String valor) {
+		String cuit = soloDigitos(valor);
+		if (cuit.length() == 11) {
+			return cuit.substring(0, 2) + "-" + cuit.substring(2, 10) + "-" + cuit.substring(10);
+		}
+		return valorConDefault(valor, "");
+	}
+
 	private String valorConDefault(String valor, String defaultValue) {
 		return valor == null || valor.isBlank() ? defaultValue : valor.trim();
+	}
+
+	private record ConsultaEstadoOca(String estado, String responseXml) {
 	}
 
 	private record ResumenPaquete(

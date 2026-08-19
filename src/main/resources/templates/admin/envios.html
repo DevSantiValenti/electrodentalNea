@@ -2,9 +2,31 @@
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{admin/fragments/layout :: head('Admin | Envíos')}"></head>
 <body class="admin-shell text-slate-900">
+<style>
+	@media (min-width: 1024px) {
+		.shipments-table-wrap { overflow-x: visible; }
+		.shipments-table { min-width: 0; table-layout: fixed; font-size: 12px; }
+		.shipments-table th,
+		.shipments-table td { padding: .72rem .45rem; vertical-align: middle; }
+		.shipments-table .shipments-code,
+		.shipments-table .shipments-number { display: inline-block; max-width: 100%; overflow-wrap: anywhere; line-height: 1.15; }
+		.shipments-table .shipments-client-name,
+		.shipments-table .shipments-client-meta { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+		.shipments-table .shipments-destination { display: block; line-height: 1.25; overflow-wrap: anywhere; }
+		.shipments-table .shipments-badge { padding: .25rem .55rem; font-size: 11px; line-height: 1.15; white-space: nowrap; }
+		.shipments-table .shipments-actions { gap: .25rem; flex-wrap: wrap; }
+		.shipments-table .shipments-action { justify-content: center; padding: .35rem; }
+		.shipments-table .shipments-action .material-symbols-outlined { font-size: 20px; }
+	}
+	@media (min-width: 1280px) {
+		.shipments-table { font-size: 13px; }
+		.shipments-table th,
+		.shipments-table td { padding: .78rem .6rem; }
+	}
+</style>
 <aside th:replace="~{admin/fragments/layout :: sidebar('envios')}"></aside>
 <header th:replace="~{admin/fragments/layout :: mobilebar('envios')}"></header>
-<main class="p-4 sm:p-6 lg:ml-64 lg:p-8">
+<main class="p-4 sm:p-6 lg:ml-64 lg:p-6 xl:p-8">
 	<div th:replace="~{admin/fragments/layout :: topbar('Envíos OCA', 'Listado local de envíos creados y cotizados para pedidos web.')}"></div>
 
 	<section class="admin-card overflow-hidden rounded-2xl">
@@ -32,69 +54,76 @@
 				<span th:text="|${enviosPage.totalElements} envío(s) encontrado(s)|">0 envío(s) encontrado(s)</span>
 				<span th:if="${enviosPage.totalPages > 0}" th:text="|Página ${enviosPage.number + 1} de ${enviosPage.totalPages}|">Página 1 de 1</span>
 			</div>
-			<div class="overflow-x-auto">
-				<table class="w-full min-w-[1080px] text-left text-sm">
+			<div class="shipments-table-wrap overflow-x-auto">
+				<table class="shipments-table w-full min-w-[1080px] text-left text-sm">
+					<colgroup>
+						<col style="width: 8%;">
+						<col style="width: 18%;">
+						<col style="width: 25%;">
+						<col style="width: 13%;">
+						<col style="width: 18%;">
+						<col style="width: 10%;">
+						<col style="width: 8%;">
+					</colgroup>
 					<thead class="bg-surface-soft text-xs uppercase text-muted">
 						<tr>
 							<th class="px-5 py-3">Pedido</th>
 							<th class="px-5 py-3">Cliente</th>
-							<th class="px-5 py-3">Modalidad</th>
-							<th class="px-5 py-3">Destino</th>
+							<th class="px-5 py-3">Envío</th>
 							<th class="px-5 py-3">Estado OCA</th>
 							<th class="px-5 py-3">Orden / Tracking</th>
-							<th class="px-5 py-3">Fecha</th>
-							<th class="px-5 py-3">Costo</th>
+							<th class="px-5 py-3">Fecha / Costo</th>
 							<th class="px-5 py-3 text-right">Acciones</th>
 						</tr>
 					</thead>
 					<tbody class="divide-y divide-outline">
 						<tr th:if="${#lists.isEmpty(envios)}">
-							<td colspan="9" class="p-10 text-center text-muted">No hay envíos OCA para esos filtros.</td>
+							<td colspan="7" class="p-10 text-center text-muted">No hay envíos OCA para esos filtros.</td>
 						</tr>
 						<tr th:each="envio : ${envios}" class="hover:bg-surface-soft">
 							<td class="px-5 py-4">
 								<p class="font-black text-primary" th:text="|#${envio.pedido.id}|">#1</p>
-								<p class="mt-1 w-fit rounded bg-surface-soft px-2 py-1 text-xs font-black text-primary" th:text="${envio.pedido.codigoCompra ?: 'Sin código'}">WEB-000</p>
+								<p class="shipments-code mt-1 w-fit rounded bg-surface-soft px-2 py-1 text-xs font-black text-primary" th:text="${envio.pedido.codigoCompra ?: 'Sin código'}">WEB-000</p>
 							</td>
 							<td class="px-5 py-4">
-								<p class="font-bold text-primary" th:text="|${envio.pedido.cliente.nombre} ${envio.pedido.cliente.apellidoRazonSocial ?: ''}|">Cliente</p>
-								<p class="mt-1 text-xs font-semibold text-muted" th:text="${envio.pedido.cliente.email ?: 'Sin email'}">email</p>
+								<p class="shipments-client-name font-bold text-primary" th:text="|${envio.pedido.cliente.nombre} ${envio.pedido.cliente.apellidoRazonSocial ?: ''}|">Cliente</p>
+								<p class="shipments-client-meta mt-1 text-xs font-semibold text-muted" th:text="${envio.pedido.cliente.email ?: 'Sin email'}">email</p>
 							</td>
 							<td class="px-5 py-4">
-								<span class="rounded-full bg-surface-soft px-3 py-1 text-xs font-black text-primary" th:text="${envio.tipoEntregaOca ?: 'OCA'}">OCA</span>
-								<p class="mt-2 text-xs font-semibold text-muted" th:text="${envio.operativa != null ? 'Operativa ' + envio.operativa : 'Sin operativa'}">Operativa</p>
+								<div class="mb-2 flex flex-wrap items-center gap-2">
+									<span class="shipments-badge rounded-full bg-surface-soft px-3 py-1 text-xs font-black text-primary" th:text="${envio.tipoEntregaOca ?: 'OCA'}">OCA</span>
+									<span class="text-xs font-bold text-muted" th:text="${envio.operativa != null ? 'Operativa ' + envio.operativa : 'Sin operativa'}">Operativa</span>
+								</div>
+								<p class="shipments-destination font-bold text-primary" th:if="${envio.sucursalDestino != null}" th:text="${envio.sucursalDestino}">Sucursal</p>
+								<p class="shipments-destination font-bold text-primary" th:if="${envio.sucursalDestino == null}" th:text="${envio.ciudadDestino ?: 'Destino sin ciudad'}">Destino</p>
+								<p class="shipments-destination mt-1 text-xs font-semibold text-muted" th:text="${envio.sucursalDestinoDireccion ?: 'CP ' + (envio.codigoPostalDestino ?: '-')}">Dirección</p>
 							</td>
 							<td class="px-5 py-4">
-								<p class="font-bold text-primary" th:if="${envio.sucursalDestino != null}" th:text="${envio.sucursalDestino}">Sucursal</p>
-								<p class="font-bold text-primary" th:if="${envio.sucursalDestino == null}" th:text="${envio.ciudadDestino ?: 'Destino sin ciudad'}">Destino</p>
-								<p class="mt-1 text-xs font-semibold text-muted" th:text="${envio.sucursalDestinoDireccion ?: 'CP ' + (envio.codigoPostalDestino ?: '-')}">Dirección</p>
-							</td>
-							<td class="px-5 py-4">
-								<span class="rounded-full px-3 py-1 text-xs font-black"
+								<span class="shipments-badge rounded-full px-3 py-1 text-xs font-black"
 									  th:classappend="${envio.estadoEnvio.name() == 'PENDIENTE_DESPACHO'} ? ' bg-amber-100 text-amber-800' : (${envio.estadoEnvio.name() == 'DESPACHADO'} ? ' bg-blue-100 text-blue-800' : (${envio.estadoEnvio.name() == 'ENTREGADO'} ? ' bg-green-100 text-green-800' : (${envio.estadoEnvio.name() == 'FALLIDO'} ? ' bg-red-100 text-red-800' : ' bg-surface-soft text-primary')))"
 									  th:text="${envio.estadoEnvio}">Estado</span>
 							</td>
 							<td class="px-5 py-4">
-								<p class="font-bold text-primary" th:text="${envio.numeroOrdenRetiro != null ? 'Orden ' + envio.numeroOrdenRetiro : 'Sin orden'}">Orden</p>
-								<p class="mt-1 text-xs font-semibold text-muted" th:text="${envio.numeroEnvio != null ? 'Envío ' + envio.numeroEnvio : (envio.tracking != null ? 'Tracking ' + envio.tracking : 'Sin tracking')}">Tracking</p>
+								<p class="shipments-number font-bold text-primary" th:text="${envio.numeroOrdenRetiro != null ? 'Orden ' + envio.numeroOrdenRetiro : 'Sin orden'}">Orden</p>
+								<p class="shipments-number mt-1 text-xs font-semibold text-muted" th:text="${envio.numeroEnvio != null ? 'Envío ' + envio.numeroEnvio : (envio.tracking != null ? 'Tracking ' + envio.tracking : 'Sin tracking')}">Tracking</p>
 							</td>
-							<td class="px-5 py-4 text-muted">
-								<span th:if="${envio.fechaCreacionEnvio != null}" th:text="${#temporals.format(envio.fechaCreacionEnvio, 'dd-MM-yyyy HH:mm')}">Fecha</span>
-								<span th:if="${envio.fechaCreacionEnvio == null && envio.fechaCotizacion != null}" th:text="${#temporals.format(envio.fechaCotizacion, 'dd-MM-yyyy HH:mm')}">Fecha</span>
-								<span th:if="${envio.fechaCreacionEnvio == null && envio.fechaCotizacion == null}">Sin fecha</span>
+							<td class="px-5 py-4">
+								<p class="text-muted" th:if="${envio.fechaCreacionEnvio != null}" th:text="${#temporals.format(envio.fechaCreacionEnvio, 'dd/MM/yy HH:mm')}">Fecha</p>
+								<p class="text-muted" th:if="${envio.fechaCreacionEnvio == null && envio.fechaCotizacion != null}" th:text="${#temporals.format(envio.fechaCotizacion, 'dd/MM/yy HH:mm')}">Fecha</p>
+								<p class="text-muted" th:if="${envio.fechaCreacionEnvio == null && envio.fechaCotizacion == null}">Sin fecha</p>
+								<p class="mt-2 font-black text-primary" th:text="${@money.format(envio.costoCotizado ?: 0)}">$ 0,00</p>
 							</td>
-							<td class="px-5 py-4 font-black text-primary" th:text="${@money.format(envio.costoCotizado ?: 0)}">$ 0,00</td>
 							<td class="px-5 py-4 text-right">
-								<div class="flex justify-end gap-2">
-									<a th:href="@{/admin/pedidos/{id}(id=${envio.pedido.id})}" class="inline-flex items-center gap-2 rounded-lg border border-outline bg-white px-3 py-2 text-xs font-black text-primary hover:bg-surface-soft" title="Ir al pedido">
-										<span class="material-symbols-outlined text-[18px]">open_in_new</span> Pedido
+								<div class="shipments-actions flex justify-end gap-2">
+									<a th:href="@{/admin/pedidos/{id}(id=${envio.pedido.id})}" class="shipments-action inline-flex items-center gap-2 rounded-lg border border-outline bg-white px-3 py-2 text-xs font-black text-primary hover:bg-surface-soft" title="Ir al pedido">
+										<span class="material-symbols-outlined text-[18px]">open_in_new</span><span class="sr-only">Pedido</span>
 									</a>
-								<a th:href="@{/admin/pedidos/{id}/envio/ticket(id=${envio.pedido.id})}" class="inline-flex items-center gap-2 rounded-lg bg-secondary px-3 py-2 text-xs font-black text-white hover:opacity-90" title="Descargar etiqueta">
-									<span class="material-symbols-outlined text-[18px]">download</span> Etiqueta
+								<a th:href="@{/admin/pedidos/{id}/envio/ticket(id=${envio.pedido.id})}" class="shipments-action inline-flex items-center gap-2 rounded-lg bg-secondary px-3 py-2 text-xs font-black text-white hover:opacity-90" title="Descargar etiqueta">
+									<span class="material-symbols-outlined text-[18px]">download</span><span class="sr-only">Etiqueta</span>
 								</a>
 								<form th:action="@{/admin/envios/{id}/sincronizar(id=${envio.id})}" method="post">
-									<button type="submit" class="inline-flex items-center gap-2 rounded-lg border border-outline bg-white px-3 py-2 text-xs font-black text-primary hover:bg-surface-soft" title="Sincronizar estado con OCA">
-										<span class="material-symbols-outlined text-[18px]">sync</span> Sync
+									<button type="submit" class="shipments-action inline-flex items-center gap-2 rounded-lg border border-outline bg-white px-3 py-2 text-xs font-black text-primary hover:bg-surface-soft" title="Sincronizar estado con OCA">
+										<span class="material-symbols-outlined text-[18px]">sync</span><span class="sr-only">Sync</span>
 									</button>
 								</form>
 							</div>

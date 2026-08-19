@@ -142,6 +142,10 @@ public class Producto {
 				&& porcentajeOferta.compareTo(BigDecimal.ZERO) > 0;
 	}
 
+	public boolean permiteDescuentoTransferencia() {
+		return !tieneOferta();
+	}
+
 	public BigDecimal precioOferta() {
 		if (!tieneDescuentoOferta()) {
 			return precio == null ? BigDecimal.ZERO : precio;
@@ -152,6 +156,9 @@ public class Producto {
 	}
 
 	public BigDecimal precioTransferencia10Off() {
+		if (!permiteDescuentoTransferencia()) {
+			return precioOferta();
+		}
 		return precioOferta()
 				.multiply(BigDecimal.valueOf(90))
 				.divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);

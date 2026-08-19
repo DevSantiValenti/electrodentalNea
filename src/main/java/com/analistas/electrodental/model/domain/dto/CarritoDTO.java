@@ -32,6 +32,9 @@ public record CarritoDTO(
 	}
 
 	public BigDecimal descuentoTransferencia() {
+		if (!puedeAplicarDescuentoTransferencia()) {
+			return BigDecimal.ZERO;
+		}
 		return total()
 				.multiply(DESCUENTO_TRANSFERENCIA)
 				.divide(CIEN, 2, RoundingMode.HALF_UP);
@@ -44,6 +47,18 @@ public record CarritoDTO(
 
 	public boolean tieneDescuento() {
 		return descuento != null && descuentoTotal().signum() > 0;
+	}
+
+	public boolean tieneCuponAplicado() {
+		return descuento != null;
+	}
+
+	public boolean tieneItemsEnOferta() {
+		return items != null && items.stream().anyMatch(CarritoItemDTO::tieneOferta);
+	}
+
+	public boolean puedeAplicarDescuentoTransferencia() {
+		return !tieneCuponAplicado() && !tieneItemsEnOferta();
 	}
 
 	public CarritoDTO conDescuento(DescuentoAplicadoDTO descuento) {

@@ -9,26 +9,15 @@
 	<link rel="icon" type="image/png" th:href="${configuracionTienda.logoUrl}">
 	<link rel="shortcut icon" type="image/png" th:href="${configuracionTienda.logoUrl}">
 	<link rel="apple-touch-icon" th:href="${configuracionTienda.logoUrl}">
-	<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
-		rel="stylesheet">
-	<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
-		rel="stylesheet">
-	<script>
-		tailwind.config = {
-			theme: {
-				extend: {
-					colors: {
-						primary: "#0b2438",
-						secondary: "#b71f2a",
-						background: "#f8f9fb",
-						outline: "#d5d9df"
-					},
-					fontFamily: { sans: ["Inter", "sans-serif"] }
-				}
-			}
-		}
-	</script>
+	<link rel="stylesheet" th:href="@{/css/checkout-tailwind.css(v=${assetVersion})}">
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+	<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&icon_names=account_balance,add_shopping_cart,arrow_back,arrow_forward,category,chat,check_circle,chevron_right,delete,home,info,inventory_2,link,local_shipping,location_on,mail,payments,report,search,share,shopping_cart,storefront,support_agent,verified_user&display=block" onload="this.onload=null;this.rel='stylesheet'">
+	<noscript>
+		<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+		<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&icon_names=account_balance,add_shopping_cart,arrow_back,arrow_forward,category,chat,check_circle,chevron_right,delete,home,info,inventory_2,link,local_shipping,location_on,mail,payments,report,search,share,shopping_cart,storefront,support_agent,verified_user&display=block" rel="stylesheet">
+	</noscript>
 	<style>
 		body {
 			font-family: 'Inter', sans-serif;
@@ -69,7 +58,7 @@
 	<header class="border-b border-outline bg-white">
 		<div class="mx-auto flex h-20 max-w-7xl items-center justify-between px-4 sm:px-6">
 			<a th:href="@{/}" class="flex items-center">
-				<img th:src="${configuracionTienda.logoUrl}" alt="ElectrodentalNea" class="h-12 w-auto object-contain">
+				<img th:src="${configuracionTienda.logoUrl}" alt="ElectrodentalNea" class="h-12 w-auto object-contain" width="240" height="114" decoding="async">
 			</a>
 			<nav class="hidden items-center gap-8 text-sm font-bold text-slate-600 md:flex">
 				<a th:href="@{/catalogo}" class="hover:text-secondary">Categorías</a>
@@ -77,7 +66,7 @@
 				<a th:href="@{/catalogo}" class="hover:text-secondary">Novedades</a>
 				<!-- <a th:href="@{/marcas}" class="hover:text-secondary">Marcas</a> -->
 				<!-- <a th:href="@{/servicio-tecnico}" class="hover:text-secondary">Servicio Técnico</a> -->
-				<a href="/servicio-tecnico"
+				<a href="https://denttech.com.ar"
 					class="inline-flex items-center gap-3 rounded-xl border-[#66e2f8]/40 bg-[linear-gradient(135deg,#011427_0%,#12384d_45%,#66e2f8_100%)] px-5 py-3 font-bold text-white shadow-lg shadow-cyan-950/20 hover:brightness-110">
 					<!-- <img src="/img/denttech-logo.svg" alt="DentTech" class="h-8 w-auto"> -->
 					<p style="font-weight: 900; color: #66e2f8 !important;">DentTech</p> Servicio técnico
@@ -153,7 +142,9 @@
 					<div th:each="item : ${carrito.items}"
 						class="grid gap-4 py-5 sm:grid-cols-[96px_1fr_auto_auto_auto] sm:items-center">
 						<img class="h-24 w-24 rounded-lg bg-slate-100 object-cover"
-							th:src="${#strings.isEmpty(item.imagenPrincipal) ? configuracionTienda.logoUrl : item.imagenPrincipal}"
+							loading="lazy"
+							decoding="async"
+							th:src="${imageUrls.card(item.imagenPrincipal, configuracionTienda.logoUrl)}"
 							th:alt="${item.nombre}">
 						<div>
 							<a th:href="@{/productos/{slug}(slug=${item.slug})}"

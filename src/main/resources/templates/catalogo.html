@@ -84,9 +84,9 @@
 			</div>
 
 			<div th:if="${!#lists.isEmpty(productos)}" class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-				<article th:each="producto : ${productos}" class="overflow-hidden rounded-lg border border-outline bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-md">
+				<article th:each="producto,iter : ${productos}" class="overflow-hidden rounded-lg border border-outline bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-md">
 					<a th:href="@{/productos/{slug}(slug=${producto.slug})}" class="relative block aspect-[4/3] bg-surface-soft p-3">
-						<img class="h-full w-full object-contain" th:src="${#strings.isEmpty(producto.imagenPrincipal) ? configuracionTienda.logoUrl : producto.imagenPrincipal}" th:alt="${producto.nombre}">
+						<img class="h-full w-full object-contain" decoding="async" th:loading="${iter.index < 4 ? 'eager' : 'lazy'}" th:src="${imageUrls.card(producto.imagenPrincipal, configuracionTienda.logoUrl)}" th:alt="${producto.nombre}">
 						<span th:if="${producto.oferta}" class="absolute left-3 top-3 rounded-md bg-secondary px-2 py-1 text-[11px] font-black text-white">OFERTA</span>
 						<span th:if="${producto.destacado}" class="absolute right-3 top-3 rounded-md bg-primary-container px-2 py-1 text-[11px] font-black text-white">DESTACADO</span>
 					</a>

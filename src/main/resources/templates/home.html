@@ -15,14 +15,17 @@
 					<a th:href="@{/catalogo}" class="inline-flex items-center gap-2 rounded-lg bg-primary-container px-6 py-3 font-bold text-white hover:opacity-90">
 						Ver catálogo <span class="material-symbols-outlined">arrow_forward</span>
 					</a>
-					<a th:href="@{/servicio-tecnico}" class="inline-flex items-center gap-3 rounded-xl border-[#66e2f8]/40 bg-[linear-gradient(135deg,#011427_0%,#12384d_45%,#66e2f8_100%)] px-5 py-3 font-bold text-white shadow-lg shadow-cyan-950/20 hover:brightness-110">
+					<a href="https://denttech.com.ar" class="inline-flex items-center gap-3 rounded-xl border-[#66e2f8]/40 bg-[linear-gradient(135deg,#011427_0%,#12384d_45%,#66e2f8_100%)] px-5 py-3 font-bold text-white shadow-lg shadow-cyan-950/20 hover:brightness-110">
 						<!-- <img src="/img/denttech-logo.svg" alt="DentTech" class="h-8 w-auto"> -->
 						<p style="font-weight: 900; color: #66e2f8 !important;">DentTech</p> Servicio técnico 
 					</a>
 				</div>
 			</div>
 			<div class="relative">
-				<img class="h-[360px] w-full rounded-2xl object-cover shadow-xl lg:h-[440px]" alt="Consultorio odontológico moderno" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA1nCZnmH_2FL-WySHIBJtpwKYiYnZbu2CJdIB7m2sMyFkUrRAc1KDumDfVKa7rJdmj-Z9CR2uaWAGRoxiu5luX7vlXJY3s_4K1-my-9iZMTlxYus1_bTIAhP5vuZK-mrfOtcoeK8VfunPu-girZLqKu6kuKQcZIG8opQ5J3Vwc5YjiVCltDB_35G2Lvs66XAsMOuLriauaAsFMcjvLP0dOdGpC78GpU-eazrPeYaSKUTmz1Jrjx0eRW0-G7KTsrdBVoU8QHSbgnU4">
+				<picture>
+					<source media="(min-width: 640px)" srcset="/img/optimized/hero-consultorio-720.jpg">
+					<img class="h-[360px] w-full rounded-2xl object-cover shadow-xl lg:h-[440px]" alt="Consultorio odontológico moderno" src="/img/optimized/hero-consultorio-420.jpg" width="720" height="440" decoding="async" fetchpriority="high">
+				</picture>
 			</div>
 		</div>
 	</section>
@@ -44,7 +47,7 @@
 		<div th:if="${!#lists.isEmpty(destacados)}" class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
 			<article th:each="producto : ${destacados}" class="overflow-hidden rounded-xl border border-outline bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
 				<a th:href="@{/productos/{slug}(slug=${producto.slug})}" class="relative block aspect-[4/3] bg-surface-soft p-4">
-					<img class="h-full w-full object-contain" th:src="${#strings.isEmpty(producto.imagenPrincipal) ? configuracionTienda.logoUrl : producto.imagenPrincipal}" th:alt="${producto.nombre}">
+					<img class="h-full w-full object-contain" loading="lazy" decoding="async" th:src="${imageUrls.card(producto.imagenPrincipal, configuracionTienda.logoUrl)}" th:alt="${producto.nombre}">
 					<span th:if="${producto.oferta}" class="absolute left-3 top-3 rounded-md bg-secondary px-2 py-1 text-[11px] font-black text-white">OFERTA</span>
 				</a>
 				<div class="p-[15px]">
@@ -80,48 +83,48 @@
 			<h2 class="mb-8 text-center text-3xl font-black text-primary">Nuestras Marcas de Confianza</h2>
 			<div class="brand-carousel" aria-label="Marcas de confianza">
 				<div class="brand-carousel-track">
-					<div class="brand-logo"><img src="/img/marcas/cingol-.png" alt="Cingol"></div>
-					<div class="brand-logo"><img src="/img/marcas/coxo.png" alt="Coxo"></div>
+					<div class="brand-logo"><img src="/img/marcas/cingol-.png" alt="Cingol" loading="lazy" decoding="async" width="180" height="80"></div>
+					<div class="brand-logo"><img src="/img/marcas/coxo.png" alt="Coxo" loading="lazy" decoding="async" width="180" height="80"></div>
 					<!-- <div class="brand-logo"><img src="/img/marcas/dabiatlante.png" alt="Dabi Atlante"></div> -->
 					<!-- <div class="brand-logo"><img src="/img/marcas/Denimed.png" alt="Denimed"></div> -->
 
-					<div class="brand-logo"><img src="/img/marcas/dsj-.png" alt="DSJ"></div>
+					<div class="brand-logo"><img src="/img/marcas/dsj-.png" alt="DSJ" loading="lazy" decoding="async" width="180" height="80"></div>
 
-					<div class="brand-logo"><img src="/img/marcas/eighteeth.png" alt="Eightteeth"></div>
-					<div class="brand-logo"><img src="/img/marcas/DTE.png" alt="DTE"></div>
-					<div class="brand-logo"><img src="/img/marcas/easydent.png" alt="Easydent"></div>
-					<div class="brand-logo"><img src="/img/marcas/fskeju.png" alt="Fskeju"></div>
+					<div class="brand-logo"><img src="/img/marcas/eighteeth.png" alt="Eightteeth" loading="lazy" decoding="async" width="180" height="80"></div>
+					<div class="brand-logo"><img src="/img/marcas/DTE.png" alt="DTE" loading="lazy" decoding="async" width="180" height="80"></div>
+					<div class="brand-logo"><img src="/img/marcas/easydent.png" alt="Easydent" loading="lazy" decoding="async" width="180" height="80"></div>
+					<div class="brand-logo"><img src="/img/marcas/fskeju.png" alt="Fskeju" loading="lazy" decoding="async" width="180" height="80"></div>
 
-					<div class="brand-logo"><img src="/img/marcas/egeo.png" alt="Egeo"></div>
-					<div class="brand-logo"><img src="/img/marcas/gacela.png" alt="Gacela"></div>
-					<div class="brand-logo"><img src="/img/marcas/gdk.png" alt="GDK"></div>
+					<div class="brand-logo"><img src="/img/marcas/egeo.png" alt="Egeo" loading="lazy" decoding="async" width="180" height="80"></div>
+					<div class="brand-logo"><img src="/img/marcas/gacela.png" alt="Gacela" loading="lazy" decoding="async" width="180" height="80"></div>
+					<div class="brand-logo"><img src="/img/marcas/gdk.png" alt="GDK" loading="lazy" decoding="async" width="180" height="80"></div>
 					<!-- <div class="brand-logo"><img src="/img/marcas/gnatus.png" alt="Gnatus"></div> -->
-					<div class="brand-logo"><img src="/img/marcas/nardiherrero.png" alt="Nardi Herrero"></div>
-					<div class="brand-logo"><img src="/img/marcas/powersilens.png" alt="Power Silens"></div>
+					<div class="brand-logo"><img src="/img/marcas/nardiherrero.png" alt="Nardi Herrero" loading="lazy" decoding="async" width="180" height="80"></div>
+					<div class="brand-logo"><img src="/img/marcas/powersilens.png" alt="Power Silens" loading="lazy" decoding="async" width="180" height="80"></div>
 					<!-- <div class="brand-logo"><img src="/img/marcas/saevo.png" alt="Saevo"></div> -->
-					<div class="brand-logo"><img src="/img/marcas/Suntem.png" alt="Suntem"></div>
-					<div class="brand-logo"><img src="/img/marcas/woodpecker-.png" alt="Woodpecker"></div>
-					<div class="brand-logo" aria-hidden="true"><img src="/img/marcas/cingol-.png" alt="Cingol"></div>
-					<div class="brand-logo" aria-hidden="true"><img src="/img/marcas/coxo.png" alt="Coxo"></div>
+					<div class="brand-logo"><img src="/img/marcas/Suntem.png" alt="Suntem" loading="lazy" decoding="async" width="180" height="80"></div>
+					<div class="brand-logo"><img src="/img/marcas/woodpecker-.png" alt="Woodpecker" loading="lazy" decoding="async" width="180" height="80"></div>
+					<div class="brand-logo" aria-hidden="true"><img src="/img/marcas/cingol-.png" alt="Cingol" loading="lazy" decoding="async" width="180" height="80"></div>
+					<div class="brand-logo" aria-hidden="true"><img src="/img/marcas/coxo.png" alt="Coxo" loading="lazy" decoding="async" width="180" height="80"></div>
 					<!-- <div class="brand-logo" aria-hidden="true"><img src="/img/marcas/dabiatlante.png" alt=""></div> -->
 					<!-- <div class="brand-logo" aria-hidden="true"><img src="/img/marcas/Denimed.png" alt=""></div> -->
-					<div class="brand-logo" aria-hidden="true"><img src="/img/marcas/dsj-.png" alt="DSJ"></div>
-					<div class="brand-logo" aria-hidden="true"><img src="/img/marcas/eighteeth.png" alt="Eightteeth"></div>
-					<div class="brand-logo" aria-hidden="true"><img src="/img/marcas/DTE.png" alt="DTE"></div>
-					<div class="brand-logo" aria-hidden="true"><img src="/img/marcas/easydent.png" alt="Easydent"></div>
-					<div class="brand-logo" aria-hidden="true"><img src="/img/marcas/fskeju.png" alt="Fskeju"></div>
-					<div class="brand-logo" aria-hidden="true"><img src="/img/marcas/egeo.png" alt="Egeo"></div>
-					<div class="brand-logo" aria-hidden="true"><img src="/img/marcas/gacela.png" alt="Gacela"></div>
-					<div class="brand-logo" aria-hidden="true"><img src="/img/marcas/gdk.png" alt="GDK"></div>
+					<div class="brand-logo" aria-hidden="true"><img src="/img/marcas/dsj-.png" alt="DSJ" loading="lazy" decoding="async" width="180" height="80"></div>
+					<div class="brand-logo" aria-hidden="true"><img src="/img/marcas/eighteeth.png" alt="Eightteeth" loading="lazy" decoding="async" width="180" height="80"></div>
+					<div class="brand-logo" aria-hidden="true"><img src="/img/marcas/DTE.png" alt="DTE" loading="lazy" decoding="async" width="180" height="80"></div>
+					<div class="brand-logo" aria-hidden="true"><img src="/img/marcas/easydent.png" alt="Easydent" loading="lazy" decoding="async" width="180" height="80"></div>
+					<div class="brand-logo" aria-hidden="true"><img src="/img/marcas/fskeju.png" alt="Fskeju" loading="lazy" decoding="async" width="180" height="80"></div>
+					<div class="brand-logo" aria-hidden="true"><img src="/img/marcas/egeo.png" alt="Egeo" loading="lazy" decoding="async" width="180" height="80"></div>
+					<div class="brand-logo" aria-hidden="true"><img src="/img/marcas/gacela.png" alt="Gacela" loading="lazy" decoding="async" width="180" height="80"></div>
+					<div class="brand-logo" aria-hidden="true"><img src="/img/marcas/gdk.png" alt="GDK" loading="lazy" decoding="async" width="180" height="80"></div>
 
 					
 
 					<!-- <div class="brand-logo" aria-hidden="true"><img src="/img/marcas/gnatus.png" alt=""></div> -->
-					<div class="brand-logo" aria-hidden="true"><img src="/img/marcas/nardiherrero.png" alt="Nardi Herrero"></div>
-					<div class="brand-logo" aria-hidden="true"><img src="/img/marcas/powersilens.png" alt="Power Silens"></div>
+					<div class="brand-logo" aria-hidden="true"><img src="/img/marcas/nardiherrero.png" alt="Nardi Herrero" loading="lazy" decoding="async" width="180" height="80"></div>
+					<div class="brand-logo" aria-hidden="true"><img src="/img/marcas/powersilens.png" alt="Power Silens" loading="lazy" decoding="async" width="180" height="80"></div>
 					<!-- <div class="brand-logo" aria-hidden="true"><img src="/img/marcas/saevo.png" alt=""></div> -->
-					<div class="brand-logo" aria-hidden="true"><img src="/img/marcas/Suntem.png" alt="Suntem"></div>
-					<div class="brand-logo" aria-hidden="true"><img src="/img/marcas/woodpecker-.png" alt="Woodpecker"></div>
+					<div class="brand-logo" aria-hidden="true"><img src="/img/marcas/Suntem.png" alt="Suntem" loading="lazy" decoding="async" width="180" height="80"></div>
+					<div class="brand-logo" aria-hidden="true"><img src="/img/marcas/woodpecker-.png" alt="Woodpecker" loading="lazy" decoding="async" width="180" height="80"></div>
 				</div>
 			</div>
 		</div>

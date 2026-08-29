@@ -41,6 +41,8 @@ public class SecurityConfig {
 						"/ofertas",
 						"/marcas",
 						"/contacto",
+						"/robots.txt",
+						"/sitemap.xml",
 						"/api/productos/buscar",
 						"/api/oca/**",
 						"/api/mercadopago/webhook",

@@ -29,6 +29,10 @@ public class MaintenanceModeFilter extends OncePerRequestFilter {
 	private static final List<String> ADMIN_RESOURCE_PATHS = List.of(
 			"/uploads");
 
+	private static final List<String> SEO_PATHS = List.of(
+			"/robots.txt",
+			"/sitemap.xml");
+
 	private final IConfiguracionTiendaService configuracionTiendaService;
 
 	public MaintenanceModeFilter(IConfiguracionTiendaService configuracionTiendaService) {
@@ -44,6 +48,7 @@ public class MaintenanceModeFilter extends OncePerRequestFilter {
 		ConfiguracionTienda configuracion = configuracionTiendaService.obtener();
 		if (!esRutaAdmin(path)
 				&& !esRecursoDeAdmin(request, path)
+				&& !esRutaSeo(path)
 				&& !esLogoMantenimiento(path, configuracion.getLogoUrl())
 				&& configuracion.paginaOcultaActiva()) {
 			mostrarMantenimiento(response, configuracion);
@@ -74,6 +79,10 @@ public class MaintenanceModeFilter extends OncePerRequestFilter {
 		}
 		String referer = request.getHeader(HttpHeaders.REFERER);
 		return referer != null && ADMIN_PATHS.stream().anyMatch(referer::contains);
+	}
+
+	private boolean esRutaSeo(String path) {
+		return SEO_PATHS.contains(path);
 	}
 
 	private boolean esLogoMantenimiento(String path, String logoUrl) {

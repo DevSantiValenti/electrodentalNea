@@ -8,27 +8,15 @@
 	<link rel="icon" type="image/png" th:href="${configuracionTienda.logoUrl}">
 	<link rel="shortcut icon" type="image/png" th:href="${configuracionTienda.logoUrl}">
 	<link rel="apple-touch-icon" th:href="${configuracionTienda.logoUrl}">
-	<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-	<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
-	<script>
-		tailwind.config = {
-			theme: {
-				extend: {
-					colors: {
-						primary: "#000d1b",
-						"primary-container": "#0b2438",
-						secondary: "#b71f2a",
-						background: "#f8f9fb",
-						surface: "#ffffff",
-						"surface-soft": "#f2f4f6",
-						outline: "#c3c7cd"
-					},
-					fontFamily: { sans: ["Inter", "sans-serif"] }
-				}
-			}
-		}
-	</script>
+	<link rel="stylesheet" th:href="@{/css/shop-tailwind.css(v=${assetVersion})}">
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+	<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&icon_names=account_balance,add_shopping_cart,arrow_back,arrow_forward,category,chat,check_circle,chevron_right,delete,home,info,inventory_2,link,local_shipping,location_on,mail,payments,report,search,share,shopping_cart,storefront,support_agent,verified_user&display=block" onload="this.onload=null;this.rel='stylesheet'">
+	<noscript>
+		<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+		<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&icon_names=account_balance,add_shopping_cart,arrow_back,arrow_forward,category,chat,check_circle,chevron_right,delete,home,info,inventory_2,link,local_shipping,location_on,mail,payments,report,search,share,shopping_cart,storefront,support_agent,verified_user&display=block" rel="stylesheet">
+	</noscript>
 	<style>
 		.material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
 		.brand-carousel { overflow: hidden; -webkit-mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent); mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent); }
@@ -71,7 +59,7 @@
 	</div>
 	<div class="shop-header-main mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-2.5 sm:px-6">
 		<a th:href="@{/}" class="flex items-center">
-			<img th:src="${configuracionTienda.logoUrl}" alt="ElectrodentalNea" class="h-[60px] w-auto object-contain">
+			<img th:src="${configuracionTienda.logoUrl}" alt="ElectrodentalNea" class="h-[60px] w-auto object-contain" width="240" height="114" decoding="async">
 		</a>
 		<form th:action="@{/catalogo}" method="get" class="site-search relative order-3 w-full flex-1 lg:order-2 lg:max-w-xl" data-product-search th:data-search-url="@{/api/productos/buscar}" th:data-logo-url="${configuracionTienda.logoUrl}">
 			<label class="relative block">
@@ -121,7 +109,7 @@
 	</a>
 	<div class="mx-auto grid max-w-7xl gap-8 px-4 py-12 sm:px-6 lg:grid-cols-[1.1fr_.75fr_.9fr_1.45fr]">
 		<div>
-			<img th:src="${configuracionTienda.logoUrl}" alt="Logo de Electrodental NEA" class="mb-4 h-16 w-auto">
+			<img th:src="${configuracionTienda.logoUrl}" alt="Logo de Electrodental NEA" class="mb-4 h-16 w-auto" loading="lazy" decoding="async" width="240" height="114">
 			<p class="text-sm text-white/75">Equipamiento, insumos y servicio técnico odontológico para profesionales.</p>
 			<div class="mt-5 flex gap-3">
 				<a th:href="${configuracionTienda.instagram}" target="_blank" rel="noopener" aria-label="Instagram" class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/10 p-2 transition hover:bg-white">
@@ -134,7 +122,7 @@
 		</div>
 		<div>
 			<h3 class="mb-3 text-sm font-bold uppercase text-white">Soporte</h3>
-			<a th:href="@{/servicio-tecnico}" class="block py-1 text-sm text-white/75 hover:text-white">Servicio técnico</a>
+			<a href="https://denttech.com.ar" class="block py-1 text-sm text-white/75 hover:text-white">Servicio técnico</a>
 			<a th:href="@{/contacto}" class="block py-1 text-sm text-white/75 hover:text-white">Contacto</a>
 		</div>
 		<div>

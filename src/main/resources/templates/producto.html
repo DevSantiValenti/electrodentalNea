@@ -25,7 +25,7 @@
 		<section class="grid gap-8 lg:grid-cols-[1fr_1fr]">
 			<div>
 				<div class="overflow-hidden rounded-2xl border border-outline bg-white shadow-sm">
-					<img id="product-main-image" class="aspect-square w-full object-cover sm:object-contain" th:src="${productoImagenes[0]}" th:alt="${producto.nombre}">
+					<img id="product-main-image" class="aspect-square w-full object-cover sm:object-contain" th:src="${productoImagenes[0]}" th:alt="${producto.nombre}" decoding="async" fetchpriority="high">
 				</div>
 				<div class="mt-4 grid grid-cols-4 gap-3 sm:grid-cols-5">
 					<button th:each="imagen,iter : ${productoImagenes}" type="button"
@@ -187,7 +187,7 @@
 			<div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
 				<article th:each="relacionado : ${productosRelacionados}" class="overflow-hidden rounded-xl border border-outline bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
 					<a th:href="@{/productos/{slug}(slug=${relacionado.slug})}" class="relative block aspect-[4/3] bg-surface-soft p-4">
-						<img class="h-full w-full rounded-lg object-cover" th:src="${#strings.isEmpty(relacionado.imagenPrincipal) ? configuracionTienda.logoUrl : relacionado.imagenPrincipal}" th:alt="${relacionado.nombre}">
+						<img class="h-full w-full rounded-lg object-cover" loading="lazy" decoding="async" th:src="${imageUrls.card(relacionado.imagenPrincipal, configuracionTienda.logoUrl)}" th:alt="${relacionado.nombre}">
 						<span th:if="${relacionado.oferta}" class="absolute right-3 top-3 rounded-full bg-secondary px-3 py-1 text-xs font-black text-white">OFERTA</span>
 					</a>
 					<div class="p-4">

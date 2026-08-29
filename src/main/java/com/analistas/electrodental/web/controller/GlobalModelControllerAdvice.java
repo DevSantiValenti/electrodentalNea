@@ -14,6 +14,7 @@ import com.analistas.electrodental.model.service.ICategoriaService;
 import com.analistas.electrodental.model.service.ICarritoService;
 import com.analistas.electrodental.model.service.IConfiguracionTiendaService;
 import com.analistas.electrodental.model.service.IDescuentoService;
+import com.analistas.electrodental.web.view.ImageUrlHelper;
 
 import jakarta.servlet.RequestDispatcher;
 import jakarta.servlet.http.HttpServletRequest;
@@ -23,23 +24,28 @@ import java.util.List;
 @ControllerAdvice
 public class GlobalModelControllerAdvice {
 
+	private static final String ASSET_VERSION = "20260818";
+
 	private final ICarritoService carritoService;
 	private final ICategoriaService categoriaService;
 	private final IConfiguracionTiendaService configuracionTiendaService;
 	private final IProductoRepository productoRepository;
 	private final IDescuentoService descuentoService;
+	private final ImageUrlHelper imageUrlHelper;
 
 	public GlobalModelControllerAdvice(
 			ICarritoService carritoService,
 			ICategoriaService categoriaService,
 			IConfiguracionTiendaService configuracionTiendaService,
 			IProductoRepository productoRepository,
-			IDescuentoService descuentoService) {
+			IDescuentoService descuentoService,
+			ImageUrlHelper imageUrlHelper) {
 		this.carritoService = carritoService;
 		this.categoriaService = categoriaService;
 		this.configuracionTiendaService = configuracionTiendaService;
 		this.productoRepository = productoRepository;
 		this.descuentoService = descuentoService;
+		this.imageUrlHelper = imageUrlHelper;
 	}
 
 	@ModelAttribute("carrito")
@@ -84,6 +90,16 @@ public class GlobalModelControllerAdvice {
 			return new ConfiguracionTienda();
 		}
 		return configuracionTiendaService.obtener();
+	}
+
+	@ModelAttribute("assetVersion")
+	public String assetVersion() {
+		return ASSET_VERSION;
+	}
+
+	@ModelAttribute("imageUrls")
+	public ImageUrlHelper imageUrls() {
+		return imageUrlHelper;
 	}
 
 	@ModelAttribute("ocaDisponible")

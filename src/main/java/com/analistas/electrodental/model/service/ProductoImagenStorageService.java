@@ -1,13 +1,25 @@
 package com.analistas.electrodental.model.service;
 
+import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.Iterator;
 import java.util.Locale;
 import java.util.Set;
 import java.util.UUID;
+
+import javax.imageio.IIOImage;
+import javax.imageio.ImageIO;
+import javax.imageio.ImageWriteParam;
+import javax.imageio.ImageWriter;
+import javax.imageio.stream.ImageOutputStream;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -18,6 +30,13 @@ import org.springframework.web.multipart.MultipartFile;
 public class ProductoImagenStorageService {
 
 	private static final Set<String> EXTENSIONES_PERMITIDAS = Set.of("jpg", "jpeg", "png", "webp", "gif");
+	private static final String PRODUCTOS_URL_PREFIX = "/uploads/productos/";
+	private static final String PRODUCTOS_THUMBS_DIR = "thumbs";
+	private static final String PRODUCTOS_THUMBS_URL_PREFIX = "/uploads/productos/thumbs/";
+	private static final int PRODUCTO_MAX_DIMENSION = 1200;
+	private static final int PRODUCTO_CARD_MAX_DIMENSION = 440;
+	private static final float PRODUCTO_JPG_QUALITY = 0.82f;
+	private static final float PRODUCTO_CARD_JPG_QUALITY = 0.70f;
 
 	private final Path productosDir;
 	private final Path logoDir;
@@ -31,7 +50,7 @@ public class ProductoImagenStorageService {
 	}
 
 	public String guardar(MultipartFile archivo) {
-		return guardarEnDirectorio(archivo, productosDir, "/uploads/productos/");
+		return guardarProductoOptimizado(archivo);
 	}
 
 	public String guardarLogo(MultipartFile archivo) {
@@ -42,33 +61,186 @@ public class ProductoImagenStorageService {
 		return guardarEnDirectorio(archivo, fondoDir, "/uploads/fondo/");
 	}
 
+	public String cardUrl(String url) {
+		try {
+			if (!StringUtils.hasText(url) || !url.startsWith(PRODUCTOS_URL_PREFIX) || url.startsWith(PRODUCTOS_THUMBS_URL_PREFIX)) {
+				return url;
+			}
+			String nombreArchivo = url.substring(PRODUCTOS_URL_PREFIX.length());
+			if (nombreArchivo.contains("/") || nombreArchivo.contains("\\") || nombreArchivo.isBlank()) {
+				return url;
+			}
+			String nombreThumb = nombreThumbnail(nombreArchivo);
+			if (nombreThumb.isBlank()) {
+				return url;
+			}
+			Path thumb = productosDir.resolve(PRODUCTOS_THUMBS_DIR).resolve(nombreThumb).normalize();
+			if (Files.isRegularFile(thumb)) {
+				return PRODUCTOS_THUMBS_URL_PREFIX + nombreThumb;
+			}
+			Path original = productosDir.resolve(nombreArchivo).normalize();
+			if (!original.startsWith(productosDir) || !Files.isRegularFile(original)) {
+				return url;
+			}
+			crearThumbnailSiHaceFalta(original, thumb);
+			return Files.isRegularFile(thumb) ? PRODUCTOS_THUMBS_URL_PREFIX + nombreThumb : url;
+		} catch (RuntimeException ex) {
+			return url;
+		}
+	}
+
+	private String guardarProductoOptimizado(MultipartFile archivo) {
+		if (archivo == null || archivo.isEmpty()) {
+			return "";
+		}
+		validarImagen(archivo);
+		String extension = obtenerExtension(archivo);
+		try {
+			Files.createDirectories(productosDir);
+			String baseName = UUID.randomUUID().toString();
+			if ("gif".equals(extension)) {
+				return guardarOriginal(archivo, productosDir, PRODUCTOS_URL_PREFIX, baseName, extension);
+			}
+			BufferedImage imagenOriginal;
+			try (InputStream inputStream = archivo.getInputStream()) {
+				imagenOriginal = ImageIO.read(inputStream);
+			}
+			if (imagenOriginal == null) {
+				return guardarOriginal(archivo, productosDir, PRODUCTOS_URL_PREFIX, baseName, extension);
+			}
+			String nombreArchivo = baseName + ".jpg";
+			Path destino = productosDir.resolve(nombreArchivo).normalize();
+			if (!destino.startsWith(productosDir)) {
+				throw new IllegalArgumentException("Nombre de archivo inválido.");
+			}
+			BufferedImage optimizada = redimensionar(imagenOriginal, PRODUCTO_MAX_DIMENSION);
+			escribirJpg(optimizada, destino, PRODUCTO_JPG_QUALITY);
+			crearThumbnail(baseName, imagenOriginal);
+			return PRODUCTOS_URL_PREFIX + nombreArchivo;
+		} catch (IOException ex) {
+			throw new IllegalStateException("No se pudo guardar la imagen subida.", ex);
+		}
+	}
+
 	private String guardarEnDirectorio(MultipartFile archivo, Path directorio, String urlPrefix) {
 		if (archivo == null || archivo.isEmpty()) {
 			return "";
 		}
+		validarImagen(archivo);
+		String extension = obtenerExtension(archivo);
+		try {
+			Files.createDirectories(directorio);
+			return guardarOriginal(archivo, directorio, urlPrefix, UUID.randomUUID().toString(), extension);
+		} catch (IOException ex) {
+			throw new IllegalStateException("No se pudo guardar la imagen subida.", ex);
+		}
+	}
+
+	private void validarImagen(MultipartFile archivo) {
 		String contentType = archivo.getContentType();
 		if (contentType == null || !contentType.toLowerCase(Locale.ROOT).startsWith("image/")) {
 			throw new IllegalArgumentException("Solo se pueden subir archivos de imagen.");
 		}
-
 		String extension = obtenerExtension(archivo);
 		if (!EXTENSIONES_PERMITIDAS.contains(extension)) {
 			throw new IllegalArgumentException("Formato de imagen no permitido. Usá JPG, PNG, WEBP o GIF.");
 		}
+	}
 
+	private String guardarOriginal(MultipartFile archivo, Path directorio, String urlPrefix, String baseName, String extension) throws IOException {
+		String nombreArchivo = baseName + "." + extension;
+		Path destino = directorio.resolve(nombreArchivo).normalize();
+		if (!destino.startsWith(directorio)) {
+			throw new IllegalArgumentException("Nombre de archivo inválido.");
+		}
+		try (InputStream inputStream = archivo.getInputStream()) {
+			Files.copy(inputStream, destino, StandardCopyOption.REPLACE_EXISTING);
+		}
+		return urlPrefix + nombreArchivo;
+	}
+
+	private void crearThumbnail(String baseName, BufferedImage imagenOriginal) {
 		try {
-			Files.createDirectories(directorio);
-			String nombreArchivo = UUID.randomUUID() + "." + extension;
-			Path destino = directorio.resolve(nombreArchivo).normalize();
-			if (!destino.startsWith(directorio)) {
-				throw new IllegalArgumentException("Nombre de archivo inválido.");
+			Path directorioThumbs = productosDir.resolve(PRODUCTOS_THUMBS_DIR);
+			Files.createDirectories(directorioThumbs);
+			Path destino = directorioThumbs.resolve(baseName + "-card.jpg").normalize();
+			if (!destino.startsWith(directorioThumbs)) {
+				return;
 			}
-			try (InputStream inputStream = archivo.getInputStream()) {
-				Files.copy(inputStream, destino, StandardCopyOption.REPLACE_EXISTING);
+			BufferedImage miniatura = redimensionar(imagenOriginal, PRODUCTO_CARD_MAX_DIMENSION);
+			escribirJpg(miniatura, destino, PRODUCTO_CARD_JPG_QUALITY);
+		} catch (IOException ignored) {
+			// Si falla la miniatura, se conserva la imagen principal optimizada.
+		}
+	}
+
+	private void crearThumbnailSiHaceFalta(Path original, Path thumb) {
+		if (Files.isRegularFile(thumb)) {
+			return;
+		}
+		try {
+			Files.createDirectories(thumb.getParent());
+			BufferedImage imagenOriginal = ImageIO.read(original.toFile());
+			if (imagenOriginal == null) {
+				return;
 			}
-			return urlPrefix + nombreArchivo;
-		} catch (IOException ex) {
-			throw new IllegalStateException("No se pudo guardar la imagen subida.", ex);
+			BufferedImage miniatura = redimensionar(imagenOriginal, PRODUCTO_CARD_MAX_DIMENSION);
+			escribirJpg(miniatura, thumb, PRODUCTO_CARD_JPG_QUALITY);
+		} catch (IOException ignored) {
+			// Si la imagen anterior no puede optimizarse, se sirve la URL original.
+		}
+	}
+
+	private String nombreThumbnail(String nombreArchivo) {
+		int indicePunto = nombreArchivo.lastIndexOf('.');
+		if (indicePunto <= 0) {
+			return "";
+		}
+		String extension = nombreArchivo.substring(indicePunto + 1).toLowerCase(Locale.ROOT);
+		if ("gif".equals(extension)) {
+			return "";
+		}
+		return nombreArchivo.substring(0, indicePunto) + "-card.jpg";
+	}
+
+	private BufferedImage redimensionar(BufferedImage origen, int maxDimension) {
+		int ancho = origen.getWidth();
+		int alto = origen.getHeight();
+		double escala = Math.min(1d, (double) maxDimension / Math.max(ancho, alto));
+		int nuevoAncho = Math.max(1, (int) Math.round(ancho * escala));
+		int nuevoAlto = Math.max(1, (int) Math.round(alto * escala));
+		BufferedImage destino = new BufferedImage(nuevoAncho, nuevoAlto, BufferedImage.TYPE_INT_RGB);
+		Graphics2D g = destino.createGraphics();
+		try {
+			g.setColor(Color.WHITE);
+			g.fillRect(0, 0, nuevoAncho, nuevoAlto);
+			g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+			g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+			g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+			g.drawImage(origen, 0, 0, nuevoAncho, nuevoAlto, null);
+		} finally {
+			g.dispose();
+		}
+		return destino;
+	}
+
+	private void escribirJpg(BufferedImage imagen, Path destino, float calidad) throws IOException {
+		Iterator<ImageWriter> writers = ImageIO.getImageWritersByFormatName("jpg");
+		if (!writers.hasNext()) {
+			throw new IOException("No hay escritor JPG disponible.");
+		}
+		ImageWriter writer = writers.next();
+		try (OutputStream outputStream = Files.newOutputStream(destino);
+				ImageOutputStream imageOutputStream = ImageIO.createImageOutputStream(outputStream)) {
+			writer.setOutput(imageOutputStream);
+			ImageWriteParam params = writer.getDefaultWriteParam();
+			if (params.canWriteCompressed()) {
+				params.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
+				params.setCompressionQuality(calidad);
+			}
+			writer.write(null, new IIOImage(imagen, null, null), params);
+		} finally {
+			writer.dispose();
 		}
 	}
 

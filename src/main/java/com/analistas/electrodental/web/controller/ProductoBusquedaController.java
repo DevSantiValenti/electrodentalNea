@@ -11,18 +11,22 @@ import com.analistas.electrodental.model.domain.Producto;
 import com.analistas.electrodental.model.domain.dto.ProductoBusquedaDTO;
 import com.analistas.electrodental.model.service.IConfiguracionTiendaService;
 import com.analistas.electrodental.model.service.IProductoService;
+import com.analistas.electrodental.model.service.ProductoImagenStorageService;
 
 @RestController
 public class ProductoBusquedaController {
 
 	private final IProductoService productoService;
 	private final IConfiguracionTiendaService configuracionTiendaService;
+	private final ProductoImagenStorageService productoImagenStorageService;
 
 	public ProductoBusquedaController(
 			IProductoService productoService,
-			IConfiguracionTiendaService configuracionTiendaService) {
+			IConfiguracionTiendaService configuracionTiendaService,
+			ProductoImagenStorageService productoImagenStorageService) {
 		this.productoService = productoService;
 		this.configuracionTiendaService = configuracionTiendaService;
+		this.productoImagenStorageService = productoImagenStorageService;
 	}
 
 	@GetMapping("/api/productos/buscar")
@@ -38,7 +42,7 @@ public class ProductoBusquedaController {
 
 	private ProductoBusquedaDTO toDto(Producto producto) {
 		String imagen = StringUtils.hasText(producto.getImagenPrincipal())
-				? producto.getImagenPrincipal()
+				? productoImagenStorageService.cardUrl(producto.getImagenPrincipal())
 				: configuracionTiendaService.obtener().getLogoUrl();
 		return new ProductoBusquedaDTO(
 				producto.getId(),

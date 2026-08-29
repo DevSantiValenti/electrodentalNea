@@ -6,24 +6,15 @@
 	<meta name="description" content="Pagina de error de Electrodental NEA con datos para reportar rapidamente el problema por WhatsApp.">
 	<title>Electrodental NEA | Error</title>
 	<link rel="icon" type="image/png" href="/img/electrodentallarge.png">
-	<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
-	<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
-	<script>
-		tailwind.config = {
-			theme: {
-				extend: {
-					colors: {
-						primary: "#000d1b",
-						secondary: "#b71f2a",
-						background: "#f8f9fb",
-						outline: "#d5d9df"
-					},
-					fontFamily: { sans: ["Inter", "sans-serif"] }
-				}
-			}
-		}
-	</script>
+	<link rel="stylesheet" th:href="@{/css/error-tailwind.css(v=${assetVersion})}">
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+	<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&icon_names=category,home,report&display=block" onload="this.onload=null;this.rel='stylesheet'">
+	<noscript>
+		<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+		<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&icon_names=category,home,report&display=block" rel="stylesheet">
+	</noscript>
 	<style>
 		body { font-family: "Inter", sans-serif; }
 		.material-symbols-outlined { font-variation-settings: "FILL" 0, "wght" 500, "GRAD" 0, "opsz" 24; }

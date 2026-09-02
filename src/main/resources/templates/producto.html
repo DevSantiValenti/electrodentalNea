@@ -88,6 +88,17 @@
 						<p class="text-sm font-black uppercase leading-tight tracking-wide">Abonando con transferencia 10% OFF</p>
 						<p class="text-3xl font-black leading-tight" th:text="${@money.format(producto.precioTransferencia10Off())}">$ 0,00</p>
 					</div>
+					<div class="mt-4 rounded-xl border border-[#8a2a91]/30 bg-[#fbf5fc] p-5 shadow-sm">
+						<div class="flex flex-col gap-4 sm:flex-row sm:items-center">
+							<div class="flex h-16 items-center justify-center rounded-lg bg-white px-4 ring-1 ring-[#8a2a91]/15 sm:w-40">
+								<img src="/img/tuya-nbch.png" alt="Tuya NBCH" class="h-12 w-auto">
+							</div>
+							<div>
+								<p class="text-base font-black uppercase leading-tight text-[#8a2a91]">3 cuotas sin interés</p>
+								<p class="mt-1 text-sm font-bold text-slate-600">Con tarjeta Tuya NBCH, únicamente comprando en el local.</p>
+							</div>
+						</div>
+					</div>
 					<p class="mt-3 flex items-center gap-2 text-sm font-bold" th:classappend="${producto.stockWeb <= 0 ? ' text-red-700' : (producto.stockWeb <= producto.stockMinimo ? ' text-amber-600' : ' text-green-700')}">
 						<span class="material-symbols-outlined text-[18px]" th:text="${producto.stockWeb > 0 ? 'check_circle' : 'inventory_2'}">check_circle</span>
 						<span th:text="${producto.stockWeb > 0 ? 'Stock disponible: ' + producto.stockWeb + ' unidades' : 'Sin stock'}">Stock</span>

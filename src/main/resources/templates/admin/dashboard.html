@@ -51,7 +51,7 @@
 				<span class="material-symbols-outlined">add_circle</span> Añadir Nuevo
 			</a>
 		</div>
-		<div class="grid gap-4 p-6 md:grid-cols-3">
+		<div class="grid gap-4 p-6 md:grid-cols-2 xl:grid-cols-4">
 			<a th:href="@{/admin/productos}" class="rounded-xl border border-outline p-5 hover:bg-surface-soft">
 				<span class="material-symbols-outlined rounded-lg bg-primary-container p-3 text-white">inventory_2</span>
 				<h3 class="mt-4 font-black text-primary">Productos</h3>
@@ -66,6 +66,11 @@
 				<span class="material-symbols-outlined rounded-lg bg-slate-800 p-3 text-white">point_of_sale</span>
 				<h3 class="mt-4 font-black text-primary">Venta presencial</h3>
 				<p class="mt-1 text-sm text-muted">Descuenta stock físico.</p>
+			</a>
+			<a th:href="@{/admin/cuentas-cursos}" class="rounded-xl border border-outline p-5 hover:bg-surface-soft">
+				<span class="material-symbols-outlined rounded-lg bg-primary p-3 text-white">manage_accounts</span>
+				<h3 class="mt-4 font-black text-primary">Cuentas cursos</h3>
+				<p class="mt-1 text-sm text-muted">Accesos al panel separado.</p>
 			</a>
 		</div>
 	</section>

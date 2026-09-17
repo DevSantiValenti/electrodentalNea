@@ -2,6 +2,7 @@ package com.analistas.electrodental.model.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.awt.Color;
@@ -66,6 +67,31 @@ class ProductoImagenStorageServiceTest {
 		BufferedImage miniaturaImagen = ImageIO.read(miniatura.toFile());
 		assertNotNull(miniaturaImagen);
 		assertEquals(440, Math.max(miniaturaImagen.getWidth(), miniaturaImagen.getHeight()));
+	}
+
+	@Test
+	void guardaCertificadoCursoComoPdfPrivadoResoluble() {
+		ProductoImagenStorageService service = new ProductoImagenStorageService(tempDir.toString());
+		MockMultipartFile archivo = new MockMultipartFile("certificado", "certificado.pdf", "application/pdf", "%PDF-1.4".getBytes());
+
+		String url = service.guardarCursoCertificado(archivo);
+		Path certificado = service.resolverCursoCertificado(url);
+
+		assertTrue(url.startsWith("/uploads/cursos/certificados/"));
+		assertTrue(url.endsWith(".pdf"));
+		assertTrue(Files.isRegularFile(certificado));
+		assertTrue(certificado.startsWith(tempDir.resolve("cursos").resolve("certificados")));
+	}
+
+	@Test
+	void rechazaCertificadoCursoMayorA5Mb() {
+		ProductoImagenStorageService service = new ProductoImagenStorageService(tempDir.toString());
+		byte[] bytes = new byte[(int) ProductoImagenStorageService.CURSO_CERTIFICADO_MAX_BYTES + 1];
+		MockMultipartFile archivo = new MockMultipartFile("certificado", "certificado.pdf", "application/pdf", bytes);
+
+		IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> service.guardarCursoCertificado(archivo));
+
+		assertEquals("El certificado PDF no puede superar los 5 MB.", ex.getMessage());
 	}
 
 	private byte[] crearPng(int width, int height) throws Exception {

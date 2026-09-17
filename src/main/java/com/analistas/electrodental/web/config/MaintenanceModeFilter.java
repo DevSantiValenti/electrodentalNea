@@ -30,6 +30,7 @@ public class MaintenanceModeFilter extends OncePerRequestFilter {
 			"/uploads");
 
 	private static final List<String> SEO_PATHS = List.of(
+			"/.well-known/appspecific/com.chrome.devtools.json",
 			"/robots.txt",
 			"/sitemap.xml");
 

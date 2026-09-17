@@ -43,6 +43,8 @@ public interface IProductoRepository extends JpaRepository<Producto, Long> {
 
 	List<Producto> findByActivoTrueAndOfertaTrueOrderByNombreAsc();
 
+	List<Producto> findByActivoTrueAndMostrarEnCursosTrueOrderByNombreAsc();
+
 	List<Producto> findTop4ByActivoTrueAndCategoriaIdAndIdNotOrderByNombreAsc(Long categoriaId, Long productoId);
 
 	Optional<Producto> findBySlugAndActivoTrue(String slug);

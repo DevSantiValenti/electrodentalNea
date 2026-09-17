@@ -12,10 +12,10 @@
 	<link rel="preconnect" href="https://fonts.googleapis.com">
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 	<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" onload="this.onload=null;this.rel='stylesheet'">
-	<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&icon_names=account_balance,add_shopping_cart,arrow_back,arrow_forward,category,chat,check_circle,chevron_right,delete,home,info,inventory_2,link,local_shipping,location_on,mail,payments,report,search,share,shopping_cart,storefront,support_agent,verified_user&display=block" onload="this.onload=null;this.rel='stylesheet'">
+	<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&icon_names=account_balance,add_shopping_cart,arrow_back,arrow_forward,category,chat,check_circle,chevron_right,delete,download,home,info,inventory_2,link,local_shipping,location_on,mail,payments,play_circle,report,schedule,school,search,share,shopping_cart,storefront,support_agent,verified_user,workspace_premium&display=block" onload="this.onload=null;this.rel='stylesheet'">
 	<noscript>
 		<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-		<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&icon_names=account_balance,add_shopping_cart,arrow_back,arrow_forward,category,chat,check_circle,chevron_right,delete,home,info,inventory_2,link,local_shipping,location_on,mail,payments,report,search,share,shopping_cart,storefront,support_agent,verified_user&display=block" rel="stylesheet">
+		<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&icon_names=account_balance,add_shopping_cart,arrow_back,arrow_forward,category,chat,check_circle,chevron_right,delete,download,home,info,inventory_2,link,local_shipping,location_on,mail,payments,play_circle,report,schedule,school,search,share,shopping_cart,storefront,support_agent,verified_user,workspace_premium&display=block" rel="stylesheet">
 	</noscript>
 	<style>
 		.material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
@@ -83,6 +83,7 @@
 		<nav class="shop-main-nav order-2 flex items-center gap-1.5 text-[13px] font-semibold lg:order-3">
 			<a th:href="@{/catalogo}" class="mobile-catalog-link rounded-lg px-2.5 py-2 text-slate-700 hover:bg-surface-soft sm:inline-flex">Catálogo</a>
 			<a th:href="@{/ofertas}" class="hidden rounded-lg px-2.5 py-2 text-slate-700 hover:bg-surface-soft sm:inline-flex">Ofertas</a>
+			<a th:href="@{/cursos}" class="mobile-catalog-link rounded-lg px-2.5 py-2 text-slate-700 hover:bg-surface-soft sm:inline-flex">Cursos</a>
 			<a href="https://denttech.com.ar" target="_blank" rel="noopener" class="hidden items-center gap-2 rounded-xl border-[#66e2f8]/40 bg-[linear-gradient(135deg,#011427_0%,#12384d_45%,#66e2f8_100%)] px-2.5 py-2 text-white shadow-sm shadow-cyan-950/20 hover:brightness-110 sm:inline-flex">
 				<img src="/img/denttech-logo.svg" alt="DentTech" class="h-6 w-auto">
 				<span class="text-[13px] font-black text-white">Servicio técnico</span>

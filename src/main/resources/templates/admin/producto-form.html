@@ -174,6 +174,9 @@
 							<p th:if="${erroresProducto != null && erroresProducto.containsKey('ofertaInput')}" class="mt-1 text-xs font-black text-red-700" th:text="${erroresProducto['ofertaInput']}">Error</p>
 						</label>
 					</div>
+					<hr class="my-4 border-outline">
+					<label class="flex items-center gap-3 text-sm font-bold"><input th:field="*{mostrarEnCursos}" type="checkbox" class="rounded border-outline"> Mostrar en cursos</label>
+					<p class="mt-2 text-xs font-semibold text-muted">Aparece como producto recomendado dentro de las clases de Cursos y Capacitaciones.</p>
 				</div>
 			</aside>
 		</div>

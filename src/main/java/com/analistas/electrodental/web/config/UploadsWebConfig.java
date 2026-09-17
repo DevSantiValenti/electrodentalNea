@@ -31,8 +31,17 @@ public class UploadsWebConfig implements WebMvcConfigurer {
 		if (!uploadLocation.endsWith("/")) {
 			uploadLocation += "/";
 		}
-		registry.addResourceHandler("/uploads/**")
-				.addResourceLocations(uploadLocation)
+		registry.addResourceHandler("/uploads/productos/**")
+				.addResourceLocations(uploadLocation + "productos/")
+				.setCacheControl(STATIC_CACHE);
+		registry.addResourceHandler("/uploads/logo/**")
+				.addResourceLocations(uploadLocation + "logo/")
+				.setCacheControl(STATIC_CACHE);
+		registry.addResourceHandler("/uploads/fondo/**")
+				.addResourceLocations(uploadLocation + "fondo/")
+				.setCacheControl(STATIC_CACHE);
+		registry.addResourceHandler("/uploads/cursos/miniaturas/**")
+				.addResourceLocations(uploadLocation + "cursos/miniaturas/")
 				.setCacheControl(STATIC_CACHE);
 		registry.addResourceHandler("/css/**")
 				.addResourceLocations("classpath:/static/css/")

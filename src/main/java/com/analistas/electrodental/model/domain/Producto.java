@@ -71,6 +71,8 @@ public class Producto {
 
 	private Boolean oferta = false;
 
+	private Boolean mostrarEnCursos = false;
+
 	private Boolean compraHabilitada = true;
 
 	private Boolean envioOcaDesactivado = false;

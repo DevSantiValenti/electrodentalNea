@@ -932,6 +932,7 @@ public class AdminController {
 		producto.setActivo(producto.getActivo() != null && producto.getActivo());
 		producto.setDestacado(producto.getDestacado() != null && producto.getDestacado());
 		producto.setOferta(producto.getOferta() != null && producto.getOferta());
+		producto.setMostrarEnCursos(producto.getMostrarEnCursos() != null && producto.getMostrarEnCursos());
 		producto.setPorcentajeOferta(producto.getOferta() ? porcentajeOferta : BigDecimal.ZERO);
 		producto.setCompraHabilitada(producto.getCompraHabilitada() != null && producto.getCompraHabilitada());
 		producto.setEnvioOcaDesactivado(producto.getEnvioOcaDesactivado() != null && producto.getEnvioOcaDesactivado());

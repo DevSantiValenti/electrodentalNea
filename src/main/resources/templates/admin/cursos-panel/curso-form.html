@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/cursos-panel/fragments/layout :: head(${curso.id == null ? 'Cursos | Nuevo curso' : 'Cursos | Editar curso'})}"></head>
+<body class="admin-shell text-slate-900">
+<aside th:replace="~{admin/cursos-panel/fragments/layout :: sidebar('cursos')}"></aside>
+<header th:replace="~{admin/cursos-panel/fragments/layout :: mobilebar('cursos')}"></header>
+
+<main class="p-4 sm:p-6 lg:ml-64 lg:p-8">
+	<div th:replace="~{admin/cursos-panel/fragments/layout :: topbar(${curso.id == null ? 'Nuevo Curso' : 'Editar Curso'}, 'Cargá los datos, clases de YouTube y certificado del curso.')}"></div>
+
+	<div th:if="${mensajeError}" class="mb-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-bold text-red-800" th:text="${mensajeError}">
+		No se pudo guardar el curso.
+	</div>
+
+	<form id="curso-form" th:action="${curso.id == null ? '/admin/cursos-panel/cursos' : '/admin/cursos-panel/cursos/' + curso.id}" th:object="${curso}" method="post" enctype="multipart/form-data" class="admin-card rounded-2xl p-6">
+		<div class="grid gap-6 lg:grid-cols-3">
+			<section class="space-y-5 lg:col-span-2">
+				<div class="grid gap-4 md:grid-cols-2">
+					<label class="md:col-span-2">
+						<span class="text-sm font-bold" th:classappend="${erroresCurso != null && erroresCurso.containsKey('titulo')} ? ' text-red-700' : ' text-primary'">Título</span>
+						<input th:field="*{titulo}" required class="mt-1 w-full rounded-lg border-outline" th:classappend="${erroresCurso != null && erroresCurso.containsKey('titulo')} ? ' border-red-500 ring-2 ring-red-100' : ''" placeholder="Capacitación en equipamiento dental">
+						<p th:if="${erroresCurso != null && erroresCurso.containsKey('titulo')}" class="mt-1 text-xs font-black text-red-700" th:text="${erroresCurso['titulo']}">Error</p>
+					</label>
+					<label>
+						<span class="text-sm font-bold" th:classappend="${erroresCurso != null && erroresCurso.containsKey('slug')} ? ' text-red-700' : ' text-primary'">Slug</span>
+						<input th:field="*{slug}" class="mt-1 w-full rounded-lg border-outline" th:classappend="${erroresCurso != null && erroresCurso.containsKey('slug')} ? ' border-red-500 ring-2 ring-red-100' : ''" placeholder="capacitacion-equipamiento-dental">
+						<p th:if="${erroresCurso != null && erroresCurso.containsKey('slug')}" class="mt-1 text-xs font-black text-red-700" th:text="${erroresCurso['slug']}">Error</p>
+					</label>
+					<label>
+						<span class="text-sm font-bold" th:classappend="${erroresCurso != null && erroresCurso.containsKey('duracionHoras')} ? ' text-red-700' : ' text-primary'">Duración en hs</span>
+						<input th:field="*{duracionHoras}" type="number" min="0" step="0.25" class="mt-1 w-full rounded-lg border-outline" th:classappend="${erroresCurso != null && erroresCurso.containsKey('duracionHoras')} ? ' border-red-500 ring-2 ring-red-100' : ''">
+						<p th:if="${erroresCurso != null && erroresCurso.containsKey('duracionHoras')}" class="mt-1 text-xs font-black text-red-700" th:text="${erroresCurso['duracionHoras']}">Error</p>
+					</label>
+					<label>
+						<span class="text-sm font-bold text-primary">Orden</span>
+						<input th:field="*{orden}" type="number" class="mt-1 w-full rounded-lg border-outline">
+					</label>
+					<label class="flex items-center gap-3 pt-7 text-sm font-bold text-primary">
+						<input th:field="*{activo}" type="checkbox" class="rounded border-outline"> Activo y visible
+					</label>
+					<label class="md:col-span-2">
+						<span class="text-sm font-bold text-primary">Descripción breve</span>
+						<textarea th:field="*{descripcionBreve}" rows="4" class="mt-1 w-full rounded-lg border-outline" placeholder="Breve descripción de la capacitación."></textarea>
+					</label>
+					<div class="md:col-span-2">
+						<span class="text-sm font-bold text-primary">Miniatura</span>
+						<input type="hidden" th:field="*{miniatura}">
+						<div th:if="${!#strings.isEmpty(curso.miniatura)}" class="mt-2 flex items-center gap-3 rounded-lg border border-outline bg-white p-3">
+							<img class="h-16 w-24 rounded-lg bg-surface-soft object-cover" th:src="${curso.miniatura}" th:alt="|Miniatura de ${curso.titulo ?: 'curso'}|">
+							<p class="min-w-0 truncate text-sm font-semibold text-slate-600" th:text="${curso.miniatura}">/uploads/cursos/miniaturas/imagen.png</p>
+						</div>
+						<input name="miniaturaArchivo" type="file" accept="image/*" class="mt-2 w-full rounded-lg border border-outline bg-white p-3 text-sm font-semibold text-slate-700">
+						<p th:if="${erroresCurso != null && erroresCurso.containsKey('miniaturaArchivo')}" class="mt-1 text-xs font-black text-red-700" th:text="${erroresCurso['miniaturaArchivo']}">Error</p>
+					</div>
+				</div>
+
+				<section class="rounded-xl border border-outline bg-white p-4">
+					<div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+						<div>
+							<h2 class="font-black text-primary">Clases</h2>
+							<p class="text-xs font-semibold text-muted">Cada clase se publica como video embebido de YouTube.</p>
+						</div>
+						<button type="button" id="add-course-class" class="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-secondary text-white hover:opacity-90">
+							<span class="material-symbols-outlined">add</span>
+						</button>
+					</div>
+					<div id="course-class-rows" class="mt-4 space-y-4">
+						<div th:each="clase,iter : ${clasesCurso}" class="course-class-row rounded-xl border border-outline bg-surface-soft p-4">
+							<div class="mb-3 flex items-center justify-between gap-3">
+								<p class="text-sm font-black text-primary">Clase <span data-class-number th:text="${iter.index + 1}">1</span></p>
+								<button type="button" class="remove-course-class inline-flex h-9 w-9 items-center justify-center rounded-lg border border-outline bg-white text-secondary hover:bg-secondary hover:text-white">
+									<span class="material-symbols-outlined text-base">delete</span>
+								</button>
+							</div>
+							<div class="grid gap-3 md:grid-cols-[1fr_120px]">
+								<label>
+									<span class="text-xs font-black uppercase text-slate-500">Título</span>
+									<input name="claseTitulos" th:value="${clase.titulo}" class="mt-1 w-full rounded-lg border-outline" placeholder="Clase introductoria">
+								</label>
+								<label>
+									<span class="text-xs font-black uppercase text-slate-500">Orden</span>
+									<input name="claseOrdenes" th:value="${clase.ordenSeguro()}" type="number" class="mt-1 w-full rounded-lg border-outline">
+								</label>
+								<label class="md:col-span-2">
+									<span class="text-xs font-black uppercase text-slate-500">Link de YouTube</span>
+									<input name="claseYoutubeUrls" th:value="${clase.youtubeUrl}" class="mt-1 w-full rounded-lg border-outline" placeholder="https://www.youtube.com/watch?v=...">
+								</label>
+								<label class="md:col-span-2">
+									<span class="text-xs font-black uppercase text-slate-500">Descripción opcional</span>
+									<textarea name="claseDescripciones" rows="2" class="mt-1 w-full rounded-lg border-outline" th:text="${clase.descripcion}"></textarea>
+								</label>
+								<label class="flex items-center gap-3 text-sm font-bold text-primary">
+									<input name="claseActivas" th:value="${iter.index}" th:checked="${clase.activoVisible()}" type="checkbox" class="rounded border-outline"> Activa
+								</label>
+							</div>
+						</div>
+					</div>
+				</section>
+			</section>
+
+			<aside class="space-y-4">
+				<section class="rounded-xl border border-outline bg-surface-soft p-4">
+					<h2 class="font-black text-primary">Certificado</h2>
+					<div class="mt-4 grid gap-4">
+						<label>
+							<span class="text-sm font-bold text-primary">Modo</span>
+							<select th:field="*{certificadoModo}" class="mt-1 w-full rounded-lg border-outline">
+								<option th:each="modo : ${modosCertificado}" th:value="${modo}" th:text="${modo.etiqueta}">Modo</option>
+							</select>
+						</label>
+						<label>
+							<span class="text-sm font-bold" th:classappend="${erroresCurso != null && erroresCurso.containsKey('certificadoCodigo')} ? ' text-red-700' : ' text-primary'">Código</span>
+							<input th:field="*{certificadoCodigo}" class="mt-1 w-full rounded-lg border-outline uppercase" th:classappend="${erroresCurso != null && erroresCurso.containsKey('certificadoCodigo')} ? ' border-red-500 ring-2 ring-red-100' : ''" placeholder="ABC123">
+							<p th:if="${erroresCurso != null && erroresCurso.containsKey('certificadoCodigo')}" class="mt-1 text-xs font-black text-red-700" th:text="${erroresCurso['certificadoCodigo']}">Error</p>
+						</label>
+						<div>
+							<span class="text-sm font-bold text-primary">PDF del certificado</span>
+							<input type="hidden" th:field="*{certificadoArchivo}">
+							<p th:if="${!#strings.isEmpty(curso.certificadoArchivo)}" class="mt-2 rounded-lg border border-outline bg-white p-3 text-xs font-bold text-slate-600" th:text="${curso.certificadoArchivo}">/uploads/cursos/certificados/certificado.pdf</p>
+							<input id="certificadoArchivoUpload" name="certificadoArchivoUpload" type="file" accept="application/pdf,.pdf" data-max-bytes="5242880" data-max-label="5 MB" class="mt-2 w-full rounded-lg border border-outline bg-white p-3 text-sm font-semibold text-slate-700">
+							<p class="mt-1 text-xs font-semibold text-muted">Sólo PDF. Tamaño máximo: 5 MB.</p>
+							<p data-certificado-upload-error class="mt-1 hidden text-xs font-black text-red-700"></p>
+							<p th:if="${erroresCurso != null && erroresCurso.containsKey('certificadoArchivoUpload')}" class="mt-1 text-xs font-black text-red-700" th:text="${erroresCurso['certificadoArchivoUpload']}">Error</p>
+						</div>
+						<label>
+							<span class="text-sm font-bold" th:classappend="${erroresCurso != null && erroresCurso.containsKey('certificadoLinkExterno')} ? ' text-red-700' : ' text-primary'">Link externo</span>
+							<input th:field="*{certificadoLinkExterno}" class="mt-1 w-full rounded-lg border-outline" th:classappend="${erroresCurso != null && erroresCurso.containsKey('certificadoLinkExterno')} ? ' border-red-500 ring-2 ring-red-100' : ''" placeholder="https://drive.google.com/...">
+							<p th:if="${erroresCurso != null && erroresCurso.containsKey('certificadoLinkExterno')}" class="mt-1 text-xs font-black text-red-700" th:text="${erroresCurso['certificadoLinkExterno']}">Error</p>
+						</label>
+					</div>
+				</section>
+			</aside>
+		</div>
+		<div class="mt-6 flex flex-wrap gap-3 border-t border-outline pt-6">
+			<button class="rounded-xl bg-secondary px-5 py-3 font-black text-white hover:opacity-90">Guardar curso</button>
+			<a th:href="@{/admin/cursos-panel/cursos}" class="rounded-xl border border-outline px-5 py-3 font-bold text-primary hover:bg-surface-soft">Cancelar</a>
+		</div>
+	</form>
+</main>
+<script>
+	const rows = document.querySelector("#course-class-rows");
+	const addButton = document.querySelector("#add-course-class");
+	const cursoForm = document.querySelector("#curso-form");
+	const certificadoInput = document.querySelector("#certificadoArchivoUpload");
+	const certificadoError = document.querySelector("[data-certificado-upload-error]");
+
+	function updateClassRows() {
+		rows?.querySelectorAll(".course-class-row").forEach((row, index) => {
+			const number = row.querySelector("[data-class-number]");
+			const active = row.querySelector("input[name='claseActivas']");
+			const order = row.querySelector("input[name='claseOrdenes']");
+			if (number) number.textContent = index + 1;
+			if (active) active.value = index;
+			if (order && !order.value) order.value = index + 1;
+		});
+	}
+
+	function bindRemove(button) {
+		button.addEventListener("click", () => {
+			if (!rows) return;
+			if (rows.querySelectorAll(".course-class-row").length === 1) {
+				button.closest(".course-class-row")?.querySelectorAll("input, textarea").forEach((field) => {
+					if (field.type === "checkbox") {
+						field.checked = true;
+					} else {
+						field.value = "";
+					}
+				});
+				return;
+			}
+			button.closest(".course-class-row")?.remove();
+			updateClassRows();
+		});
+	}
+
+	rows?.querySelectorAll(".remove-course-class").forEach(bindRemove);
+
+	addButton?.addEventListener("click", () => {
+		const first = rows?.querySelector(".course-class-row");
+		if (!first || !rows) return;
+		const clone = first.cloneNode(true);
+		clone.querySelectorAll("input, textarea").forEach((field) => {
+			if (field.type === "checkbox") {
+				field.checked = true;
+			} else {
+				field.value = "";
+			}
+		});
+		bindRemove(clone.querySelector(".remove-course-class"));
+		rows.appendChild(clone);
+		updateClassRows();
+	});
+
+	function mostrarErrorCertificado(mensaje) {
+		if (!certificadoError) return;
+		certificadoError.textContent = mensaje;
+		certificadoError.classList.toggle("hidden", !mensaje);
+	}
+
+	function validarCertificadoUpload() {
+		if (!certificadoInput || !certificadoInput.files?.length) {
+			mostrarErrorCertificado("");
+			return true;
+		}
+		const archivo = certificadoInput.files[0];
+		const maxBytes = Number(certificadoInput.dataset.maxBytes || 5242880);
+		const maxLabel = certificadoInput.dataset.maxLabel || "5 MB";
+		const nombre = archivo.name.toLowerCase();
+		const esPdf = archivo.type === "application/pdf" || nombre.endsWith(".pdf");
+		let mensaje = "";
+		if (!esPdf) {
+			mensaje = "Solo se pueden subir certificados en PDF.";
+		} else if (archivo.size > maxBytes) {
+			mensaje = `El certificado PDF no puede superar los ${maxLabel}.`;
+		}
+		mostrarErrorCertificado(mensaje);
+		if (mensaje) {
+			certificadoInput.value = "";
+			return false;
+		}
+		return true;
+	}
+
+	certificadoInput?.addEventListener("change", validarCertificadoUpload);
+	cursoForm?.addEventListener("submit", (event) => {
+		if (!validarCertificadoUpload()) {
+			event.preventDefault();
+		}
+	});
+
+	updateClassRows();
+</script>
+</body>
+</html>

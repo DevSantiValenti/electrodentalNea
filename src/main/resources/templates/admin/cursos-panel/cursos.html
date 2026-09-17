@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/cursos-panel/fragments/layout :: head('Cursos | Listado')}"></head>
+<body class="admin-shell text-slate-900">
+<aside th:replace="~{admin/cursos-panel/fragments/layout :: sidebar('cursos')}"></aside>
+<header th:replace="~{admin/cursos-panel/fragments/layout :: mobilebar('cursos')}"></header>
+
+<main class="p-4 sm:p-6 lg:ml-64 lg:p-8">
+	<div th:replace="~{admin/cursos-panel/fragments/layout :: topbar('Cursos y Capacitaciones', 'Gestioná cursos, clases grabadas y certificados.')}"></div>
+
+	<div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+		<div class="space-y-2">
+			<div th:if="${mensaje}" class="rounded-lg bg-green-50 px-4 py-3 text-sm font-bold text-green-800" th:text="${mensaje}">Mensaje</div>
+		</div>
+		<a th:href="@{/admin/cursos-panel/cursos/nuevo}" class="inline-flex items-center justify-center gap-2 rounded-xl bg-secondary px-4 py-3 text-sm font-bold text-white hover:opacity-90">
+			<span class="material-symbols-outlined">add_circle</span> Nuevo curso
+		</a>
+	</div>
+
+	<section class="admin-card rounded-2xl p-6">
+		<div th:if="${#lists.isEmpty(cursos)}" class="rounded-xl border border-dashed border-outline p-10 text-center">
+			<h2 class="text-xl font-black text-primary">Aún no hay cursos</h2>
+			<p class="mt-2 text-sm text-muted">Creá el primero para activar la sección pública.</p>
+			<a th:href="@{/admin/cursos-panel/cursos/nuevo}" class="mt-5 inline-flex rounded-lg bg-secondary px-5 py-3 font-bold text-white">Crear curso</a>
+		</div>
+
+		<div th:if="${!#lists.isEmpty(cursos)}" class="grid gap-5 lg:grid-cols-2">
+			<article th:each="curso : ${cursos}" class="rounded-xl border border-outline p-5">
+				<div class="flex gap-4">
+					<img class="h-24 w-32 rounded-lg border border-outline bg-surface-soft object-cover" th:src="${#strings.isEmpty(curso.miniatura) ? configuracionTienda.logoUrl : curso.miniatura}" th:alt="${curso.titulo}">
+					<div class="min-w-0 flex-1">
+						<div class="flex flex-wrap items-center gap-2">
+							<h2 class="text-xl font-black text-primary" th:text="${curso.titulo}">Curso</h2>
+							<span th:if="${!curso.activo}" class="rounded bg-slate-200 px-2 py-1 text-[10px] font-black text-slate-600">INACTIVO</span>
+							<span th:if="${curso.requiereCodigoCertificado()}" class="rounded bg-amber-100 px-2 py-1 text-[10px] font-black text-amber-800">CON CÓDIGO</span>
+						</div>
+						<p class="mt-1 text-xs font-bold text-muted" th:text="|/${curso.slug}|">slug</p>
+						<p class="mt-3 line-clamp-2 text-sm text-slate-600" th:text="${curso.descripcionBreve ?: 'Sin descripción'}">Descripción</p>
+						<p class="mt-2 text-xs font-black uppercase text-slate-500" th:text="|${#lists.size(curso.clases)} clase(s) cargada(s)|">0 clases</p>
+					</div>
+				</div>
+				<div class="mt-5 flex flex-wrap gap-2 border-t border-outline pt-4">
+					<a th:href="@{/admin/cursos-panel/cursos/{id}/editar(id=${curso.id})}" class="inline-flex items-center gap-1 rounded-lg border border-outline px-3 py-2 text-sm font-bold text-primary hover:bg-surface-soft">
+						<span class="material-symbols-outlined text-base">edit</span> Editar
+					</a>
+					<a th:href="@{/cursos/{slug}(slug=${curso.slugUrl})}" target="_blank" rel="noopener" class="inline-flex items-center gap-1 rounded-lg border border-outline px-3 py-2 text-sm font-bold text-primary hover:bg-surface-soft">
+						<span class="material-symbols-outlined text-base">open_in_new</span> Ver
+					</a>
+					<button type="button" th:onclick="|document.getElementById('modal-eliminar-curso-${curso.id}').showModal()|" class="inline-flex items-center gap-1 rounded-lg bg-red-600 px-3 py-2 text-sm font-bold text-white hover:bg-red-700">
+						<span class="material-symbols-outlined text-base">delete</span> Desactivar
+					</button>
+				</div>
+				<dialog th:id="|modal-eliminar-curso-${curso.id}|" class="w-full max-w-md rounded-2xl border border-outline p-0 shadow-2xl backdrop:bg-slate-900/40">
+					<div class="p-6">
+						<h3 class="text-lg font-black text-primary">Desactivar curso</h3>
+						<p class="mt-2 text-sm text-slate-600">El curso dejará de verse públicamente, pero quedará editable en el panel.</p>
+						<div class="mt-6 flex justify-end gap-2">
+							<form method="dialog">
+								<button class="rounded-lg border border-outline px-4 py-2 text-sm font-bold text-primary hover:bg-surface-soft">Cancelar</button>
+							</form>
+							<form th:action="@{/admin/cursos-panel/cursos/{id}/eliminar(id=${curso.id})}" method="post">
+								<button class="rounded-lg bg-red-600 px-4 py-2 text-sm font-bold text-white hover:bg-red-700">Desactivar</button>
+							</form>
+						</div>
+					</div>
+				</dialog>
+			</article>
+		</div>
+	</section>
+</main>
+</body>
+</html>

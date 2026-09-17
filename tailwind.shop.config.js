@@ -5,6 +5,7 @@ module.exports = {
     "./src/main/resources/templates/contact.html",
     "./src/main/resources/templates/home.html",
     "./src/main/resources/templates/producto.html",
+    "./src/main/resources/templates/cursos/*.html",
     "./src/main/resources/templates/simple-page.html",
     "./src/main/resources/templates/fragments/shop.html"
   ],

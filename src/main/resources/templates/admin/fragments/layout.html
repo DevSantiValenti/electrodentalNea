@@ -78,6 +78,9 @@
 		<a th:href="@{/admin/clientes}" th:classappend="${active == 'clientes'} ? ' admin-link-active' : ''" class="flex items-center gap-3 rounded-lg px-4 py-2.5 text-sm font-bold text-slate-600 hover:bg-surface-soft">
 			<span class="material-symbols-outlined">group</span> Clientes
 		</a>
+		<a th:href="@{/admin/cuentas-cursos}" th:classappend="${active == 'cuentas-cursos'} ? ' admin-link-active' : ''" class="flex items-center gap-3 rounded-lg px-4 py-2.5 text-sm font-bold text-slate-600 hover:bg-surface-soft">
+			<span class="material-symbols-outlined">manage_accounts</span> Cuentas cursos
+		</a>
 		<a th:href="@{/admin/configuracion}" th:classappend="${active == 'configuracion'} ? ' admin-link-active' : ''" class="flex items-center gap-3 rounded-lg px-4 py-2.5 text-sm font-bold text-slate-600 hover:bg-surface-soft">
 			<span class="material-symbols-outlined">settings</span> Configuración
 		</a>
@@ -113,6 +116,7 @@
 		<a th:href="@{/admin/envios}" th:classappend="${active == 'envios'} ? ' bg-secondary-container text-on-secondary-container' : ' bg-surface-soft text-slate-600'" class="whitespace-nowrap rounded-full px-3 py-2">Envíos</a>
 		<a th:href="@{/admin/ventas}" th:classappend="${active == 'ventas'} ? ' bg-secondary-container text-on-secondary-container' : ' bg-surface-soft text-slate-600'" class="whitespace-nowrap rounded-full px-3 py-2">Ventas</a>
 		<a th:href="@{/admin/clientes}" th:classappend="${active == 'clientes'} ? ' bg-secondary-container text-on-secondary-container' : ' bg-surface-soft text-slate-600'" class="whitespace-nowrap rounded-full px-3 py-2">Clientes</a>
+		<a th:href="@{/admin/cuentas-cursos}" th:classappend="${active == 'cuentas-cursos'} ? ' bg-secondary-container text-on-secondary-container' : ' bg-surface-soft text-slate-600'" class="whitespace-nowrap rounded-full px-3 py-2">Cuentas cursos</a>
 		<a th:href="@{/admin/configuracion}" th:classappend="${active == 'configuracion'} ? ' bg-secondary-container text-on-secondary-container' : ' bg-surface-soft text-slate-600'" class="whitespace-nowrap rounded-full px-3 py-2">Config</a>
 	</nav>
 </header>

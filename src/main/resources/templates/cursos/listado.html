@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/shop :: head('ElectrodentalNea | Cursos y Capacitaciones')}"></head>
+<body class="bg-background font-sans text-slate-900">
+<header th:replace="~{fragments/shop :: header}"></header>
+
+<style>
+	.cursos-grid {
+		grid-template-columns: repeat(1, minmax(0, 1fr));
+	}
+	@media (min-width: 640px) {
+		.cursos-grid {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+		}
+	}
+	@media (min-width: 1024px) {
+		.cursos-grid {
+			grid-template-columns: repeat(3, minmax(0, 1fr));
+		}
+	}
+</style>
+
+<main class="mx-auto max-w-7xl px-4 py-8 sm:px-6" th:style="${configuracionTienda.fondoMainStyle}">
+	<div class="mb-7 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+		<div>
+			<p class="text-sm font-semibold text-slate-500">Inicio / Cursos y Capacitaciones</p>
+			<h1 class="mt-2 text-4xl font-black text-primary">Cursos y Capacitaciones</h1>
+			<p class="mt-2 max-w-3xl text-slate-600">Clases grabadas, capacitaciones profesionales y certificados disponibles desde Electrodental NEA.</p>
+		</div>
+		<a th:href="@{/catalogo}" class="inline-flex items-center justify-center gap-2 rounded-lg bg-primary-container px-5 py-3 font-bold text-white hover:opacity-90">
+			<span class="material-symbols-outlined">storefront</span> Ver productos
+		</a>
+	</div>
+
+	<section th:if="${#lists.isEmpty(cursos)}" class="rounded-xl border border-dashed border-outline bg-white p-10 text-center">
+		<span class="material-symbols-outlined text-5xl text-secondary">school</span>
+		<h2 class="mt-3 text-xl font-black text-primary">Aún no hay cursos publicados</h2>
+		<p class="mt-2 text-slate-600">Cuando administración cargue una capacitación activa, aparecerá en esta sección.</p>
+	</section>
+
+	<section th:if="${!#lists.isEmpty(cursos)}" class="cursos-grid mt-5 grid gap-5">
+		<article th:each="curso,iter : ${cursos}" class="overflow-hidden rounded-xl border border-outline bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-md">
+			<a th:href="@{/cursos/{slug}(slug=${curso.slugUrl})}" class="block aspect-[16/9] bg-surface-soft">
+				<img class="h-full w-full object-cover" decoding="async" th:loading="${iter.index < 3 ? 'eager' : 'lazy'}" th:src="${#strings.isEmpty(curso.miniatura) ? configuracionTienda.logoUrl : curso.miniatura}" th:alt="${curso.titulo}">
+			</a>
+			<div class="p-5">
+				<div class="mb-3 flex flex-wrap items-center gap-2">
+					<span class="inline-flex items-center gap-1 rounded-md bg-primary-container px-2.5 py-1 text-xs font-black text-white">
+						<span class="material-symbols-outlined text-[16px]">schedule</span>
+						<span th:text="|${curso.duracionHoras.stripTrailingZeros().toPlainString()} hs|">0 hs</span>
+					</span>
+					<span class="rounded-md bg-secondary px-2.5 py-1 text-xs font-black text-white">Capacitación</span>
+				</div>
+				<a th:href="@{/cursos/{slug}(slug=${curso.slugUrl})}" class="line-clamp-2 text-xl font-black leading-6 text-primary hover:text-secondary" th:text="${curso.titulo}">Curso</a>
+				<p class="mt-3 line-clamp-3 text-sm leading-6 text-slate-600" th:text="${curso.descripcionBreve ?: 'Capacitación profesional disponible para ver online.'}">Descripción</p>
+				<a th:href="@{/cursos/{slug}(slug=${curso.slugUrl})}" class="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-secondary px-4 py-3 text-sm font-black text-white hover:opacity-90">
+					<span class="material-symbols-outlined">play_circle</span> Ver clases
+				</a>
+			</div>
+		</article>
+	</section>
+</main>
+
+<footer th:replace="~{fragments/shop :: footer}"></footer>
+</body>
+</html>

@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/cursos-panel/fragments/layout :: head('Cursos | Panel')}"></head>
+<body class="admin-shell text-slate-900">
+<aside th:replace="~{admin/cursos-panel/fragments/layout :: sidebar('dashboard')}"></aside>
+<header th:replace="~{admin/cursos-panel/fragments/layout :: mobilebar('dashboard')}"></header>
+
+<main class="p-4 sm:p-6 lg:ml-64 lg:p-8">
+	<div th:replace="~{admin/cursos-panel/fragments/layout :: topbar('Panel de Cursos', 'Administración separada para capacitaciones, clases y certificados.')}"></div>
+
+	<div th:if="${param.denied}" class="mb-5 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-bold text-amber-800">
+		Tu cuenta sólo puede ingresar al panel de cursos.
+	</div>
+
+	<section class="mb-8 grid gap-5 md:grid-cols-3">
+		<article class="admin-card flex h-40 flex-col justify-between rounded-2xl p-6">
+			<div class="flex items-start justify-between">
+				<span class="text-sm font-bold text-muted">Cursos activos</span>
+				<span class="material-symbols-outlined rounded-xl bg-primary/10 p-2 text-primary">school</span>
+			</div>
+			<div>
+				<p class="text-3xl font-black text-primary" th:text="${totalCursosActivos}">0</p>
+				<p class="mt-1 text-xs font-bold text-muted">Publicados en la tienda</p>
+			</div>
+		</article>
+		<article class="admin-card flex h-40 flex-col justify-between rounded-2xl p-6">
+			<div class="flex items-start justify-between">
+				<span class="text-sm font-bold text-muted">Clases activas</span>
+				<span class="material-symbols-outlined rounded-xl bg-secondary/10 p-2 text-secondary">play_circle</span>
+			</div>
+			<div>
+				<p class="text-3xl font-black text-primary" th:text="${totalClasesActivas}">0</p>
+				<p class="mt-1 text-xs font-bold text-muted">Videos visibles para visitantes</p>
+			</div>
+		</article>
+		<a th:href="@{/admin/cursos-panel/cursos/nuevo}" class="admin-card flex h-40 flex-col justify-between rounded-2xl p-6 hover:bg-surface-soft">
+			<div class="flex items-start justify-between">
+				<span class="text-sm font-bold text-muted">Nuevo contenido</span>
+				<span class="material-symbols-outlined rounded-xl bg-slate-800 p-2 text-white">add_circle</span>
+			</div>
+			<div>
+				<h2 class="text-xl font-black text-primary">Crear curso</h2>
+				<p class="mt-1 text-xs font-bold text-muted">Cargar clases y certificado</p>
+			</div>
+		</a>
+	</section>
+
+	<section class="admin-card overflow-hidden rounded-2xl">
+		<div class="flex flex-col gap-3 border-b border-outline p-6 sm:flex-row sm:items-center sm:justify-between">
+			<div>
+				<h2 class="text-2xl font-black text-primary">Cursos recientes</h2>
+				<p class="text-sm text-muted">Accesos rápidos para editar capacitaciones.</p>
+			</div>
+			<a th:href="@{/admin/cursos-panel/cursos}" class="inline-flex items-center justify-center gap-2 rounded-xl bg-secondary px-4 py-3 text-sm font-bold text-white hover:opacity-90">
+				<span class="material-symbols-outlined">list</span> Ver todos
+			</a>
+		</div>
+		<div th:if="${#lists.isEmpty(cursos)}" class="p-8 text-center">
+			<h3 class="text-xl font-black text-primary">No hay cursos cargados</h3>
+			<p class="mt-2 text-sm text-muted">Creá el primero para publicar la sección.</p>
+		</div>
+		<div th:if="${!#lists.isEmpty(cursos)}" class="divide-y divide-outline">
+			<a th:each="curso : ${cursos}" th:href="@{/admin/cursos-panel/cursos/{id}/editar(id=${curso.id})}" class="flex flex-col gap-3 p-5 hover:bg-surface-soft sm:flex-row sm:items-center sm:justify-between">
+				<div>
+					<div class="flex items-center gap-2">
+						<h3 class="font-black text-primary" th:text="${curso.titulo}">Curso</h3>
+						<span th:if="${!curso.activo}" class="rounded bg-slate-200 px-2 py-1 text-[10px] font-black text-slate-600">INACTIVO</span>
+					</div>
+					<p class="mt-1 text-xs font-bold text-muted" th:text="|/${curso.slug}|">slug</p>
+				</div>
+				<span class="material-symbols-outlined text-slate-400">chevron_right</span>
+			</a>
+		</div>
+	</section>
+</main>
+</body>
+</html>

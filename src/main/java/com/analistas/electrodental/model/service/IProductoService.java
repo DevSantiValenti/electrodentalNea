@@ -21,6 +21,8 @@ public interface IProductoService {
 
 	List<Producto> listarOfertas();
 
+	List<Producto> listarParaCursos();
+
 	List<Producto> listarBajoStock();
 
 	long contarBajoStockAdmin();

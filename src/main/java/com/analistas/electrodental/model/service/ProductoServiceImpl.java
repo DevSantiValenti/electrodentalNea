@@ -62,6 +62,11 @@ public class ProductoServiceImpl implements IProductoService {
 	}
 
 	@Override
+	public List<Producto> listarParaCursos() {
+		return productoRepository.findByActivoTrueAndMostrarEnCursosTrueOrderByNombreAsc();
+	}
+
+	@Override
 	public List<Producto> listarBajoStock() {
 		return productoRepository.findProductosConBajoStock();
 	}

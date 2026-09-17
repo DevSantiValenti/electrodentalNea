@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:fragment="head(title)">
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title th:text="${title}">Cursos | ElectrodentalNea</title>
+	<link rel="icon" type="image/png" th:href="${configuracionTienda.logoUrl}">
+	<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+	<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+	<script>
+		tailwind.config = {
+			theme: {
+				extend: {
+					colors: {
+						primary: "#000d1b",
+						"primary-container": "#0b2438",
+						secondary: "#b71f2a",
+						"secondary-container": "#ffdad7",
+						"on-secondary-container": "#410005",
+						background: "#f8f9fb",
+						surface: "#ffffff",
+						"surface-soft": "#f2f4f6",
+						outline: "#d9dde3",
+						muted: "#6b7280"
+					},
+					fontFamily: { sans: ["Inter", "sans-serif"] }
+				}
+			}
+		}
+	</script>
+	<style>
+		body { font-family: 'Inter', sans-serif; background: #f8f9fb; }
+		.material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+		.admin-shell { min-height: 100vh; }
+		.admin-link-active { background: #ffdad7; color: #410005; transform: scale(.98); }
+		.admin-card { background: rgba(255,255,255,.94); border: 1px solid #d9dde3; box-shadow: 0 10px 30px rgba(15,23,42,.045); }
+	</style>
+</head>
+<body>
+<aside th:fragment="sidebar(active)" class="fixed inset-y-0 left-0 z-40 hidden w-64 flex-col overflow-y-auto border-r border-outline bg-white p-3 lg:flex">
+	<a th:href="@{/admin/cursos-panel}" class="mb-3 flex items-center px-4 py-2">
+		<img th:src="${configuracionTienda.logoUrl}" alt="ElectrodentalNea" class="h-11 w-auto object-contain">
+	</a>
+	<nav class="flex flex-1 flex-col gap-0.5">
+		<a th:href="@{/admin/cursos-panel}" th:classappend="${active == 'dashboard'} ? ' admin-link-active' : ''" class="flex items-center gap-3 rounded-lg px-4 py-2.5 text-sm font-bold text-slate-600 hover:bg-surface-soft">
+			<span class="material-symbols-outlined">dashboard</span> Panel cursos
+		</a>
+		<a th:href="@{/admin/cursos-panel/cursos}" th:classappend="${active == 'cursos'} ? ' admin-link-active' : ''" class="flex items-center gap-3 rounded-lg px-4 py-2.5 text-sm font-bold text-slate-600 hover:bg-surface-soft">
+			<span class="material-symbols-outlined">school</span> Cursos
+		</a>
+	</nav>
+	<div class="border-t border-outline pt-3">
+		<a th:href="@{/admin/cursos-panel/cursos/nuevo}" class="mb-3 flex w-full items-center justify-center gap-2 rounded-lg bg-secondary px-4 py-2.5 text-sm font-bold text-white hover:opacity-90">
+			<span class="material-symbols-outlined">add</span> Nuevo curso
+		</a>
+		<a th:href="@{/cursos}" class="mb-2 flex w-full items-center justify-center gap-2 rounded-lg border border-outline bg-white px-4 py-2.5 text-sm font-bold text-primary hover:bg-surface-soft">
+			<span class="material-symbols-outlined">visibility</span> Ver sección
+		</a>
+		<form th:action="@{/admin/logout}" method="post">
+			<button class="flex w-full items-center gap-3 rounded-lg px-4 py-2.5 text-sm font-bold text-slate-600 hover:bg-surface-soft">
+				<span class="material-symbols-outlined">logout</span> Cerrar sesión
+			</button>
+		</form>
+	</div>
+</aside>
+
+<header th:fragment="mobilebar(active)" class="sticky top-0 z-40 border-b border-outline bg-white/95 px-4 py-3 backdrop-blur lg:hidden">
+	<div class="flex items-center justify-between gap-3">
+		<a th:href="@{/admin/cursos-panel}" class="flex items-center"><img th:src="${configuracionTienda.logoUrl}" alt="ElectrodentalNea" class="h-12 w-auto"></a>
+		<a th:href="@{/admin/cursos-panel/cursos/nuevo}" class="inline-flex items-center gap-2 rounded-lg bg-secondary px-3 py-2 text-sm font-bold text-white">
+			<span class="material-symbols-outlined text-[18px]">add</span> Curso
+		</a>
+	</div>
+	<nav class="mt-3 flex gap-2 overflow-x-auto text-xs font-bold">
+		<a th:href="@{/admin/cursos-panel}" th:classappend="${active == 'dashboard'} ? ' bg-secondary-container text-on-secondary-container' : ' bg-surface-soft text-slate-600'" class="whitespace-nowrap rounded-full px-3 py-2">Panel</a>
+		<a th:href="@{/admin/cursos-panel/cursos}" th:classappend="${active == 'cursos'} ? ' bg-secondary-container text-on-secondary-container' : ' bg-surface-soft text-slate-600'" class="whitespace-nowrap rounded-full px-3 py-2">Cursos</a>
+	</nav>
+</header>
+
+<div th:fragment="topbar(title, subtitle)" class="mb-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+	<div>
+		<h1 class="text-3xl font-black text-primary sm:text-4xl" th:text="${title}">Panel cursos</h1>
+		<p class="mt-2 text-sm text-muted" th:text="${subtitle}">Resumen</p>
+	</div>
+</div>
+</body>
+</html>

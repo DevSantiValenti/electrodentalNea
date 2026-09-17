@@ -4,15 +4,18 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.util.HtmlUtils;
 
 import com.analistas.electrodental.model.domain.Categoria;
+import com.analistas.electrodental.model.domain.Curso;
 import com.analistas.electrodental.model.domain.Producto;
 import com.analistas.electrodental.model.domain.Subcategoria;
 import com.analistas.electrodental.model.service.ICategoriaService;
+import com.analistas.electrodental.model.service.ICursoService;
 import com.analistas.electrodental.model.service.IProductoService;
 
 @RestController
@@ -22,10 +25,15 @@ public class SeoController {
 
 	private final IProductoService productoService;
 	private final ICategoriaService categoriaService;
+	private final ICursoService cursoService;
 
-	public SeoController(IProductoService productoService, ICategoriaService categoriaService) {
+	public SeoController(
+			IProductoService productoService,
+			ICategoriaService categoriaService,
+			ICursoService cursoService) {
 		this.productoService = productoService;
 		this.categoriaService = categoriaService;
+		this.cursoService = cursoService;
 	}
 
 	@GetMapping(value = "/robots.txt", produces = MediaType.TEXT_PLAIN_VALUE)
@@ -44,12 +52,18 @@ public class SeoController {
 				""";
 	}
 
+	@GetMapping("/.well-known/appspecific/com.chrome.devtools.json")
+	public ResponseEntity<Void> chromeDevToolsProbe() {
+		return ResponseEntity.noContent().build();
+	}
+
 	@GetMapping(value = "/sitemap.xml", produces = MediaType.APPLICATION_XML_VALUE)
 	public String sitemapXml() {
 		List<SitemapEntry> entries = new ArrayList<>();
 		entries.add(new SitemapEntry("/", "daily", "1.0"));
 		entries.add(new SitemapEntry("/catalogo", "daily", "0.9"));
 		entries.add(new SitemapEntry("/ofertas", "daily", "0.8"));
+		entries.add(new SitemapEntry("/cursos", "weekly", "0.7"));
 		entries.add(new SitemapEntry("/servicio-tecnico", "monthly", "0.6"));
 		entries.add(new SitemapEntry("/contacto", "monthly", "0.5"));
 
@@ -67,6 +81,12 @@ public class SeoController {
 		for (Producto producto : productoService.listarActivos()) {
 			if (StringUtils.hasText(producto.getSlug())) {
 				entries.add(new SitemapEntry("/productos/" + producto.getSlug(), "weekly", "0.7"));
+			}
+		}
+
+		for (Curso curso : cursoService.listarActivos()) {
+			if (StringUtils.hasText(curso.getSlugUrl())) {
+				entries.add(new SitemapEntry("/cursos/" + curso.getSlugUrl(), "weekly", "0.6"));
 			}
 		}
 

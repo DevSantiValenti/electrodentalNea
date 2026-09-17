@@ -33,6 +33,9 @@ public class ProductoImagenStorageService {
 	private static final String PRODUCTOS_URL_PREFIX = "/uploads/productos/";
 	private static final String PRODUCTOS_THUMBS_DIR = "thumbs";
 	private static final String PRODUCTOS_THUMBS_URL_PREFIX = "/uploads/productos/thumbs/";
+	private static final String CURSOS_MINIATURAS_URL_PREFIX = "/uploads/cursos/miniaturas/";
+	public static final long CURSO_CERTIFICADO_MAX_BYTES = 5L * 1024L * 1024L;
+	public static final String CURSO_CERTIFICADO_MAX_LABEL = "5 MB";
 	private static final int PRODUCTO_MAX_DIMENSION = 1200;
 	private static final int PRODUCTO_CARD_MAX_DIMENSION = 440;
 	private static final float PRODUCTO_JPG_QUALITY = 0.82f;
@@ -41,12 +44,16 @@ public class ProductoImagenStorageService {
 	private final Path productosDir;
 	private final Path logoDir;
 	private final Path fondoDir;
+	private final Path cursosMiniaturasDir;
+	private final Path cursosCertificadosDir;
 
 	public ProductoImagenStorageService(@Value("${electrodental.upload-dir:uploads}") String uploadDir) {
 		Path baseDir = Path.of(uploadDir).toAbsolutePath().normalize();
 		this.productosDir = baseDir.resolve("productos");
 		this.logoDir = baseDir.resolve("logo");
 		this.fondoDir = baseDir.resolve("fondo");
+		this.cursosMiniaturasDir = baseDir.resolve("cursos").resolve("miniaturas");
+		this.cursosCertificadosDir = baseDir.resolve("cursos").resolve("certificados");
 	}
 
 	public String guardar(MultipartFile archivo) {
@@ -59,6 +66,47 @@ public class ProductoImagenStorageService {
 
 	public String guardarFondo(MultipartFile archivo) {
 		return guardarEnDirectorio(archivo, fondoDir, "/uploads/fondo/");
+	}
+
+	public String guardarCursoMiniatura(MultipartFile archivo) {
+		return guardarEnDirectorio(archivo, cursosMiniaturasDir, CURSOS_MINIATURAS_URL_PREFIX);
+	}
+
+	public String guardarCursoCertificado(MultipartFile archivo) {
+		if (archivo == null || archivo.isEmpty()) {
+			return "";
+		}
+		validarPdf(archivo);
+		try {
+			Files.createDirectories(cursosCertificadosDir);
+			String nombreArchivo = UUID.randomUUID() + ".pdf";
+			Path destino = cursosCertificadosDir.resolve(nombreArchivo).normalize();
+			if (!destino.startsWith(cursosCertificadosDir)) {
+				throw new IllegalArgumentException("Nombre de archivo inválido.");
+			}
+			try (InputStream inputStream = archivo.getInputStream()) {
+				Files.copy(inputStream, destino, StandardCopyOption.REPLACE_EXISTING);
+			}
+			return "/uploads/cursos/certificados/" + nombreArchivo;
+		} catch (IOException ex) {
+			throw new IllegalStateException("No se pudo guardar el certificado subido.", ex);
+		}
+	}
+
+	public Path resolverCursoCertificado(String archivoUrl) {
+		String prefix = "/uploads/cursos/certificados/";
+		if (!StringUtils.hasText(archivoUrl) || !archivoUrl.startsWith(prefix)) {
+			throw new IllegalArgumentException("Certificado inválido.");
+		}
+		String nombreArchivo = archivoUrl.substring(prefix.length());
+		if (nombreArchivo.contains("/") || nombreArchivo.contains("\\") || nombreArchivo.isBlank()) {
+			throw new IllegalArgumentException("Certificado inválido.");
+		}
+		Path archivo = cursosCertificadosDir.resolve(nombreArchivo).normalize();
+		if (!archivo.startsWith(cursosCertificadosDir)) {
+			throw new IllegalArgumentException("Certificado inválido.");
+		}
+		return archivo;
 	}
 
 	public String cardUrl(String url) {
@@ -144,6 +192,17 @@ public class ProductoImagenStorageService {
 		String extension = obtenerExtension(archivo);
 		if (!EXTENSIONES_PERMITIDAS.contains(extension)) {
 			throw new IllegalArgumentException("Formato de imagen no permitido. Usá JPG, PNG, WEBP o GIF.");
+		}
+	}
+
+	private void validarPdf(MultipartFile archivo) {
+		if (archivo.getSize() > CURSO_CERTIFICADO_MAX_BYTES) {
+			throw new IllegalArgumentException("El certificado PDF no puede superar los " + CURSO_CERTIFICADO_MAX_LABEL + ".");
+		}
+		String contentType = archivo.getContentType();
+		String extension = obtenerExtension(archivo);
+		if (!"pdf".equals(extension) && (contentType == null || !"application/pdf".equalsIgnoreCase(contentType))) {
+			throw new IllegalArgumentException("Solo se pueden subir certificados en PDF.");
 		}
 	}
 

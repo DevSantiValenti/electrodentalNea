@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/fragments/layout :: head('Admin | Cuentas cursos')}"></head>
+<body class="admin-shell text-slate-900">
+<aside th:replace="~{admin/fragments/layout :: sidebar('cuentas-cursos')}"></aside>
+<header th:replace="~{admin/fragments/layout :: mobilebar('cuentas-cursos')}"></header>
+
+<main class="p-4 sm:p-6 lg:ml-64 lg:p-8">
+	<div th:replace="~{admin/fragments/layout :: topbar('Cuentas del Panel de Cursos', 'Creá accesos separados para quienes administran cursos y certificados.')}"></div>
+
+	<div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+		<div class="space-y-2">
+			<div th:if="${mensaje}" class="rounded-lg bg-green-50 px-4 py-3 text-sm font-bold text-green-800" th:text="${mensaje}">Mensaje</div>
+		</div>
+		<div class="flex flex-wrap gap-3">
+			<a th:href="@{/admin/cursos-panel/login}" target="_blank" rel="noopener" class="inline-flex items-center justify-center gap-2 rounded-xl border border-outline bg-white px-4 py-3 text-sm font-bold text-primary hover:bg-surface-soft">
+				<span class="material-symbols-outlined">storefront</span> Login cursos
+			</a>
+			<a th:href="@{/admin/cuentas-cursos/nueva}" class="inline-flex items-center justify-center gap-2 rounded-xl bg-secondary px-4 py-3 text-sm font-bold text-white hover:opacity-90">
+				<span class="material-symbols-outlined">person_add</span> Nueva cuenta
+			</a>
+		</div>
+	</div>
+
+	<section class="admin-card rounded-2xl p-6">
+		<div th:if="${#lists.isEmpty(usuariosCursos)}" class="rounded-xl border border-dashed border-outline p-10 text-center">
+			<h2 class="text-xl font-black text-primary">No hay cuentas de cursos</h2>
+			<p class="mt-2 text-sm text-muted">Creá una cuenta para dar acceso sólo al panel de cursos.</p>
+			<a th:href="@{/admin/cuentas-cursos/nueva}" class="mt-5 inline-flex rounded-lg bg-secondary px-5 py-3 font-bold text-white">Crear cuenta</a>
+		</div>
+
+		<div th:if="${!#lists.isEmpty(usuariosCursos)}" class="overflow-hidden rounded-xl border border-outline bg-white">
+			<table class="w-full text-left text-sm">
+				<thead class="bg-surface-soft text-primary">
+					<tr>
+						<th class="px-5 py-4 font-black">Nombre</th>
+						<th class="px-5 py-4 font-black">Usuario</th>
+						<th class="px-5 py-4 font-black">Estado</th>
+						<th class="px-5 py-4 text-right font-black">Acciones</th>
+					</tr>
+				</thead>
+				<tbody class="divide-y divide-outline">
+					<tr th:each="usuario : ${usuariosCursos}">
+						<td class="px-5 py-4 font-bold text-primary" th:text="${usuario.nombre}">Nombre</td>
+						<td class="px-5 py-4 text-slate-700" th:text="${usuario.usuario}">usuario</td>
+						<td class="px-5 py-4">
+							<span th:if="${usuario.activo}" class="rounded bg-green-100 px-2 py-1 text-[10px] font-black uppercase text-green-800">Activo</span>
+							<span th:if="${!usuario.activo}" class="rounded bg-slate-200 px-2 py-1 text-[10px] font-black uppercase text-slate-600">Inactivo</span>
+						</td>
+						<td class="px-5 py-4">
+							<div class="flex justify-end gap-2">
+								<a th:href="@{/admin/cuentas-cursos/{id}/editar(id=${usuario.id})}" class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-outline text-primary hover:bg-surface-soft" title="Editar cuenta">
+									<span class="material-symbols-outlined text-base">edit</span>
+								</a>
+								<button type="button" th:onclick="|document.getElementById('modal-eliminar-cuenta-${usuario.id}').showModal()|" class="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-red-600 text-white hover:bg-red-700" title="Desactivar cuenta">
+									<span class="material-symbols-outlined text-base">delete</span>
+								</button>
+							</div>
+							<dialog th:id="|modal-eliminar-cuenta-${usuario.id}|" class="w-full max-w-md rounded-2xl border border-outline p-0 shadow-2xl backdrop:bg-slate-900/40">
+								<div class="p-6">
+									<h3 class="text-lg font-black text-primary">Desactivar cuenta</h3>
+									<p class="mt-2 text-sm text-slate-600">La cuenta no podrá iniciar sesión en el panel de cursos.</p>
+									<div class="mt-6 flex justify-end gap-2">
+										<form method="dialog">
+											<button class="rounded-lg border border-outline px-4 py-2 text-sm font-bold text-primary hover:bg-surface-soft">Cancelar</button>
+										</form>
+										<form th:action="@{/admin/cuentas-cursos/{id}/eliminar(id=${usuario.id})}" method="post">
+											<button class="rounded-lg bg-red-600 px-4 py-2 text-sm font-bold text-white hover:bg-red-700">Desactivar</button>
+										</form>
+									</div>
+								</div>
+							</dialog>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+	</section>
+</main>
+</body>
+</html>

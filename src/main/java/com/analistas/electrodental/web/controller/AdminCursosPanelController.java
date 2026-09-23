@@ -23,6 +23,8 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import com.analistas.electrodental.model.domain.CertificadoModo;
 import com.analistas.electrodental.model.domain.Curso;
 import com.analistas.electrodental.model.domain.CursoClase;
+import com.analistas.electrodental.model.domain.CursoPanelUsuario;
+import com.analistas.electrodental.model.service.ICursoPanelUsuarioService;
 import com.analistas.electrodental.model.service.ICursoService;
 import com.analistas.electrodental.model.service.ProductoImagenStorageService;
 
@@ -30,12 +32,15 @@ import com.analistas.electrodental.model.service.ProductoImagenStorageService;
 public class AdminCursosPanelController {
 
 	private final ICursoService cursoService;
+	private final ICursoPanelUsuarioService usuarioService;
 	private final ProductoImagenStorageService productoImagenStorageService;
 
 	public AdminCursosPanelController(
 			ICursoService cursoService,
+			ICursoPanelUsuarioService usuarioService,
 			ProductoImagenStorageService productoImagenStorageService) {
 		this.cursoService = cursoService;
+		this.usuarioService = usuarioService;
 		this.productoImagenStorageService = productoImagenStorageService;
 	}
 
@@ -140,6 +145,79 @@ public class AdminCursosPanelController {
 		cursoService.desactivar(id);
 		redirectAttributes.addFlashAttribute("mensaje", "Curso desactivado correctamente.");
 		return "redirect:/admin/cursos-panel/cursos";
+	}
+
+	@GetMapping("/admin/cursos-panel/cuentas")
+	public String cuentas(Model model) {
+		model.addAttribute("usuariosCursos", usuarioService.listarTodos());
+		return "admin/cursos-panel/cuentas";
+	}
+
+	@GetMapping("/admin/cursos-panel/cuentas/nueva")
+	public String nuevaCuenta(Model model) {
+		CursoPanelUsuario usuario = new CursoPanelUsuario();
+		usuario.setActivo(true);
+		cargarFormularioCuenta(model, usuario);
+		return "admin/cursos-panel/cuenta-form";
+	}
+
+	@PostMapping("/admin/cursos-panel/cuentas")
+	public String guardarCuenta(
+			CursoPanelUsuario usuario,
+			@RequestParam(required = false) String password,
+			Model model,
+			RedirectAttributes redirectAttributes) {
+		Map<String, String> errores = validarCuenta(usuario, password, true);
+		if (!errores.isEmpty()) {
+			cargarFormularioCuentaConError(model, usuario, errores);
+			return "admin/cursos-panel/cuenta-form";
+		}
+		try {
+			usuarioService.guardar(usuario, password);
+			redirectAttributes.addFlashAttribute("mensaje", "Cuenta de cursos creada correctamente.");
+			return "redirect:/admin/cursos-panel/cuentas";
+		} catch (DataIntegrityViolationException ex) {
+			cargarFormularioCuentaConError(model, usuario, Map.of("usuario", "Ya existe una cuenta con ese usuario."));
+			return "admin/cursos-panel/cuenta-form";
+		}
+	}
+
+	@GetMapping("/admin/cursos-panel/cuentas/{id}/editar")
+	public String editarCuenta(@PathVariable Long id, Model model) {
+		CursoPanelUsuario usuario = usuarioService.buscarPorId(id)
+				.orElseThrow(() -> new IllegalArgumentException("Cuenta no encontrada: " + id));
+		cargarFormularioCuenta(model, usuario);
+		return "admin/cursos-panel/cuenta-form";
+	}
+
+	@PostMapping("/admin/cursos-panel/cuentas/{id}")
+	public String actualizarCuenta(
+			@PathVariable Long id,
+			CursoPanelUsuario usuario,
+			@RequestParam(required = false) String password,
+			Model model,
+			RedirectAttributes redirectAttributes) {
+		usuario.setId(id);
+		Map<String, String> errores = validarCuenta(usuario, password, false);
+		if (!errores.isEmpty()) {
+			cargarFormularioCuentaConError(model, usuario, errores);
+			return "admin/cursos-panel/cuenta-form";
+		}
+		try {
+			usuarioService.guardar(usuario, password);
+			redirectAttributes.addFlashAttribute("mensaje", "Cuenta de cursos actualizada correctamente.");
+			return "redirect:/admin/cursos-panel/cuentas";
+		} catch (DataIntegrityViolationException ex) {
+			cargarFormularioCuentaConError(model, usuario, Map.of("usuario", "Ya existe una cuenta con ese usuario."));
+			return "admin/cursos-panel/cuenta-form";
+		}
+	}
+
+	@PostMapping("/admin/cursos-panel/cuentas/{id}/eliminar")
+	public String eliminarCuenta(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+		usuarioService.desactivar(id);
+		redirectAttributes.addFlashAttribute("mensaje", "Cuenta de cursos desactivada.");
+		return "redirect:/admin/cursos-panel/cuentas";
 	}
 
 	private String guardarCursoDesdeFormulario(
@@ -257,6 +335,20 @@ public class AdminCursosPanelController {
 		return errores;
 	}
 
+	private Map<String, String> validarCuenta(CursoPanelUsuario usuario, String password, boolean nueva) {
+		Map<String, String> errores = new LinkedHashMap<>();
+		if (!StringUtils.hasText(usuario.getNombre())) {
+			errores.put("nombre", "El nombre es obligatorio.");
+		}
+		if (!StringUtils.hasText(usuario.getUsuario())) {
+			errores.put("usuario", "El usuario es obligatorio.");
+		}
+		if (nueva && !StringUtils.hasText(password)) {
+			errores.put("password", "La contraseña inicial es obligatoria.");
+		}
+		return errores;
+	}
+
 	private List<CursoClase> clasesDesdeFormulario(
 			List<String> titulos,
 			List<String> descripciones,
@@ -295,6 +387,16 @@ public class AdminCursosPanelController {
 		cargarFormularioCurso(model, curso);
 		model.addAttribute("erroresCurso", errores);
 		model.addAttribute("mensajeError", mensajeError);
+	}
+
+	private void cargarFormularioCuenta(Model model, CursoPanelUsuario usuario) {
+		model.addAttribute("usuarioCurso", usuario);
+	}
+
+	private void cargarFormularioCuentaConError(Model model, CursoPanelUsuario usuario, Map<String, String> errores) {
+		cargarFormularioCuenta(model, usuario);
+		model.addAttribute("erroresCuentaCurso", errores);
+		model.addAttribute("mensajeError", "Revisá los campos marcados.");
 	}
 
 	private List<CursoClase> clasesFormulario(Curso curso) {

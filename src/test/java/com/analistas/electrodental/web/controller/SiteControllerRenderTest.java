@@ -87,6 +87,20 @@ class SiteControllerRenderTest {
 	}
 
 	@Test
+	void cuentasCursosPanelRenderizaSinErroresDeTemplate() throws Exception {
+		mockMvc.perform(get("/admin/cursos-panel/cuentas"))
+				.andExpect(status().isOk())
+				.andExpect(view().name("admin/cursos-panel/cuentas"));
+	}
+
+	@Test
+	void formularioCuentaCursosPanelRenderizaSinErroresDeTemplate() throws Exception {
+		mockMvc.perform(get("/admin/cursos-panel/cuentas/nueva"))
+				.andExpect(status().isOk())
+				.andExpect(view().name("admin/cursos-panel/cuenta-form"));
+	}
+
+	@Test
 	void cuentasCursosRenderizaSinErroresDeTemplate() throws Exception {
 		mockMvc.perform(get("/admin/cuentas-cursos"))
 				.andExpect(status().isOk())

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/cursos-panel/fragments/layout :: head(${usuarioCurso.id == null ? 'Cursos | Nueva cuenta' : 'Cursos | Editar cuenta'})}"></head>
+<body class="admin-shell text-slate-900">
+<aside th:replace="~{admin/cursos-panel/fragments/layout :: sidebar('cuentas')}"></aside>
+<header th:replace="~{admin/cursos-panel/fragments/layout :: mobilebar('cuentas')}"></header>
+
+<main class="p-4 sm:p-6 lg:ml-64 lg:p-8">
+	<div th:replace="~{admin/cursos-panel/fragments/layout :: topbar(${usuarioCurso.id == null ? 'Nueva Cuenta de Cursos' : 'Editar Cuenta de Cursos'}, 'Estas cuentas ingresan sólo al dashboard separado de cursos.')}"></div>
+
+	<div th:if="${mensajeError}" class="mb-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-bold text-red-800" th:text="${mensajeError}">
+		Revisá los campos marcados.
+	</div>
+
+	<form th:action="${usuarioCurso.id == null ? '/admin/cursos-panel/cuentas' : '/admin/cursos-panel/cuentas/' + usuarioCurso.id}" th:object="${usuarioCurso}" method="post" class="admin-card max-w-3xl rounded-2xl p-6">
+		<div class="grid gap-5">
+			<label>
+				<span class="text-sm font-bold" th:classappend="${erroresCuentaCurso != null && erroresCuentaCurso.containsKey('nombre')} ? ' text-red-700' : ' text-primary'">Nombre</span>
+				<input th:field="*{nombre}" required class="mt-1 w-full rounded-lg border-outline" th:classappend="${erroresCuentaCurso != null && erroresCuentaCurso.containsKey('nombre')} ? ' border-red-500 ring-2 ring-red-100' : ''" placeholder="Equipo capacitaciones">
+				<p th:if="${erroresCuentaCurso != null && erroresCuentaCurso.containsKey('nombre')}" class="mt-1 text-xs font-black text-red-700" th:text="${erroresCuentaCurso['nombre']}">Error</p>
+			</label>
+			<label>
+				<span class="text-sm font-bold" th:classappend="${erroresCuentaCurso != null && erroresCuentaCurso.containsKey('usuario')} ? ' text-red-700' : ' text-primary'">Usuario</span>
+				<input th:field="*{usuario}" required autocomplete="username" class="mt-1 w-full rounded-lg border-outline" th:classappend="${erroresCuentaCurso != null && erroresCuentaCurso.containsKey('usuario')} ? ' border-red-500 ring-2 ring-red-100' : ''" placeholder="capacitaciones">
+				<p th:if="${erroresCuentaCurso != null && erroresCuentaCurso.containsKey('usuario')}" class="mt-1 text-xs font-black text-red-700" th:text="${erroresCuentaCurso['usuario']}">Error</p>
+			</label>
+			<label>
+				<span class="text-sm font-bold" th:classappend="${erroresCuentaCurso != null && erroresCuentaCurso.containsKey('password')} ? ' text-red-700' : ' text-primary'">Contraseña</span>
+				<input name="password" type="password" th:required="${usuarioCurso.id == null}" autocomplete="new-password" class="mt-1 w-full rounded-lg border-outline" th:classappend="${erroresCuentaCurso != null && erroresCuentaCurso.containsKey('password')} ? ' border-red-500 ring-2 ring-red-100' : ''" placeholder="Dejar vacío para conservar la actual">
+				<p th:if="${erroresCuentaCurso != null && erroresCuentaCurso.containsKey('password')}" class="mt-1 text-xs font-black text-red-700" th:text="${erroresCuentaCurso['password']}">Error</p>
+			</label>
+			<label class="flex items-center gap-3 text-sm font-bold text-primary">
+				<input th:field="*{activo}" type="checkbox" class="rounded border-outline"> Activa
+			</label>
+		</div>
+		<div class="mt-6 flex flex-wrap gap-3 border-t border-outline pt-6">
+			<button class="rounded-xl bg-secondary px-5 py-3 font-black text-white hover:opacity-90">Guardar cuenta</button>
+			<a th:href="@{/admin/cursos-panel/cuentas}" class="rounded-xl border border-outline px-5 py-3 font-bold text-primary hover:bg-surface-soft">Cancelar</a>
+		</div>
+	</form>
+</main>
+</body>
+</html>

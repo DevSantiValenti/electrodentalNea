@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/cursos-panel/fragments/layout :: head(${areaCurso.id == null ? 'Cursos | Nueva área' : 'Cursos | Editar área'})}"></head>
+<body class="admin-shell text-slate-900">
+<aside th:replace="~{admin/cursos-panel/fragments/layout :: sidebar('areas')}"></aside>
+<header th:replace="~{admin/cursos-panel/fragments/layout :: mobilebar('areas')}"></header>
+
+<main class="p-4 sm:p-6 lg:ml-64 lg:p-8">
+	<div th:replace="~{admin/cursos-panel/fragments/layout :: topbar(${areaCurso.id == null ? 'Nueva Área' : 'Editar Área'}, 'Las áreas funcionan como categorías internas para organizar cursos.')}"></div>
+
+	<div th:if="${mensajeError}" class="mb-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-bold text-red-800" th:text="${mensajeError}">
+		Revisá los campos marcados.
+	</div>
+
+	<form th:action="${areaCurso.id == null ? '/admin/cursos-panel/areas' : '/admin/cursos-panel/areas/' + areaCurso.id}" th:object="${areaCurso}" method="post" class="admin-card max-w-3xl rounded-2xl p-6">
+		<div class="grid gap-5 md:grid-cols-2">
+			<label class="md:col-span-2">
+				<span class="text-sm font-bold" th:classappend="${erroresAreaCurso != null && erroresAreaCurso.containsKey('nombre')} ? ' text-red-700' : ' text-primary'">Nombre</span>
+				<input th:field="*{nombre}" required class="mt-1 w-full rounded-lg border-outline" th:classappend="${erroresAreaCurso != null && erroresAreaCurso.containsKey('nombre')} ? ' border-red-500 ring-2 ring-red-100' : ''" placeholder="Implantología">
+				<p th:if="${erroresAreaCurso != null && erroresAreaCurso.containsKey('nombre')}" class="mt-1 text-xs font-black text-red-700" th:text="${erroresAreaCurso['nombre']}">Error</p>
+			</label>
+			<label>
+				<span class="text-sm font-bold" th:classappend="${erroresAreaCurso != null && erroresAreaCurso.containsKey('slug')} ? ' text-red-700' : ' text-primary'">Slug</span>
+				<input th:field="*{slug}" class="mt-1 w-full rounded-lg border-outline" th:classappend="${erroresAreaCurso != null && erroresAreaCurso.containsKey('slug')} ? ' border-red-500 ring-2 ring-red-100' : ''" placeholder="implantologia">
+				<p th:if="${erroresAreaCurso != null && erroresAreaCurso.containsKey('slug')}" class="mt-1 text-xs font-black text-red-700" th:text="${erroresAreaCurso['slug']}">Error</p>
+			</label>
+			<label>
+				<span class="text-sm font-bold text-primary">Orden</span>
+				<input th:field="*{orden}" type="number" class="mt-1 w-full rounded-lg border-outline">
+			</label>
+			<label class="md:col-span-2">
+				<span class="text-sm font-bold text-primary">Descripción opcional</span>
+				<textarea th:field="*{descripcion}" rows="4" class="mt-1 w-full rounded-lg border-outline" placeholder="Cursos relacionados con esta temática."></textarea>
+			</label>
+			<label class="flex items-center gap-3 text-sm font-bold text-primary">
+				<input th:field="*{activo}" type="checkbox" class="rounded border-outline"> Activa
+			</label>
+		</div>
+		<div class="mt-6 flex flex-wrap gap-3 border-t border-outline pt-6">
+			<button class="rounded-xl bg-secondary px-5 py-3 font-black text-white hover:opacity-90">Guardar área</button>
+			<a th:href="@{/admin/cursos-panel/areas}" class="rounded-xl border border-outline px-5 py-3 font-bold text-primary hover:bg-surface-soft">Cancelar</a>
+		</div>
+	</form>
+</main>
+</body>
+</html>

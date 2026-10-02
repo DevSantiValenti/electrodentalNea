@@ -76,6 +76,11 @@ public class CursoClase {
 		return StringUtils.hasText(videoId) ? "https://www.youtube.com/embed/" + videoId : "";
 	}
 
+	public String getYoutubeThumbnailUrl() {
+		String videoId = extraerYoutubeId(youtubeUrl);
+		return StringUtils.hasText(videoId) ? "https://img.youtube.com/vi/" + videoId + "/hqdefault.jpg" : "";
+	}
+
 	public static boolean esYoutubeValido(String url) {
 		return StringUtils.hasText(extraerYoutubeId(url));
 	}

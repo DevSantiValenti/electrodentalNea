@@ -6,7 +6,7 @@
 <header th:replace="~{admin/cursos-panel/fragments/layout :: mobilebar('cursos')}"></header>
 
 <main class="p-4 sm:p-6 lg:ml-64 lg:p-8">
-	<div th:replace="~{admin/cursos-panel/fragments/layout :: topbar('Cursos y Capacitaciones', 'Gestioná cursos, clases grabadas y certificados.')}"></div>
+	<div th:replace="~{admin/cursos-panel/fragments/layout :: topbar('Webinars, Cursos y Capacitaciones', 'Gestioná cursos, clases grabadas, áreas y certificados.')}"></div>
 
 	<div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
 		<div class="space-y-2">
@@ -35,6 +35,12 @@
 							<span th:if="${curso.requiereCodigoCertificado()}" class="rounded bg-amber-100 px-2 py-1 text-[10px] font-black text-amber-800">CON CÓDIGO</span>
 						</div>
 						<p class="mt-1 text-xs font-bold text-muted" th:text="|/${curso.slug}|">slug</p>
+						<div th:if="${!#lists.isEmpty(curso.areasOrdenadasActivas)}" class="mt-2 flex flex-wrap gap-1.5">
+							<span th:each="area : ${curso.areasOrdenadasActivas}" class="inline-flex items-center gap-1 rounded bg-surface-soft px-2 py-1 text-[10px] font-black uppercase text-slate-600">
+								<span class="material-symbols-outlined text-[14px]">folder</span>
+								<span th:text="${area.nombre}">Área</span>
+							</span>
+						</div>
 						<p class="mt-3 line-clamp-2 text-sm text-slate-600" th:text="${curso.descripcionBreve ?: 'Sin descripción'}">Descripción</p>
 						<p class="mt-2 text-xs font-black uppercase text-slate-500" th:text="|${#lists.size(curso.clases)} clase(s) cargada(s)|">0 clases</p>
 					</div>

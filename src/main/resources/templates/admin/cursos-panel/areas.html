@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/cursos-panel/fragments/layout :: head('Cursos | Áreas')}"></head>
+<body class="admin-shell text-slate-900">
+<aside th:replace="~{admin/cursos-panel/fragments/layout :: sidebar('areas')}"></aside>
+<header th:replace="~{admin/cursos-panel/fragments/layout :: mobilebar('areas')}"></header>
+
+<main class="p-4 sm:p-6 lg:ml-64 lg:p-8">
+	<div th:replace="~{admin/cursos-panel/fragments/layout :: topbar('Áreas de Cursos', 'Gestioná las áreas o temáticas que se asignan a webinars, cursos y capacitaciones.')}"></div>
+
+	<div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+		<div class="space-y-2">
+			<div th:if="${mensaje}" class="rounded-lg bg-green-50 px-4 py-3 text-sm font-bold text-green-800" th:text="${mensaje}">Mensaje</div>
+		</div>
+		<a th:href="@{/admin/cursos-panel/areas/nueva}" class="inline-flex items-center justify-center gap-2 rounded-xl bg-secondary px-4 py-3 text-sm font-bold text-white hover:opacity-90">
+			<span class="material-symbols-outlined">add_circle</span> Nueva área
+		</a>
+	</div>
+
+	<section class="admin-card rounded-2xl p-6">
+		<div th:if="${#lists.isEmpty(areasCurso)}" class="rounded-xl border border-dashed border-outline p-10 text-center">
+			<h2 class="text-xl font-black text-primary">Aún no hay áreas</h2>
+			<p class="mt-2 text-sm text-muted">Creá áreas como Implantología, Estética o Endodoncia para clasificar cursos.</p>
+			<a th:href="@{/admin/cursos-panel/areas/nueva}" class="mt-5 inline-flex rounded-lg bg-secondary px-5 py-3 font-bold text-white">Crear área</a>
+		</div>
+
+		<div th:if="${!#lists.isEmpty(areasCurso)}" class="overflow-hidden rounded-xl border border-outline bg-white">
+			<table class="w-full text-left text-sm">
+				<thead class="bg-surface-soft text-primary">
+					<tr>
+						<th class="px-5 py-4 font-black">Área</th>
+						<th class="px-5 py-4 font-black">Slug</th>
+						<th class="px-5 py-4 font-black">Orden</th>
+						<th class="px-5 py-4 font-black">Estado</th>
+						<th class="px-5 py-4 text-right font-black">Acciones</th>
+					</tr>
+				</thead>
+				<tbody class="divide-y divide-outline">
+					<tr th:each="area : ${areasCurso}">
+						<td class="px-5 py-4">
+							<p class="inline-flex items-center gap-2 font-bold text-primary">
+								<span class="material-symbols-outlined text-[18px] text-secondary">folder</span>
+								<span th:text="${area.nombre}">Implantología</span>
+							</p>
+							<p th:if="${!#strings.isEmpty(area.descripcion)}" class="mt-1 line-clamp-2 text-xs text-slate-600" th:text="${area.descripcion}">Descripción</p>
+						</td>
+						<td class="px-5 py-4 text-slate-700" th:text="${area.slug}">implantologia</td>
+						<td class="px-5 py-4 text-slate-700" th:text="${area.ordenSeguro()}">0</td>
+						<td class="px-5 py-4">
+							<span th:if="${area.activo}" class="rounded bg-green-100 px-2 py-1 text-[10px] font-black uppercase text-green-800">Activa</span>
+							<span th:if="${!area.activo}" class="rounded bg-slate-200 px-2 py-1 text-[10px] font-black uppercase text-slate-600">Inactiva</span>
+						</td>
+						<td class="px-5 py-4">
+							<div class="flex justify-end gap-2">
+								<a th:href="@{/admin/cursos-panel/areas/{id}/editar(id=${area.id})}" class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-outline text-primary hover:bg-surface-soft" title="Editar área">
+									<span class="material-symbols-outlined text-base">edit</span>
+								</a>
+								<button type="button" th:onclick="|document.getElementById('modal-eliminar-area-${area.id}').showModal()|" class="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-red-600 text-white hover:bg-red-700" title="Desactivar área">
+									<span class="material-symbols-outlined text-base">delete</span>
+								</button>
+							</div>
+							<dialog th:id="|modal-eliminar-area-${area.id}|" class="w-full max-w-md rounded-2xl border border-outline p-0 shadow-2xl backdrop:bg-slate-900/40">
+								<div class="p-6">
+									<h3 class="text-lg font-black text-primary">Desactivar área</h3>
+									<p class="mt-2 text-sm text-slate-600">El área dejará de mostrarse como activa, pero los cursos seguirán editables.</p>
+									<div class="mt-6 flex justify-end gap-2">
+										<form method="dialog">
+											<button class="rounded-lg border border-outline px-4 py-2 text-sm font-bold text-primary hover:bg-surface-soft">Cancelar</button>
+										</form>
+										<form th:action="@{/admin/cursos-panel/areas/{id}/eliminar(id=${area.id})}" method="post">
+											<button class="rounded-lg bg-red-600 px-4 py-2 text-sm font-bold text-white hover:bg-red-700">Desactivar</button>
+										</form>
+									</div>
+								</div>
+							</dialog>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+	</section>
+</main>
+</body>
+</html>

@@ -19,7 +19,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.analistas.electrodental.model.domain.Curso;
+import com.analistas.electrodental.model.domain.CursoArea;
 import com.analistas.electrodental.model.domain.CursoClase;
+import com.analistas.electrodental.model.service.ICursoAreaService;
 import com.analistas.electrodental.model.service.ICursoService;
 import com.analistas.electrodental.model.service.IProductoService;
 import com.analistas.electrodental.model.service.ProductoImagenStorageService;
@@ -32,22 +34,42 @@ public class CursoPublicController {
 	private static final String CERTIFICADO_SESSION_PREFIX = "cursoCertificadoAutorizado:";
 
 	private final ICursoService cursoService;
+	private final ICursoAreaService areaService;
 	private final IProductoService productoService;
 	private final ProductoImagenStorageService productoImagenStorageService;
 
 	public CursoPublicController(
 			ICursoService cursoService,
+			ICursoAreaService areaService,
 			IProductoService productoService,
 			ProductoImagenStorageService productoImagenStorageService) {
 		this.cursoService = cursoService;
+		this.areaService = areaService;
 		this.productoService = productoService;
 		this.productoImagenStorageService = productoImagenStorageService;
 	}
 
 	@GetMapping({ "/cursos", "/capacitaciones" })
 	public String cursos(Model model) {
-		model.addAttribute("cursos", cursoService.listarActivos());
+		List<CursoArea> areas = areaService.listarActivas();
+		model.addAttribute("areasCurso", areas);
+		model.addAttribute("areaSeleccionada", null);
+		model.addAttribute("cursos", areas.isEmpty() ? cursoService.listarActivos() : List.of());
+		model.addAttribute("productosCursos", productoService.listarParaCursos());
 		model.addAttribute("seoDescription", "Cursos y capacitaciones de Electrodental NEA con clases grabadas, certificados y productos odontologicos recomendados.");
+		return "cursos/listado";
+	}
+
+	@GetMapping({ "/cursos/areas/{areaSlug}", "/capacitaciones/areas/{areaSlug}" })
+	public String cursosPorArea(@PathVariable String areaSlug, Model model) {
+		CursoArea area = areaService.buscarActivaPorSlug(areaSlug).orElse(null);
+		model.addAttribute("areasCurso", areaService.listarActivas());
+		model.addAttribute("areaSeleccionada", area);
+		model.addAttribute("cursos", cursoService.listarActivosPorArea(area));
+		model.addAttribute("productosCursos", productoService.listarParaCursos());
+		model.addAttribute("seoDescription", area == null
+				? "Area de cursos no encontrada en Electrodental NEA."
+				: "Cursos y capacitaciones de " + area.getNombre() + " en Electrodental NEA.");
 		return "cursos/listado";
 	}
 
@@ -56,6 +78,7 @@ public class CursoPublicController {
 		Curso curso = cursoService.buscarActivoPorSlug(slug).orElse(null);
 		model.addAttribute("curso", curso);
 		model.addAttribute("certificadoAutorizado", curso != null && certificadoAutorizado(curso, session));
+		model.addAttribute("productosCursos", productoService.listarParaCursos());
 		model.addAttribute("seoDescription", curso == null
 				? "Curso no encontrado en Electrodental NEA."
 				: curso.getTitulo() + " en Electrodental NEA: clases grabadas, capacitacion y certificado.");

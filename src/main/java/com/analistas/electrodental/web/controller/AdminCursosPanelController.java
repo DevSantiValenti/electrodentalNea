@@ -3,6 +3,7 @@ package com.analistas.electrodental.web.controller;
 import java.math.BigDecimal;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -22,8 +23,10 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.analistas.electrodental.model.domain.CertificadoModo;
 import com.analistas.electrodental.model.domain.Curso;
+import com.analistas.electrodental.model.domain.CursoArea;
 import com.analistas.electrodental.model.domain.CursoClase;
 import com.analistas.electrodental.model.domain.CursoPanelUsuario;
+import com.analistas.electrodental.model.service.ICursoAreaService;
 import com.analistas.electrodental.model.service.ICursoPanelUsuarioService;
 import com.analistas.electrodental.model.service.ICursoService;
 import com.analistas.electrodental.model.service.ProductoImagenStorageService;
@@ -32,14 +35,17 @@ import com.analistas.electrodental.model.service.ProductoImagenStorageService;
 public class AdminCursosPanelController {
 
 	private final ICursoService cursoService;
+	private final ICursoAreaService areaService;
 	private final ICursoPanelUsuarioService usuarioService;
 	private final ProductoImagenStorageService productoImagenStorageService;
 
 	public AdminCursosPanelController(
 			ICursoService cursoService,
+			ICursoAreaService areaService,
 			ICursoPanelUsuarioService usuarioService,
 			ProductoImagenStorageService productoImagenStorageService) {
 		this.cursoService = cursoService;
+		this.areaService = areaService;
 		this.usuarioService = usuarioService;
 		this.productoImagenStorageService = productoImagenStorageService;
 	}
@@ -86,6 +92,7 @@ public class AdminCursosPanelController {
 			@RequestParam(required = false) List<String> claseYoutubeUrls,
 			@RequestParam(required = false) List<Integer> claseOrdenes,
 			@RequestParam(required = false) List<Integer> claseActivas,
+			@RequestParam(required = false) List<Long> areaIds,
 			Model model,
 			RedirectAttributes redirectAttributes) {
 		return guardarCursoDesdeFormulario(
@@ -97,6 +104,7 @@ public class AdminCursosPanelController {
 				claseYoutubeUrls,
 				claseOrdenes,
 				claseActivas,
+				areaIds,
 				model,
 				redirectAttributes,
 				"Curso guardado correctamente",
@@ -122,6 +130,7 @@ public class AdminCursosPanelController {
 			@RequestParam(required = false) List<String> claseYoutubeUrls,
 			@RequestParam(required = false) List<Integer> claseOrdenes,
 			@RequestParam(required = false) List<Integer> claseActivas,
+			@RequestParam(required = false) List<Long> areaIds,
 			Model model,
 			RedirectAttributes redirectAttributes) {
 		curso.setId(id);
@@ -134,6 +143,7 @@ public class AdminCursosPanelController {
 				claseYoutubeUrls,
 				claseOrdenes,
 				claseActivas,
+				areaIds,
 				model,
 				redirectAttributes,
 				"Curso actualizado correctamente",
@@ -145,6 +155,79 @@ public class AdminCursosPanelController {
 		cursoService.desactivar(id);
 		redirectAttributes.addFlashAttribute("mensaje", "Curso desactivado correctamente.");
 		return "redirect:/admin/cursos-panel/cursos";
+	}
+
+	@GetMapping("/admin/cursos-panel/areas")
+	public String areas(Model model) {
+		model.addAttribute("areasCurso", areaService.listarTodos());
+		return "admin/cursos-panel/areas";
+	}
+
+	@GetMapping("/admin/cursos-panel/areas/nueva")
+	public String nuevaArea(Model model) {
+		CursoArea area = new CursoArea();
+		area.setActivo(true);
+		cargarFormularioArea(model, area);
+		return "admin/cursos-panel/area-form";
+	}
+
+	@PostMapping("/admin/cursos-panel/areas")
+	public String guardarArea(
+			CursoArea area,
+			Model model,
+			RedirectAttributes redirectAttributes) {
+		prepararArea(area);
+		Map<String, String> errores = validarArea(area);
+		if (!errores.isEmpty()) {
+			cargarFormularioAreaConError(model, area, errores);
+			return "admin/cursos-panel/area-form";
+		}
+		try {
+			areaService.guardar(area);
+			redirectAttributes.addFlashAttribute("mensaje", "Area creada correctamente.");
+			return "redirect:/admin/cursos-panel/areas";
+		} catch (DataIntegrityViolationException ex) {
+			cargarFormularioAreaConError(model, area, Map.of("slug", "El slug ya existe. Usá uno distinto."));
+			return "admin/cursos-panel/area-form";
+		}
+	}
+
+	@GetMapping("/admin/cursos-panel/areas/{id}/editar")
+	public String editarArea(@PathVariable Long id, Model model) {
+		CursoArea area = areaService.buscarPorId(id)
+				.orElseThrow(() -> new IllegalArgumentException("Area no encontrada: " + id));
+		cargarFormularioArea(model, area);
+		return "admin/cursos-panel/area-form";
+	}
+
+	@PostMapping("/admin/cursos-panel/areas/{id}")
+	public String actualizarArea(
+			@PathVariable Long id,
+			CursoArea area,
+			Model model,
+			RedirectAttributes redirectAttributes) {
+		area.setId(id);
+		prepararArea(area);
+		Map<String, String> errores = validarArea(area);
+		if (!errores.isEmpty()) {
+			cargarFormularioAreaConError(model, area, errores);
+			return "admin/cursos-panel/area-form";
+		}
+		try {
+			areaService.guardar(area);
+			redirectAttributes.addFlashAttribute("mensaje", "Area actualizada correctamente.");
+			return "redirect:/admin/cursos-panel/areas";
+		} catch (DataIntegrityViolationException ex) {
+			cargarFormularioAreaConError(model, area, Map.of("slug", "El slug ya existe. Usá uno distinto."));
+			return "admin/cursos-panel/area-form";
+		}
+	}
+
+	@PostMapping("/admin/cursos-panel/areas/{id}/eliminar")
+	public String eliminarArea(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+		areaService.desactivar(id);
+		redirectAttributes.addFlashAttribute("mensaje", "Area desactivada.");
+		return "redirect:/admin/cursos-panel/areas";
 	}
 
 	@GetMapping("/admin/cursos-panel/cuentas")
@@ -229,12 +312,13 @@ public class AdminCursosPanelController {
 			List<String> claseYoutubeUrls,
 			List<Integer> claseOrdenes,
 			List<Integer> claseActivas,
+			List<Long> areaIds,
 			Model model,
 			RedirectAttributes redirectAttributes,
 			String mensajeOk,
 			String mensajeErrorBase) {
 		try {
-			prepararCurso(curso, miniaturaArchivo, certificadoArchivoUpload, claseTitulos, claseDescripciones, claseYoutubeUrls, claseOrdenes, claseActivas);
+			prepararCurso(curso, miniaturaArchivo, certificadoArchivoUpload, claseTitulos, claseDescripciones, claseYoutubeUrls, claseOrdenes, claseActivas, areaIds);
 		} catch (CursoArchivoException ex) {
 			cargarFormularioCursoConError(model, curso, Map.of(ex.campo, ex.getMessage()), mensajeErrorBase);
 			return "admin/cursos-panel/curso-form";
@@ -268,7 +352,8 @@ public class AdminCursosPanelController {
 			List<String> claseDescripciones,
 			List<String> claseYoutubeUrls,
 			List<Integer> claseOrdenes,
-			List<Integer> claseActivas) {
+			List<Integer> claseActivas,
+			List<Long> areaIds) {
 		curso.setTitulo(normalizarValorSimple(curso.getTitulo()));
 		curso.setSlug(generarSlug(StringUtils.hasText(curso.getSlug()) ? curso.getSlug() : curso.getTitulo()));
 		curso.setDescripcionBreve(normalizarValorSimple(curso.getDescripcionBreve()));
@@ -294,6 +379,7 @@ public class AdminCursosPanelController {
 				throw new CursoArchivoException("certificadoArchivoUpload", ex.getMessage(), ex);
 			}
 		}
+		curso.setAreas(new LinkedHashSet<>(areaService.buscarPorIds(areaIds)));
 		curso.reemplazarClases(clasesDesdeFormulario(claseTitulos, claseDescripciones, claseYoutubeUrls, claseOrdenes, claseActivas));
 	}
 
@@ -332,6 +418,25 @@ public class AdminCursosPanelController {
 				errores.put("claseYoutube" + indice, "Cada clase cargada necesita un link válido de YouTube.");
 			}
 		});
+		return errores;
+	}
+
+	private void prepararArea(CursoArea area) {
+		area.setNombre(normalizarValorSimple(area.getNombre()));
+		area.setSlug(generarSlug(StringUtils.hasText(area.getSlug()) ? area.getSlug() : area.getNombre()));
+		area.setDescripcion(normalizarValorSimple(area.getDescripcion()));
+		area.setActivo(area.getActivo() != null && area.getActivo());
+		area.setOrden(area.getOrden() == null ? 0 : area.getOrden());
+	}
+
+	private Map<String, String> validarArea(CursoArea area) {
+		Map<String, String> errores = new LinkedHashMap<>();
+		if (!StringUtils.hasText(area.getNombre())) {
+			errores.put("nombre", "El nombre es obligatorio.");
+		}
+		if (!StringUtils.hasText(area.getSlug())) {
+			errores.put("slug", "El slug es obligatorio.");
+		}
 		return errores;
 	}
 
@@ -381,12 +486,23 @@ public class AdminCursosPanelController {
 		model.addAttribute("curso", curso);
 		model.addAttribute("modosCertificado", CertificadoModo.values());
 		model.addAttribute("clasesCurso", clasesFormulario(curso));
+		model.addAttribute("areasCurso", areaService.listarTodos());
 	}
 
 	private void cargarFormularioCursoConError(Model model, Curso curso, Map<String, String> errores, String mensajeError) {
 		cargarFormularioCurso(model, curso);
 		model.addAttribute("erroresCurso", errores);
 		model.addAttribute("mensajeError", mensajeError);
+	}
+
+	private void cargarFormularioArea(Model model, CursoArea area) {
+		model.addAttribute("areaCurso", area);
+	}
+
+	private void cargarFormularioAreaConError(Model model, CursoArea area, Map<String, String> errores) {
+		cargarFormularioArea(model, area);
+		model.addAttribute("erroresAreaCurso", errores);
+		model.addAttribute("mensajeError", "Revisá los campos marcados.");
 	}
 
 	private void cargarFormularioCuenta(Model model, CursoPanelUsuario usuario) {

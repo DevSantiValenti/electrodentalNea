@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/shop :: head('ElectrodentalNea | Cursos y Capacitaciones')}"></head>
+<head th:replace="~{fragments/shop :: head('ElectrodentalNea | Webinars, Cursos y Capacitaciones')}"></head>
 <body class="bg-background font-sans text-slate-900">
 <header th:replace="~{fragments/shop :: header}"></header>
 
@@ -23,8 +23,8 @@
 <main class="mx-auto max-w-7xl px-4 py-8 sm:px-6" th:style="${configuracionTienda.fondoMainStyle}">
 	<div class="mb-7 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
 		<div>
-			<p class="text-sm font-semibold text-slate-500">Inicio / Cursos y Capacitaciones</p>
-			<h1 class="mt-2 text-4xl font-black text-primary">Cursos y Capacitaciones</h1>
+			<p class="text-sm font-semibold text-slate-500">Inicio / Webinars, Cursos y Capacitaciones</p>
+			<h1 class="mt-2 text-4xl font-black text-primary">Webinars, Cursos y Capacitaciones</h1>
 			<p class="mt-2 max-w-3xl text-slate-600">Clases grabadas, capacitaciones profesionales y certificados disponibles desde Electrodental NEA.</p>
 		</div>
 		<a th:href="@{/catalogo}" class="inline-flex items-center justify-center gap-2 rounded-lg bg-primary-container px-5 py-3 font-bold text-white hover:opacity-90">
@@ -32,13 +32,48 @@
 		</a>
 	</div>
 
-	<section th:if="${#lists.isEmpty(cursos)}" class="rounded-xl border border-dashed border-outline bg-white p-10 text-center">
+	<section th:if="${#lists.isEmpty(cursos) && #lists.isEmpty(areasCurso)}" class="rounded-xl border border-dashed border-outline bg-white p-10 text-center">
 		<span class="material-symbols-outlined text-5xl text-secondary">school</span>
 		<h2 class="mt-3 text-xl font-black text-primary">Aún no hay cursos publicados</h2>
 		<p class="mt-2 text-slate-600">Cuando administración cargue una capacitación activa, aparecerá en esta sección.</p>
 	</section>
 
-	<section th:if="${!#lists.isEmpty(cursos)}" class="cursos-grid mt-5 grid gap-5">
+	<section th:if="${!#lists.isEmpty(areasCurso)}" class="mb-8">
+		<div class="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+			<div>
+				<h2 class="text-2xl font-black text-primary">Elegí un área</h2>
+				<p class="mt-1 text-sm text-slate-600">Entrá a una carpeta para ver los cursos asociados.</p>
+			</div>
+			<a th:if="${areaSeleccionada != null}" th:href="@{/cursos}" class="inline-flex items-center justify-center rounded-lg border border-outline px-4 py-2 text-sm font-bold text-primary hover:bg-surface-soft">Ver todas las áreas</a>
+		</div>
+		<div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+			<a th:each="area : ${areasCurso}" th:href="@{/cursos/areas/{slug}(slug=${area.slug})}" th:classappend="${areaSeleccionada != null && areaSeleccionada.id == area.id} ? ' border-secondary bg-secondary-container/60 ring-2 ring-secondary/20' : ''" class="group flex min-h-[220px] flex-col items-center justify-center rounded-xl border border-outline bg-surface-soft p-5 text-center transition hover:-translate-y-1 hover:border-secondary hover:bg-white hover:shadow-sm">
+				<img th:src="@{/img/cursos-area-folder.png}" alt="" class="h-28 object-contain transition hover:scale-105 sm:h-32" loading="lazy" decoding="async">
+				<span class="mt-4 block text-lg font-black leading-6 text-primary" th:text="${area.nombre}">Implantología</span>
+				<span th:if="${!#strings.isEmpty(area.descripcion)}" class="mt-2 line-clamp-3 block text-sm font-semibold leading-5 text-slate-600" th:text="${area.descripcion}">Descripción</span>
+				<span th:if="${#strings.isEmpty(area.descripcion)}" class="mt-2 block text-sm font-semibold leading-5 text-slate-500">Cursos disponibles en esta área.</span>
+			</a>
+		</div>
+	</section>
+
+	<section th:if="${areaSeleccionada == null && !#lists.isEmpty(areasCurso)}" class="rounded-xl border border-dashed border-outline bg-white p-8 text-center">
+		<span class="material-symbols-outlined text-5xl text-secondary">folder</span>
+		<h2 class="mt-3 text-xl font-black text-primary">Seleccioná un área para ver sus cursos</h2>
+		<p class="mt-2 text-sm text-slate-600">Los cursos se muestran dentro de cada carpeta temática.</p>
+	</section>
+
+	<section th:if="${areaSeleccionada != null && #lists.isEmpty(cursos)}" class="rounded-xl border border-dashed border-outline bg-white p-8 text-center">
+		<span class="material-symbols-outlined text-5xl text-secondary">school</span>
+		<h2 class="mt-3 text-xl font-black text-primary">No hay cursos publicados en esta área</h2>
+		<p class="mt-2 text-sm text-slate-600">Cuando administración asigne cursos activos a esta carpeta, aparecerán acá.</p>
+	</section>
+
+	<section th:if="${!#lists.isEmpty(cursos)}" class="mt-6">
+		<div th:if="${areaSeleccionada != null}" class="mb-4">
+			<p class="text-xs font-black uppercase text-secondary">Cursos del área</p>
+			<h2 class="mt-1 text-2xl font-black text-primary" th:text="${areaSeleccionada.nombre}">Área</h2>
+		</div>
+		<div class="cursos-grid grid gap-5">
 		<article th:each="curso,iter : ${cursos}" class="overflow-hidden rounded-xl border border-outline bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-md">
 			<a th:href="@{/cursos/{slug}(slug=${curso.slugUrl})}" class="block aspect-[16/9] bg-surface-soft">
 				<img class="h-full w-full object-cover" decoding="async" th:loading="${iter.index < 3 ? 'eager' : 'lazy'}" th:src="${#strings.isEmpty(curso.miniatura) ? configuracionTienda.logoUrl : curso.miniatura}" th:alt="${curso.titulo}">
@@ -50,6 +85,10 @@
 						<span th:text="|${curso.duracionHoras.stripTrailingZeros().toPlainString()} hs|">0 hs</span>
 					</span>
 					<span class="rounded-md bg-secondary px-2.5 py-1 text-xs font-black text-white">Capacitación</span>
+					<span th:each="area : ${curso.areasOrdenadasActivas}" class="inline-flex items-center gap-1 rounded-md bg-surface-soft px-2.5 py-1 text-xs font-black text-slate-600">
+						<span class="material-symbols-outlined text-[15px]">folder</span>
+						<span th:text="${area.nombre}">Área</span>
+					</span>
 				</div>
 				<a th:href="@{/cursos/{slug}(slug=${curso.slugUrl})}" class="line-clamp-2 text-xl font-black leading-6 text-primary hover:text-secondary" th:text="${curso.titulo}">Curso</a>
 				<p class="mt-3 line-clamp-3 text-sm leading-6 text-slate-600" th:text="${curso.descripcionBreve ?: 'Capacitación profesional disponible para ver online.'}">Descripción</p>
@@ -58,7 +97,10 @@
 				</a>
 			</div>
 		</article>
+		</div>
 	</section>
+
+	<div th:replace="~{cursos/fragments/productos-recomendados :: productos(${productosCursos})}"></div>
 </main>
 
 <footer th:replace="~{fragments/shop :: footer}"></footer>

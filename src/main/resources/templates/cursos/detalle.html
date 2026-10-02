@@ -15,7 +15,7 @@
 		<nav class="mb-5 flex flex-wrap items-center gap-2 text-xs font-bold text-slate-500">
 			<a th:href="@{/}" class="hover:text-secondary">Inicio</a>
 			<span>›</span>
-			<a th:href="@{/cursos}" class="hover:text-secondary">Cursos y Capacitaciones</a>
+			<a th:href="@{/cursos}" class="hover:text-secondary">Webinars, Cursos y Capacitaciones</a>
 			<span>›</span>
 			<span class="text-primary" th:text="${curso.titulo}">Curso</span>
 		</nav>
@@ -33,6 +33,10 @@
 						<span th:text="|${curso.duracionHoras.stripTrailingZeros().toPlainString()} hs|">0 hs</span>
 					</span>
 					<span class="rounded-full bg-secondary px-3 py-1 text-xs font-black uppercase text-white">Capacitación</span>
+					<span th:each="area : ${curso.areasOrdenadasActivas}" class="inline-flex items-center gap-1 rounded-full bg-surface-soft px-3 py-1 text-xs font-black uppercase text-slate-600">
+						<span class="material-symbols-outlined text-[15px]">folder</span>
+						<span th:text="${area.nombre}">Área</span>
+					</span>
 				</div>
 				<h1 class="text-3xl font-black leading-tight text-primary sm:text-4xl" th:text="${curso.titulo}">Curso</h1>
 				<p class="mt-4 whitespace-pre-line text-sm leading-7 text-slate-700" th:text="${curso.descripcionBreve ?: 'Capacitación profesional disponible para ver online.'}">Descripción</p>
@@ -49,18 +53,25 @@
 				<p class="mt-2 text-sm text-slate-600">Administración puede agregar los videos desde el panel de cursos.</p>
 			</div>
 			<div th:if="${!#lists.isEmpty(curso.clasesOrdenadasActivas)}" class="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-				<article th:each="clase,iter : ${curso.clasesOrdenadasActivas}" class="flex min-h-[220px] flex-col justify-between rounded-xl border border-outline bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-md">
-					<div>
+				<article th:each="clase,iter : ${curso.clasesOrdenadasActivas}" class="overflow-hidden rounded-xl border border-outline bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-md">
+					<a th:href="@{/cursos/{slug}/clases/{claseId}(slug=${curso.slugUrl},claseId=${clase.id})}" class="block aspect-[16/9] bg-surface-soft lg:aspect-[16/7]">
+						<img class="h-full w-full object-cover" th:src="${#strings.isEmpty(clase.youtubeThumbnailUrl) ? configuracionTienda.logoUrl : clase.youtubeThumbnailUrl}" th:alt="|Miniatura de ${clase.titulo}|" loading="lazy" decoding="async">
+					</a>
+					<div class="flex min-h-[210px] flex-col justify-between p-5">
+						<div>
 						<p class="text-xs font-black uppercase text-secondary" th:text="|Clase ${iter.index + 1}|">Clase</p>
 						<h3 class="mt-2 text-xl font-black leading-6 text-primary" th:text="${clase.titulo}">Título de clase</h3>
 						<p th:if="${!#strings.isEmpty(clase.descripcion)}" class="mt-3 line-clamp-3 text-sm leading-6 text-slate-600" th:text="${clase.descripcion}">Descripción</p>
+						</div>
+						<a th:href="@{/cursos/{slug}/clases/{claseId}(slug=${curso.slugUrl},claseId=${clase.id})}" class="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-secondary px-4 py-3 text-sm font-black text-white hover:opacity-90">
+							<span class="material-symbols-outlined">play_circle</span> Ver clase
+						</a>
 					</div>
-					<a th:href="@{/cursos/{slug}/clases/{claseId}(slug=${curso.slugUrl},claseId=${clase.id})}" class="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-secondary px-4 py-3 text-sm font-black text-white hover:opacity-90">
-						<span class="material-symbols-outlined">play_circle</span> Ver clase
-					</a>
 				</article>
 			</div>
 		</section>
+
+		<div th:replace="~{cursos/fragments/productos-recomendados :: productos(${productosCursos})}"></div>
 
 	</div>
 </main>

@@ -4,9 +4,11 @@ import java.math.BigDecimal;
 import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.Set;
 
 import org.springframework.util.StringUtils;
 
@@ -15,9 +17,13 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
@@ -71,6 +77,13 @@ public class Curso {
 
 	@OneToMany(mappedBy = "curso", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<CursoClase> clases = new ArrayList<>();
+
+	@ManyToMany(fetch = FetchType.LAZY)
+	@JoinTable(
+			name = "curso_area_asignaciones",
+			joinColumns = @JoinColumn(name = "curso_id"),
+			inverseJoinColumns = @JoinColumn(name = "area_id"))
+	private Set<CursoArea> areas = new LinkedHashSet<>();
 
 	@PrePersist
 	@PreUpdate
@@ -136,6 +149,33 @@ public class Curso {
 				.filter(CursoClase::activoVisible)
 				.sorted(Comparator.comparing(CursoClase::ordenSeguro).thenComparing(CursoClase::tituloSeguro))
 				.toList();
+	}
+
+	public List<CursoArea> getAreasOrdenadasActivas() {
+		if (areas == null) {
+			return List.of();
+		}
+		return areas.stream()
+				.filter(CursoArea::activoVisible)
+				.sorted(Comparator.comparing(CursoArea::ordenSeguro).thenComparing(CursoArea::nombreSeguro))
+				.toList();
+	}
+
+	public List<CursoArea> getAreasOrdenadas() {
+		if (areas == null) {
+			return List.of();
+		}
+		return areas.stream()
+				.sorted(Comparator.comparing(CursoArea::ordenSeguro).thenComparing(CursoArea::nombreSeguro))
+				.toList();
+	}
+
+	public boolean tieneArea(Long areaId) {
+		if (areaId == null || areas == null) {
+			return false;
+		}
+		return areas.stream()
+				.anyMatch(area -> areaId.equals(area.getId()));
 	}
 
 	public Optional<CursoClase> buscarClaseActiva(Long claseId) {

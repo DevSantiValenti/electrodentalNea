@@ -1,6 +1,7 @@
 package com.analistas.electrodental.model.service;
 
 import java.util.Comparator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
 
@@ -9,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.analistas.electrodental.model.domain.CertificadoModo;
 import com.analistas.electrodental.model.domain.Curso;
+import com.analistas.electrodental.model.domain.CursoArea;
 import com.analistas.electrodental.model.domain.CursoClase;
 import com.analistas.electrodental.model.repository.ICursoRepository;
 
@@ -30,6 +32,14 @@ public class CursoServiceImpl implements ICursoService {
 	@Override
 	public List<Curso> listarActivos() {
 		return cursoRepository.findByActivoTrueOrderByOrdenAscTituloAsc();
+	}
+
+	@Override
+	public List<Curso> listarActivosPorArea(CursoArea area) {
+		if (area == null || area.getId() == null || !area.activoVisible()) {
+			return List.of();
+		}
+		return cursoRepository.findActivosByAreaId(area.getId());
 	}
 
 	@Override
@@ -72,6 +82,7 @@ public class CursoServiceImpl implements ICursoService {
 		actual.setCertificadoCodigo(curso.getCertificadoCodigo());
 		actual.setCertificadoArchivo(curso.getCertificadoArchivo());
 		actual.setCertificadoLinkExterno(curso.getCertificadoLinkExterno());
+		actual.setAreas(new LinkedHashSet<>(curso.getAreas()));
 		actual.reemplazarClases(curso.getClases());
 		normalizarCurso(actual);
 		return cursoRepository.save(actual);

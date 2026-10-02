@@ -12,7 +12,7 @@
 		Tu cuenta sólo puede ingresar al panel de cursos.
 	</div>
 
-	<section class="mb-8 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+	<section class="mb-8 grid gap-5 md:grid-cols-2 xl:grid-cols-5">
 		<article class="admin-card flex h-40 flex-col justify-between rounded-2xl p-6">
 			<div class="flex items-start justify-between">
 				<span class="text-sm font-bold text-muted">Cursos activos</span>
@@ -41,6 +41,16 @@
 			<div>
 				<h2 class="text-xl font-black text-primary">Crear curso</h2>
 				<p class="mt-1 text-xs font-bold text-muted">Cargar clases y certificado</p>
+			</div>
+		</a>
+		<a th:href="@{/admin/cursos-panel/areas}" class="admin-card flex h-40 flex-col justify-between rounded-2xl p-6 hover:bg-surface-soft">
+			<div class="flex items-start justify-between">
+				<span class="text-sm font-bold text-muted">Categorías internas</span>
+				<span class="material-symbols-outlined rounded-xl bg-secondary/10 p-2 text-secondary">folder</span>
+			</div>
+			<div>
+				<h2 class="text-xl font-black text-primary">Áreas</h2>
+				<p class="mt-1 text-xs font-bold text-muted">Organizar cursos por temática</p>
 			</div>
 		</a>
 		<a th:href="@{/admin/cursos-panel/cuentas}" class="admin-card flex h-40 flex-col justify-between rounded-2xl p-6 hover:bg-surface-soft">

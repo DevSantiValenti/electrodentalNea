@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<body>
+<section th:fragment="productos(productosCursos)" class="mt-10" th:if="${!#lists.isEmpty(productosCursos)}">
+	<div class="mb-5 flex items-center justify-between gap-4">
+		<h2 class="text-2xl font-black text-primary">Productos recomendados</h2>
+		<a th:href="@{/catalogo}" class="text-sm font-black text-secondary hover:underline">Ver catálogo</a>
+	</div>
+	<div class="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+		<article th:each="producto : ${productosCursos}" class="overflow-hidden rounded-xl border border-outline bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
+			<a th:href="@{/productos/{slug}(slug=${producto.slug})}" class="relative block aspect-[4/3] bg-surface-soft p-4">
+				<img class="h-full w-full rounded-lg object-contain" loading="lazy" decoding="async" th:src="${imageUrls.card(producto.imagenPrincipal, configuracionTienda.logoUrl)}" th:alt="${producto.nombre}">
+				<span th:if="${producto.oferta}" class="absolute right-3 top-3 rounded-full bg-secondary px-3 py-1 text-xs font-black text-white">OFERTA</span>
+			</a>
+			<div class="p-4">
+				<p class="text-xs font-bold uppercase text-slate-500" th:text="${producto.marca ?: 'Sin marca'}">Marca</p>
+				<a th:href="@{/productos/{slug}(slug=${producto.slug})}" class="mt-1 line-clamp-2 block min-h-10 text-sm font-black text-primary hover:text-secondary" th:text="${producto.nombre}">Producto</a>
+				<div class="mt-4 flex items-center justify-between gap-3">
+					<div>
+						<p th:if="${producto.tieneDescuentoOferta()}" class="text-xs font-bold text-slate-400 line-through" th:text="${@money.format(producto.precio)}">$ 0,00</p>
+						<p class="whitespace-nowrap font-black text-primary" th:text="${@money.format(producto.precioOferta())}">$ 0,00</p>
+					</div>
+					<form th:if="${producto.disponibleParaCompraWeb()}" th:action="@{/carrito/agregar}" method="post">
+						<input type="hidden" name="productoId" th:value="${producto.id}">
+						<input type="hidden" name="cantidad" value="1">
+						<button class="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-primary-container text-white hover:bg-primary" aria-label="Agregar al carrito">
+							<span class="material-symbols-outlined text-[20px]">add_shopping_cart</span>
+						</button>
+					</form>
+					<span th:if="${producto.permiteCompraWeb() && !producto.tieneStockWebDisponible()}" class="rounded bg-red-100 px-2 py-1 text-[10px] font-black uppercase text-red-800">Sin stock</span>
+					<span th:if="${!producto.permiteCompraWeb()}" class="rounded bg-amber-100 px-2 py-1 text-[10px] font-black uppercase text-amber-800">Consulta</span>
+				</div>
+			</div>
+		</article>
+	</div>
+</section>
+</body>
+</html>

@@ -2,6 +2,7 @@
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
 <head th:fragment="head(title)">
 	<meta charset="utf-8">
+	<th:block th:replace="~{fragments/analytics :: googleTag}"></th:block>
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title th:text="${title}">Admin | ElectrodentalNea</title>
 	<link rel="icon" type="image/png" th:href="${configuracionTienda.logoUrl}">

@@ -2,6 +2,7 @@
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
 <head>
 	<meta charset="utf-8">
+	<th:block th:replace="~{fragments/analytics :: googleTag}"></th:block>
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title th:text="|Pedido ${pedido.codigoCompra ?: pedido.id}|">Pedido</title>
 	<link rel="icon" type="image/png" th:href="${configuracionTienda.logoUrl}">

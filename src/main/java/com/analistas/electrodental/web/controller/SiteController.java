@@ -29,6 +29,7 @@ public class SiteController {
 
 	@GetMapping({ "/", "/inicio" })
 	public String inicio(Model model) {
+		model.addAttribute("seoCanonical", SeoUrls.canonical("/"));
 		model.addAttribute("destacados", productoService.listarDestacados());
 		model.addAttribute("ofertas", productoService.listarOfertas());
 		model.addAttribute("bajoStock", productoService.listarBajoStock());
@@ -74,6 +75,11 @@ public class SiteController {
 		}
 
 		productos = aplicarFiltros(productos, q, marca, precioMin, precioMax);
+		var categoriaSeo = model.asMap().get("categoriaActual") instanceof com.analistas.electrodental.model.domain.Categoria actual
+				? actual.getSlug() : categoria;
+		var subcategoriaSeo = model.asMap().get("subcategoriaActual") instanceof com.analistas.electrodental.model.domain.Subcategoria actual
+				? actual.getSlug() : subcategoria;
+		model.addAttribute("seoCanonical", SeoUrls.catalogo(categoriaSeo, subcategoriaSeo, q, marca, precioMin, precioMax));
 		model.addAttribute("categorias", categoriaService.listarActivas());
 		model.addAttribute("productos", productos);
 		model.addAttribute("marcas", productoService.listarActivos().stream()
@@ -114,6 +120,7 @@ public class SiteController {
 	public String producto(@PathVariable(required = false) String slug, Model model) {
 		if (slug != null) {
 			productoService.buscarPorSlug(slug).ifPresent(producto -> {
+				model.addAttribute("seoCanonical", SeoUrls.canonical("/productos", producto.getSlug()));
 				model.addAttribute("producto", producto);
 				model.addAttribute("productoImagenes", obtenerImagenesProducto(producto));
 				model.addAttribute("caracteristicasProducto", obtenerCaracteristicasProducto(producto));
@@ -138,6 +145,7 @@ public class SiteController {
 
 	@GetMapping("/ofertas")
 	public String ofertas(Model model) {
+		model.addAttribute("seoCanonical", SeoUrls.canonical("/ofertas"));
 		model.addAttribute("productos", productoService.listarOfertas());
 		model.addAttribute("categorias", categoriaService.listarActivas());
 		model.addAttribute("marcas", productoService.listarActivos().stream()
@@ -159,8 +167,30 @@ public class SiteController {
 
 	@GetMapping("/contacto")
 	public String contacto(Model model) {
+		model.addAttribute("seoCanonical", SeoUrls.canonical("/contacto"));
 		model.addAttribute("seoDescription", "Contacta a Electrodental NEA para asesoramiento comercial, presupuestos, insumos odontologicos y servicio tecnico dental.");
 		return "contact";
+	}
+
+	@GetMapping("/politica-privacidad")
+	public String politicaPrivacidad(Model model) {
+		model.addAttribute("seoCanonical", SeoUrls.canonical("/politica-privacidad"));
+		model.addAttribute("seoDescription", "Politica de privacidad y tratamiento de datos personales de Electrodental NEA.");
+		return "politica-privacidad";
+	}
+
+	@GetMapping({ "/politica-devoluciones", "/politica-devolucion" })
+	public String politicaDevoluciones(Model model) {
+		model.addAttribute("seoCanonical", SeoUrls.canonical("/politica-devoluciones"));
+		model.addAttribute("seoDescription", "Politica de cambios, devoluciones, reembolsos y garantias de Electrodental NEA para Argentina.");
+		return "politica-devoluciones";
+	}
+
+	@GetMapping("/politica-publicidad")
+	public String politicaPublicidad(Model model) {
+		model.addAttribute("seoCanonical", SeoUrls.canonical("/politica-publicidad"));
+		model.addAttribute("seoDescription", "Politica de publicidad, promociones y medicion digital de Electrodental NEA.");
+		return "politica-publicidad";
 	}
 
 	private String descripcionProductoSeo(Producto producto) {

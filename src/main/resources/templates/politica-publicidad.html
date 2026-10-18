@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/shop :: head('Política de publicidad | Electrodental NEA')}"></head>
+<body class="bg-background font-sans text-slate-900">
+<header th:replace="~{fragments/shop :: header}"></header>
+
+<main class="mx-auto max-w-4xl px-4 py-12 sm:px-6" th:style="${configuracionTienda.fondoMainStyle}">
+	<article class="rounded-2xl border border-outline bg-white p-6 shadow-sm sm:p-10">
+		<p class="text-sm font-black uppercase tracking-wide text-secondary">Comunicación comercial</p>
+		<h1 class="mt-3 text-3xl font-black text-primary sm:text-4xl">Política de publicidad</h1>
+		<p class="mt-4 text-sm font-semibold text-slate-500">Última actualización: 18 de octubre de 2026</p>
+		<p class="mt-6 leading-7 text-slate-700">Esta política describe cómo Electrodental NEA comunica productos, servicios y promociones en su sitio web y en canales digitales.</p>
+
+		<section class="mt-8 space-y-4 text-slate-700">
+			<h2 class="text-2xl font-black text-primary">Principios de nuestras comunicaciones</h2>
+			<ul class="list-disc space-y-2 pl-5 leading-7">
+				<li>Identificamos de manera clara a Electrodental NEA como responsable de la comunicación.</li>
+				<li>Procuramos que precios, características, disponibilidad, condiciones y beneficios promocionales sean claros y comprobables.</li>
+				<li>Cuando una promoción tenga vigencia, cantidades o condiciones particulares, se informarán en la publicación o página correspondiente.</li>
+				<li>Las imágenes ayudan a identificar los productos; la descripción y las condiciones de la página del producto completan la información aplicable a la compra.</li>
+				<li>No prometemos resultados técnicos o comerciales que no puedan sustentarse.</li>
+			</ul>
+		</section>
+
+		<section class="mt-8 space-y-4 text-slate-700">
+			<h2 class="text-2xl font-black text-primary">Canales y medición</h2>
+			<p class="leading-7">Podemos difundir información en el sitio, buscadores, fichas de productos, redes sociales, correo electrónico o WhatsApp. Los enlaces publicitarios pueden contener parámetros que permitan reconocer el origen de una visita y medir el rendimiento de una campaña.</p>
+			<p class="leading-7">El sitio utiliza Google Analytics para obtener métricas de navegación. Si se habilitan otros servicios publicitarios, su uso se informará y estará sujeto a esta política y a la <a href="/politica-privacidad#publicidad" class="font-bold text-secondary">Política de privacidad</a>.</p>
+		</section>
+
+		<section class="mt-8 space-y-4 text-slate-700">
+			<h2 class="text-2xl font-black text-primary">Preferencias de comunicación</h2>
+			<p class="leading-7">Podés pedir en cualquier momento dejar de recibir comunicaciones promocionales directas. También podés administrar cookies y permisos desde tu navegador o dispositivo. Los mensajes operativos relacionados con una compra, pago, envío, cambio o garantía pueden seguir siendo necesarios para completar la gestión solicitada.</p>
+		</section>
+
+		<section class="mt-8 rounded-xl border border-outline p-5 text-slate-700">
+			<h2 class="text-xl font-black text-primary">Consultas sobre una publicidad</h2>
+			<p class="mt-3 leading-7">Si necesitás verificar una promoción, precio o condición, comunicate antes de comprar mediante los canales publicados:</p>
+			<a th:each="correo : ${configuracionTienda.emailList}" th:href="${'mailto:' + correo}" th:text="${correo}" class="mt-2 block font-bold text-secondary">info@electrodentalnea.com</a>
+		</section>
+	</article>
+</main>
+
+<footer th:replace="~{fragments/shop :: footer}"></footer>
+</body>
+</html>

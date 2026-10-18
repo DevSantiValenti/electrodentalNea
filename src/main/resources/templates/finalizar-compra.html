@@ -33,6 +33,79 @@
 			box-shadow: 0 8px 24px rgba(15, 23, 42, .06);
 		}
 
+		.denttech-checkout-link {
+			display: inline-flex;
+			height: 42px;
+			align-items: center;
+			gap: 8px;
+			padding: 6px 12px 6px 7px;
+			border: 1px solid rgba(102, 226, 248, .4);
+			border-radius: 12px;
+			background: linear-gradient(135deg, #011427 0%, #12384d 45%, #66e2f8 100%);
+			box-shadow: 0 4px 10px rgba(1, 20, 39, .2);
+			color: #fff;
+			font-size: 13px;
+			font-weight: 900;
+			line-height: 1;
+			white-space: nowrap;
+			transition: filter .2s ease;
+		}
+
+		.denttech-checkout-link:hover {
+			filter: brightness(1.1);
+		}
+
+		.denttech-checkout-link img {
+			height: 26px;
+			width: auto;
+		}
+
+		.checkout-site-footer {
+			border-top: 1px solid #d5d9df;
+			background: #0b2438;
+			color: rgba(255, 255, 255, .72);
+			font-size: 12px;
+		}
+
+		.checkout-site-footer__inner,
+		.checkout-site-footer__links,
+		.checkout-site-footer__credit {
+			display: flex;
+			align-items: center;
+		}
+
+		.checkout-site-footer__inner {
+			max-width: 1280px;
+			margin: 0 auto;
+			justify-content: space-between;
+			gap: 18px;
+			padding: 18px 24px;
+			flex-wrap: wrap;
+		}
+
+		.checkout-site-footer__links {
+			gap: 16px;
+			flex-wrap: wrap;
+		}
+
+		.checkout-site-footer a {
+			color: rgba(255, 255, 255, .82);
+		}
+
+		.checkout-site-footer a:hover {
+			color: #fff;
+		}
+
+		.checkout-site-footer__credit {
+			gap: 8px;
+		}
+
+		.checkout-site-footer__credit img {
+			height: 34px;
+			width: 34px;
+			object-fit: contain;
+		}
+
 		main {
 			position: relative;
 			isolation: isolate;
@@ -67,10 +140,9 @@
 				<a th:href="@{/catalogo}" class="hover:text-secondary">Novedades</a>
 				<!-- <a th:href="@{/marcas}" class="hover:text-secondary">Marcas</a> -->
 				<!-- <a th:href="@{/servicio-tecnico}" class="hover:text-secondary">Servicio Técnico</a> -->
-				<a href="https://denttech.com.ar"
-					class="inline-flex items-center gap-3 rounded-xl border-[#66e2f8]/40 bg-[linear-gradient(135deg,#011427_0%,#12384d_45%,#66e2f8_100%)] px-5 py-3 font-bold text-white shadow-lg shadow-cyan-950/20 hover:brightness-110">
-					<!-- <img src="/img/denttech-logo.svg" alt="DentTech" class="h-8 w-auto"> -->
-					<p style="font-weight: 900; color: #66e2f8 !important;">DentTech</p> Servicio técnico
+				<a href="https://denttech.com.ar" class="denttech-checkout-link">
+					<img src="/img/denttech-logo.svg" alt="DentTech">
+					<span>Servicio técnico</span>
 				</a>
 			</nav>
 			<div class="flex items-center gap-5 text-secondary">
@@ -533,6 +605,20 @@
 			</div>
 		</div>
 	</main>
+	<footer class="checkout-site-footer">
+		<div class="checkout-site-footer__inner">
+			<div class="checkout-site-footer__links">
+				<span>© 2026 Electrodental NEA</span>
+				<a th:href="@{/politica-devoluciones}">Cambios y devoluciones</a>
+				<a th:href="@{/politica-privacidad}">Privacidad</a>
+				<a th:href="@{/politica-publicidad}">Publicidad</a>
+			</div>
+			<a href="https://koderyx.com.ar" target="_blank" rel="noopener noreferrer" class="checkout-site-footer__credit" aria-label="Sitio desarrollado por Koderyx">
+				<span>Desarrollado por <strong>Koderyx</strong></span>
+				<img src="/img/koderyx-logo.png" alt="Logo de Koderyx" loading="lazy" decoding="async">
+			</a>
+		</div>
+	</footer>
 	<script>
 		const cartAjaxActions = [
 			"/carrito/actualizar/",

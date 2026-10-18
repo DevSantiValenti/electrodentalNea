@@ -6,6 +6,7 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<meta name="description" content="DentTech, servicio tecnico odontologico de Electrodental NEA para instalacion, mantenimiento y reparacion de equipos dentales.">
 	<title>DentTech | Servicio tecnico odontologico</title>
+	<link rel="canonical" href="https://electrodentalnea.com.ar/servicio-tecnico">
 	<link rel="preconnect" href="https://fonts.googleapis.com">
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 	<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=Sora:wght@500;600;700;800&display=swap" onload="this.onload=null;this.rel='stylesheet'">
@@ -712,6 +713,20 @@
 			font-size: 12px;
 		}
 
+		.footer .koderyx-credit {
+			display: inline-flex;
+			align-items: center;
+			gap: 8px;
+			margin: 14px 0 0;
+			color: rgba(255, 255, 255, .78);
+		}
+
+		.koderyx-credit img {
+			height: 36px;
+			width: 36px;
+			object-fit: contain;
+		}
+
 		@media (max-width: 980px) {
 			.container {
 				width: calc(100% - 32px);
@@ -1183,10 +1198,10 @@
 			</div>
 			<div>
 				<h4>Enlaces</h4>
-				<a href="#">Privacy Policy</a>
-				<a href="#">Terms of Service</a>
-				<a href="#">Service Agreement</a>
-				<a href="#">Support</a>
+				<a th:href="@{/politica-devoluciones}">Cambios y devoluciones</a>
+				<a th:href="@{/politica-privacidad}">Política de privacidad</a>
+				<a th:href="@{/politica-publicidad}">Política de publicidad</a>
+				<a th:href="@{/contacto}">Contacto</a>
 			</div>
 			<div>
 				<h4>Servicios</h4>
@@ -1202,7 +1217,13 @@
 				<a th:href="${configuracionTienda.whatsappLink}" th:text="|WhatsApp ${configuracionTienda.whatsapp}|">WhatsApp</a>
 			</div>
 		</div>
-		<div class="container copyright">© 2026 DentTech Premium Dental Technical Service. All rights reserved.</div>
+		<div class="container copyright">
+			<div>© 2026 DentTech, división de Electrodental NEA. Todos los derechos reservados.</div>
+			<a href="https://koderyx.com.ar" target="_blank" rel="noopener noreferrer" class="koderyx-credit" aria-label="Sitio desarrollado por Koderyx">
+				<span>Desarrollado por <strong>Koderyx</strong></span>
+				<img src="/img/koderyx-logo.png" alt="Logo de Koderyx" loading="lazy" decoding="async">
+			</a>
+		</div>
 	</footer>
 </div>
 </body>

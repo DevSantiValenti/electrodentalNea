@@ -51,6 +51,7 @@ public class CursoPublicController {
 
 	@GetMapping({ "/cursos", "/capacitaciones" })
 	public String cursos(Model model) {
+		model.addAttribute("seoCanonical", SeoUrls.canonical("/cursos"));
 		List<CursoArea> areas = areaService.listarActivas();
 		model.addAttribute("areasCurso", areas);
 		model.addAttribute("areaSeleccionada", null);
@@ -63,6 +64,7 @@ public class CursoPublicController {
 	@GetMapping({ "/cursos/areas/{areaSlug}", "/capacitaciones/areas/{areaSlug}" })
 	public String cursosPorArea(@PathVariable String areaSlug, Model model) {
 		CursoArea area = areaService.buscarActivaPorSlug(areaSlug).orElse(null);
+		if (area != null) model.addAttribute("seoCanonical", SeoUrls.canonical("/cursos/areas", area.getSlug()));
 		model.addAttribute("areasCurso", areaService.listarActivas());
 		model.addAttribute("areaSeleccionada", area);
 		model.addAttribute("cursos", cursoService.listarActivosPorArea(area));
@@ -76,6 +78,7 @@ public class CursoPublicController {
 	@GetMapping({ "/cursos/{slug}", "/capacitaciones/{slug}" })
 	public String detalle(@PathVariable String slug, Model model, HttpSession session) {
 		Curso curso = cursoService.buscarActivoPorSlug(slug).orElse(null);
+		if (curso != null) model.addAttribute("seoCanonical", SeoUrls.canonical("/cursos", curso.getSlugUrl()));
 		model.addAttribute("curso", curso);
 		model.addAttribute("certificadoAutorizado", curso != null && certificadoAutorizado(curso, session));
 		model.addAttribute("productosCursos", productoService.listarParaCursos());
@@ -94,6 +97,7 @@ public class CursoPublicController {
 		Curso curso = cursoService.buscarActivoPorSlug(slug).orElse(null);
 		List<CursoClase> clases = curso == null ? List.of() : curso.getClasesOrdenadasActivas();
 		CursoClase clase = curso == null ? null : curso.buscarClaseActiva(claseId).orElse(null);
+		if (clase != null) model.addAttribute("seoCanonical", SeoUrls.canonical("/cursos", curso.getSlugUrl(), "clases", claseId.toString()));
 		int indice = clase == null ? -1 : clases.indexOf(clase);
 		model.addAttribute("curso", curso);
 		model.addAttribute("clase", clase);

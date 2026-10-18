@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/shop :: head('Política de privacidad | Electrodental NEA')}"></head>
+<body class="bg-background font-sans text-slate-900">
+<header th:replace="~{fragments/shop :: header}"></header>
+
+<main class="mx-auto max-w-4xl px-4 py-12 sm:px-6" th:style="${configuracionTienda.fondoMainStyle}">
+	<article class="rounded-2xl border border-outline bg-white p-6 shadow-sm sm:p-10">
+		<p class="text-sm font-black uppercase tracking-wide text-secondary">Protección de datos</p>
+		<h1 class="mt-3 text-3xl font-black text-primary sm:text-4xl">Política de privacidad</h1>
+		<p class="mt-4 text-sm font-semibold text-slate-500">Última actualización: 18 de octubre de 2026</p>
+		<p class="mt-6 leading-7 text-slate-700">Electrodental NEA protege la privacidad de quienes visitan el sitio, realizan consultas o efectúan compras. Esta política explica qué datos podemos tratar, para qué los usamos y cómo ejercer tus derechos.</p>
+
+		<section class="mt-8 space-y-4 text-slate-700">
+			<h2 class="text-2xl font-black text-primary">Datos que podemos recopilar</h2>
+			<ul class="list-disc space-y-2 pl-5 leading-7">
+				<li>Datos de identificación y contacto, como nombre, documento, teléfono y correo electrónico.</li>
+				<li>Datos de facturación, domicilio y entrega necesarios para procesar una compra.</li>
+				<li>Información del pedido, productos adquiridos, método de envío y estado del pago. Electrodental NEA no almacena los datos completos de tarjetas administrados por la plataforma de pago.</li>
+				<li>Consultas, mensajes y archivos enviados voluntariamente para atención comercial, soporte o garantías.</li>
+				<li>Datos técnicos y de navegación, como páginas visitadas, dispositivo, navegador, dirección IP aproximada y origen de la visita.</li>
+			</ul>
+		</section>
+
+		<section class="mt-8 space-y-4 text-slate-700">
+			<h2 class="text-2xl font-black text-primary">Para qué usamos los datos</h2>
+			<p class="leading-7">Usamos la información para responder consultas, preparar presupuestos, gestionar compras, pagos, entregas, cambios y garantías; prevenir usos indebidos; cumplir obligaciones legales y fiscales; medir el funcionamiento del sitio y mejorar nuestros productos y servicios.</p>
+			<p class="leading-7">Las comunicaciones promocionales por correo o WhatsApp se enviarán cuando hayan sido solicitadas, autorizadas o correspondan a una relación comercial permitida. Siempre podés pedir dejar de recibirlas.</p>
+		</section>
+
+		<section class="mt-8 space-y-4 text-slate-700">
+			<h2 class="text-2xl font-black text-primary">Proveedores y destinatarios</h2>
+			<p class="leading-7">Podemos compartir únicamente los datos necesarios con proveedores que intervienen en la operación, como Mercado Pago u otros procesadores de pago, OCA u operadores logísticos, proveedores tecnológicos, servicio técnico, fabricantes cuando se gestione una garantía y autoridades cuando exista una obligación legal.</p>
+			<p class="leading-7">No vendemos bases de datos personales.</p>
+		</section>
+
+		<section id="publicidad" class="mt-8 space-y-4 text-slate-700">
+			<h2 class="text-2xl font-black text-primary">Cookies, Analytics y publicidad</h2>
+			<p class="leading-7">El sitio utiliza tecnologías de medición como Google Analytics para conocer, de forma agregada, cómo se navega la web y mejorar su rendimiento. Estas herramientas pueden utilizar cookies o identificadores técnicos y estar sujetas a las políticas de sus proveedores.</p>
+			<p class="leading-7">Podés limitar o eliminar cookies desde la configuración de tu navegador. La información sobre anuncios, promociones y medición de campañas se amplía en nuestra <a th:href="@{/politica-publicidad}" class="font-bold text-secondary">Política de publicidad</a>.</p>
+		</section>
+
+		<section class="mt-8 space-y-4 text-slate-700">
+			<h2 class="text-2xl font-black text-primary">Conservación y seguridad</h2>
+			<p class="leading-7">Conservamos los datos durante el tiempo necesario para cumplir las finalidades informadas y las obligaciones comerciales, contables, fiscales o legales aplicables. Aplicamos medidas razonables para evitar accesos, alteraciones o divulgaciones no autorizadas.</p>
+		</section>
+
+		<section class="mt-8 space-y-4 text-slate-700">
+			<h2 class="text-2xl font-black text-primary">Tus derechos</h2>
+			<p class="leading-7">De acuerdo con la Ley 25.326, podés solicitar acceso, actualización, rectificación, confidencialidad o supresión de tus datos cuando corresponda. Para ejercer estos derechos, escribinos mediante los datos de contacto publicados en el sitio.</p>
+			<p class="leading-7">La Agencia de Acceso a la Información Pública es la autoridad de aplicación y recibe denuncias y reclamos relacionados con la protección de datos personales.</p>
+		</section>
+
+		<section class="mt-8 rounded-xl border border-outline p-5 text-slate-700">
+			<h2 class="text-xl font-black text-primary">Contacto sobre privacidad</h2>
+			<p class="mt-3 leading-7">Podés comunicarte con Electrodental NEA mediante los correos y el WhatsApp publicados en el sitio:</p>
+			<a th:each="correo : ${configuracionTienda.emailList}" th:href="${'mailto:' + correo}" th:text="${correo}" class="mt-2 block font-bold text-secondary">info@electrodentalnea.com</a>
+		</section>
+	</article>
+</main>
+
+<footer th:replace="~{fragments/shop :: footer}"></footer>
+</body>
+</html>

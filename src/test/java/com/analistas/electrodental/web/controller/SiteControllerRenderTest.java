@@ -48,7 +48,26 @@ class SiteControllerRenderTest {
 				.andExpect(result -> Assertions.assertThat(result.getResponse().getContentAsString())
 						.contains("<?xml version=\"1.0\" encoding=\"UTF-8\"?>")
 						.contains("<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">")
-						.contains("<loc>https://electrodentalnea.com.ar/</loc>"));
+						.contains("<loc>https://electrodentalnea.com.ar/</loc>")
+						.contains("<loc>https://electrodentalnea.com.ar/politica-privacidad</loc>")
+						.contains("<loc>https://electrodentalnea.com.ar/politica-devoluciones</loc>")
+						.contains("<loc>https://electrodentalnea.com.ar/politica-publicidad</loc>"));
+	}
+
+	@Test
+	void politicasPublicasRenderizanSinLogin() throws Exception {
+		mockMvc.perform(get("/politica-privacidad"))
+				.andExpect(status().isOk())
+				.andExpect(view().name("politica-privacidad"));
+		mockMvc.perform(get("/politica-devoluciones"))
+				.andExpect(status().isOk())
+				.andExpect(view().name("politica-devoluciones"));
+		mockMvc.perform(get("/politica-devolucion"))
+				.andExpect(status().isOk())
+				.andExpect(view().name("politica-devoluciones"));
+		mockMvc.perform(get("/politica-publicidad"))
+				.andExpect(status().isOk())
+				.andExpect(view().name("politica-publicidad"));
 	}
 
 	@Test

@@ -2,13 +2,14 @@ package com.analistas.electrodental.web.controller;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.nio.charset.StandardCharsets;
 
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.util.HtmlUtils;
+import org.springframework.web.util.UriUtils;
 
 import com.analistas.electrodental.model.domain.Categoria;
 import com.analistas.electrodental.model.domain.Curso;
@@ -66,6 +67,9 @@ public class SeoController {
 		entries.add(new SitemapEntry("/cursos", "weekly", "0.7"));
 		entries.add(new SitemapEntry("/servicio-tecnico", "monthly", "0.6"));
 		entries.add(new SitemapEntry("/contacto", "monthly", "0.5"));
+		entries.add(new SitemapEntry("/politica-privacidad", "yearly", "0.3"));
+		entries.add(new SitemapEntry("/politica-devoluciones", "yearly", "0.4"));
+		entries.add(new SitemapEntry("/politica-publicidad", "yearly", "0.3"));
 
 		for (Categoria categoria : categoriaService.listarActivas()) {
 			if (StringUtils.hasText(categoria.getSlug())) {
@@ -95,7 +99,7 @@ public class SeoController {
 		sitemap.append("<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n");
 		for (SitemapEntry entry : entries) {
 			sitemap.append("  <url>\n");
-			sitemap.append("    <loc>").append(escape(BASE_URL + entry.path())).append("</loc>\n");
+			sitemap.append("    <loc>").append(escape(BASE_URL + UriUtils.encodePath(entry.path(), StandardCharsets.UTF_8))).append("</loc>\n");
 			sitemap.append("    <changefreq>").append(entry.changefreq()).append("</changefreq>\n");
 			sitemap.append("    <priority>").append(entry.priority()).append("</priority>\n");
 			sitemap.append("  </url>\n");
@@ -105,7 +109,8 @@ public class SeoController {
 	}
 
 	private String escape(String value) {
-		return HtmlUtils.htmlEscape(value);
+		return value.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+				.replace("\"", "&quot;").replace("'", "&apos;");
 	}
 
 	private record SitemapEntry(String path, String changefreq, String priority) {

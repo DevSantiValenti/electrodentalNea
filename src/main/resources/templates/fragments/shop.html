@@ -5,6 +5,7 @@
 	<th:block th:replace="~{fragments/analytics :: googleTag}"></th:block>
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title th:text="${title}">ElectrodentalNea</title>
+	<link th:if="${seoCanonical != null}" rel="canonical" th:href="${seoCanonical}">
 	<meta name="description" th:content="${seoDescription ?: 'Electrodental NEA: equipamiento odontologico, insumos dentales, repuestos y servicio tecnico para profesionales, consultorios y clinicas dentales.'}">
 	<link rel="icon" type="image/png" th:href="${configuracionTienda.logoUrl}">
 	<link rel="shortcut icon" type="image/png" th:href="${configuracionTienda.logoUrl}">
@@ -131,6 +132,9 @@
 			<h3 class="mb-3 text-sm font-bold uppercase text-white">Soporte</h3>
 			<a href="https://denttech.com.ar" class="block py-1 text-sm text-white/75 hover:text-white">Servicio técnico</a>
 			<a th:href="@{/contacto}" class="block py-1 text-sm text-white/75 hover:text-white">Contacto</a>
+			<a th:href="@{/politica-devoluciones}" class="block py-1 text-sm text-white/75 hover:text-white">Cambios y devoluciones</a>
+			<a th:href="@{/politica-privacidad}" class="block py-1 text-sm text-white/75 hover:text-white">Privacidad</a>
+			<a th:href="@{/politica-publicidad}" class="block py-1 text-sm text-white/75 hover:text-white">Publicidad</a>
 		</div>
 		<div>
 			<h3 class="mb-3 text-sm font-bold uppercase text-white">Atención</h3>
@@ -146,7 +150,15 @@
 			</div>
 		</div>
 	</div>
-	<div class="border-t border-white/10 py-5 text-center text-xs text-white/60">© 2026 ElectrodentalNea | Desarrollado por <a href="https://www.linkedin.com/in/santiago-valenti-b683b2373/" target="_blank" rel="noopener noreferrer"><strong>DevSantiValenti</strong></a> -  <a href="http://wa.me/543624701036" target="_blank" rel="noopener noreferrer"><strong>Whatsapp</strong></a></div>
+	<div class="border-t border-white/10 px-4 py-5 text-xs text-white/60">
+		<div class="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 sm:flex-row">
+			<span>© 2026 Electrodental NEA. Todos los derechos reservados.</span>
+			<a href="https://koderyx.com.ar" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 text-white/75 transition hover:text-white" aria-label="Sitio desarrollado por Koderyx">
+				<span>Desarrollado por <strong>Koderyx</strong></span>
+				<img src="/img/koderyx-logo.png" alt="Logo de Koderyx" loading="lazy" decoding="async" style="height: 34px; width: 34px; object-fit: contain;">
+			</a>
+		</div>
+	</div>
 	<script>
 		(() => {
 			const toast = document.querySelector("#cart-toast");
